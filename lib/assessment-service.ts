@@ -418,7 +418,6 @@ export class AssessmentService {
 
   // Clean up method to cancel all pending requests
   static cleanup() {
-    console.log("🧹 Cleaning up pending requests...")
     this.activeRequests.forEach((controller, key) => {
       controller.abort()
     })

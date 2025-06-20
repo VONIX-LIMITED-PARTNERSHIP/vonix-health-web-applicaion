@@ -103,7 +103,6 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
         // ไม่ต้องลบ localStorage ที่นี่ เพราะ saveToDatabase จะเป็นคนลบ
       }
     } catch (error) {
-      console.error("Error loading assessment data:", error)
       setError("ไม่สามารถโหลดข้อมูลการประเมินได้")
       setLoading(false)
     }
@@ -135,7 +134,6 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
 
       setResult(result)
     } catch (error) {
-      console.error("Error analyzing with AI:", error)
       setError("เกิดข้อผิดพลาดในการวิเคราะห์ กรุณาลองใหม่อีกครั้ง")
     } finally {
       setAnalyzing(false)
@@ -176,7 +174,6 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
   const saveToDatabase = async () => {
     // Prevent multiple simultaneous saves
     if (saveInProgressRef.current || saving || saved) {
-      console.log("🚫 Save already in progress or completed")
       return
     }
 
@@ -189,14 +186,12 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
       return
     }
 
-    console.log("💾 Starting save process...")
     saveInProgressRef.current = true
     setSaving(true)
 
     // Set a UI timeout (show error after 10 seconds)
     saveTimeoutRef.current = setTimeout(() => {
       if (saveInProgressRef.current) {
-        console.log("⏰ UI timeout reached")
         setSaving(false)
         saveInProgressRef.current = false
         toast({
@@ -217,8 +212,6 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
         throw new Error("ไม่พบผลการวิเคราะห์จาก AI")
       }
 
-      console.log("📤 Sending data to server...")
-
       const { data, error } = await AssessmentService.saveAssessment(
         user.id,
         categoryId,
@@ -234,8 +227,6 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
       }
 
       if (error) {
-        console.error("💥 Save error:", error)
-
         // Show specific error messages
         let errorMessage = "เกิดข้อผิดพลาดในการบันทึก"
         if (error.includes("already exists") || error.includes("duplicate")) {
@@ -257,7 +248,6 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
 
         throw new Error(errorMessage)
       } else {
-        console.log("✅ Assessment saved successfully:", data?.id)
         setSaved(true)
         // Clear localStorage after successful save
         localStorage.removeItem(`assessment-${categoryId}`) // <--- ย้ายมาที่นี่
@@ -267,7 +257,6 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
         })
       }
     } catch (error) {
-      console.error("💥 Error saving assessment:", error)
       const errorMessage = error instanceof Error ? error.message : "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ"
 
       toast({

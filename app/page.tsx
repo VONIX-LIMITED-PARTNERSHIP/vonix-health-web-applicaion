@@ -324,18 +324,20 @@ export default function HomePage() {
                 <span className="hidden sm:inline">ปรึกษาแพทย์ออนไลน์</span>
                 <span className="sm:hidden">ปรึกษาแพทย์</span>
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto border-2 border-purple-300 hover:border-purple-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-                asChild
-              >
-                <Link href="/guest-assessment">
-                  <FlaskConical className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                  <span className="hidden sm:inline">ทดลองใช้งาน</span>
-                  <span className="sm:hidden">ลองใช้</span>
-                </Link>
-              </Button>
+              {!isLoggedIn && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto border-2 border-purple-300 hover:border-purple-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  asChild
+                >
+                  <Link href="/guest-assessment">
+                    <FlaskConical className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
+                    <span className="hidden sm:inline">ทดลองใช้งาน</span>
+                    <span className="sm:hidden">ลองใช้</span>
+                  </Link>
+                </Button>
+              )}
             </div>
 
             {/* Features */}

@@ -337,7 +337,7 @@ export function ChatWidget() {
 
 📏 **ปริมาณ**: 8-10 แก้ว/วัน (2-2.5 ลิตร)
 
-⏰ **เวล��ดี**:
+⏰ **เวลาดี**:
 • ตื่นนอน - 1-2 แก้ว
 • ก่อนอาหาร - 30 นาที
 • หลังออกกำลังกาย
@@ -471,7 +471,7 @@ export function ChatWidget() {
 
 📱 **ใช้ VONIX ช่วย**:
 • ติดตามความก้าวหน้า
-• รับ���ำแนะนำเฉพาะตัว
+• รับคำแนะนำเฉพาะตัว
 • สร้างแรงจูงใจ
 
 คุณทำได้แน่นอน! ผมเชื่อในตัวคุณ ✨`
@@ -704,55 +704,53 @@ export function ChatWidget() {
       {/* Chat Window */}
       {isOpen && (
         <div className="fixed bottom-24 right-6 z-40 w-96 h-[500px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] sm:max-w-[calc(100vw-3rem)]">
-          <Card className="h-full bg-white/98 dark:bg-gray-900/98 backdrop-blur-xl border-0 shadow-2xl rounded-3xl overflow-hidden">
+          <Card className="h-full bg-card dark:bg-card-foreground backdrop-blur-xl border border-border shadow-2xl rounded-3xl overflow-hidden flex flex-col">
             {/* Header */}
-            <CardHeader className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white p-6 shadow-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="relative">
-                    <Avatar className="h-12 w-12 border-3 border-white/30 shadow-lg">
-                      <AvatarImage src="/placeholder.svg?height=48&width=48&text=🤖" />
-                      <AvatarFallback className="bg-white/20 text-white text-lg font-bold backdrop-blur-sm">
-                        <Bot className="h-6 w-6" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-400 rounded-full border-2 border-white animate-pulse shadow-sm"></div>
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl font-bold tracking-wide">VONIX Assistant</CardTitle>
-                    <div className="flex items-center space-x-2 text-sm text-white/90">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="font-medium">พร้อมช่วยเหลือ 24/7</span>
-                    </div>
+            <CardHeader className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white p-6 shadow-lg flex flex-row items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <Avatar className="h-12 w-12 border-3 border-white/30 shadow-lg">
+                    <AvatarImage src="/placeholder.svg?height=48&width=48&text=🤖" />
+                    <AvatarFallback className="bg-white/20 text-white text-lg font-bold backdrop-blur-sm">
+                      <Bot className="h-6 w-6" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-400 rounded-full border-2 border-white animate-pulse shadow-sm"></div>
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold tracking-wide">VONIX Assistant</CardTitle>
+                  <div className="flex items-center space-x-2 text-sm text-white/90">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="font-medium">พร้อมช่วยเหลือ 24/7</span>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleMinimize}
-                    className="text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-200"
-                  >
-                    {isMinimized ? <Maximize2 className="h-5 w-5" /> : <Minimize2 className="h-5 w-5" />}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleChat}
-                    className="text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-200"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleMinimize}
+                  className="text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-200"
+                >
+                  {isMinimized ? <Maximize2 className="h-5 w-5" /> : <Minimize2 className="h-5 w-5" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleChat}
+                  className="text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-200"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
               </div>
             </CardHeader>
 
             {/* Chat Content */}
             {!isMinimized && (
               <>
-                <CardContent className="flex-1 p-0 h-[calc(100%-120px)]">
-                  <ScrollArea className="h-full" ref={scrollAreaRef}>
-                    <div className="p-4 space-y-4">
+                <CardContent className="flex-1 p-0 flex flex-col">
+                  <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+                    <div className="space-y-4">
                       {messages.map((message) => (
                         <div
                           key={message.id}
@@ -780,14 +778,14 @@ export function ChatWidget() {
                                 "rounded-2xl px-5 py-4 text-sm leading-relaxed shadow-md",
                                 message.sender === "user"
                                   ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-blue-200 dark:shadow-blue-900/50"
-                                  : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 shadow-gray-100 dark:shadow-gray-900/50",
+                                  : "bg-muted dark:bg-secondary text-foreground dark:text-foreground border border-border dark:border-border shadow-sm",
                               )}
                             >
                               <div className="whitespace-pre-wrap font-medium">{message.content}</div>
                               <div
                                 className={cn(
                                   "text-xs mt-3 opacity-75 font-medium",
-                                  message.sender === "user" ? "text-white/80" : "text-gray-500 dark:text-gray-400",
+                                  message.sender === "user" ? "text-white/80" : "text-muted-foreground",
                                 )}
                               >
                                 {message.timestamp.toLocaleTimeString("th-TH", {
@@ -809,7 +807,7 @@ export function ChatWidget() {
                                 <Bot className="h-4 w-4" />
                               </AvatarFallback>
                             </Avatar>
-                            <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-5 py-4 shadow-sm">
+                            <div className="bg-muted dark:bg-secondary border border-border rounded-2xl px-5 py-4 shadow-sm">
                               <div className="flex space-x-2">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
                                 <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-100"></div>
@@ -821,29 +819,29 @@ export function ChatWidget() {
                       )}
                     </div>
                   </ScrollArea>
+
+                  {/* Quick Replies */}
+                  {messages.length <= 1 && (
+                    <div className="px-6 py-4 bg-accent/20 dark:bg-accent/30 border-t border-border">
+                      <div className="text-sm text-foreground mb-3 font-semibold">💡 คำถามยอดนิยม</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {QUICK_REPLIES.map((reply, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="cursor-pointer hover:bg-accent hover:text-accent-foreground transition-all duration-200 text-xs px-3 py-2 rounded-xl bg-secondary dark:bg-secondary border border-border text-center justify-center h-auto text-secondary-foreground font-medium shadow-sm hover:shadow-md"
+                            onClick={() => handleQuickReply(reply)}
+                          >
+                            {reply}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
 
-                {/* Quick Replies */}
-                {messages.length <= 1 && (
-                  <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 border-t border-gray-200 dark:border-gray-600">
-                    <div className="text-sm text-gray-700 dark:text-gray-200 mb-3 font-semibold">💡 คำถามยอดนิยม</div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {QUICK_REPLIES.map((reply, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="cursor-pointer hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-blue-900 dark:hover:text-blue-200 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200 text-xs px-3 py-2 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-center justify-center h-auto text-gray-700 dark:text-gray-200 font-medium shadow-sm hover:shadow-md"
-                          onClick={() => handleQuickReply(reply)}
-                        >
-                          {reply}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {/* Input Area */}
-                <div className="p-6 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600">
+                <div className="p-6 bg-card dark:bg-card-foreground border-t border-border">
                   <div className="flex items-end space-x-4">
                     <Input
                       ref={inputRef}
@@ -851,7 +849,7 @@ export function ChatWidget() {
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="พิมพ์ข้อความ..."
-                      className="flex-1 rounded-2xl border-2 border-gray-200 dark:border-gray-600 focus:border-blue-400 dark:focus:border-blue-500 px-5 py-4 bg-gray-50 dark:bg-gray-700 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 resize-none min-h-[52px] text-gray-800 dark:text-gray-200 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                      className="flex-1 rounded-2xl border-2 border-input focus:border-primary px-5 py-4 bg-background focus:bg-background transition-all duration-200 resize-none min-h-[52px] text-foreground placeholder:text-muted-foreground"
                       disabled={isTyping}
                     />
                     <Button
@@ -859,10 +857,14 @@ export function ChatWidget() {
                       disabled={!inputValue.trim() || isTyping}
                       className="rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 p-4 h-[52px] w-[52px] shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0"
                     >
-                      {isTyping ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                      {isTyping ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-white" />
+                      ) : (
+                        <Send className="h-5 w-5 text-white" />
+                      )}
                     </Button>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center leading-relaxed font-medium"></div>
+                  <div className="text-xs text-muted-foreground mt-4 text-center leading-relaxed font-medium"></div>
                 </div>
               </>
             )}

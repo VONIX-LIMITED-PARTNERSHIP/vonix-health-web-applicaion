@@ -29,17 +29,11 @@ export default function RegisterPage() {
     acceptPDPA: false,
   })
 
-  console.log("RegisterPage loaded. Current user from useAuth:", user)
-  console.log("Auth loading state (from useAuth):", authLoading)
-  console.log("Local form submission loading state:", loading)
-
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
-      console.log("Redirecting to / because user is logged in and auth is not loading.")
       router.push("/")
     } else if (!authLoading && !user) {
-      console.log("Auth not loading and no user found. Ready for registration.")
     }
   }, [user, authLoading, router])
 
@@ -47,11 +41,9 @@ export default function RegisterPage() {
     e.preventDefault()
 
     if (loading) {
-      console.log("handleSubmit: Already loading, returning.")
       return
     }
 
-    console.log("handleSubmit: Starting form submission.")
     setLoading(true)
 
     // Validation
@@ -62,7 +54,6 @@ export default function RegisterPage() {
         variant: "destructive",
       })
       setLoading(false)
-      console.log("handleSubmit: Password mismatch, local loading set to false.")
       return
     }
 
@@ -73,7 +64,6 @@ export default function RegisterPage() {
         variant: "destructive",
       })
       setLoading(false)
-      console.log("handleSubmit: PDPA not accepted, local loading set to false.")
       return
     }
 
@@ -89,13 +79,11 @@ export default function RegisterPage() {
           description: error.message === "User already registered" ? "อีเมลนี้ถูกใช้งานแล้ว" : error.message,
           variant: "destructive",
         })
-        console.error("Error from signUp hook in page:", error)
       } else {
         toast({
           title: "สมัครสมาชิกสำเร็จ",
           description: "กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชี",
         })
-        console.log("Sign up successful, redirecting to /login.")
         router.push("/login")
       }
     } catch (error) {
@@ -104,16 +92,13 @@ export default function RegisterPage() {
         description: "กรุณาลองใหม่อีกครั้ง",
         variant: "destructive",
       })
-      console.error("Exception during registration form submission:", error)
     } finally {
       setLoading(false)
-      console.log("handleSubmit: Form submission finished, local loading set to false.")
     }
   }
 
   // Show loading if auth is still loading (full page spinner)
   if (authLoading) {
-    console.log("RegisterPage: authLoading is true, showing full page spinner.")
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
         <div className="flex items-center space-x-2">
