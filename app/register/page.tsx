@@ -160,7 +160,7 @@ export default function RegisterPage() {
                         placeholder="ชื่อ-นามสกุลของคุณ"
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
+                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300 text-black"
                         required
                         disabled={loading}
                       />
@@ -179,7 +179,7 @@ export default function RegisterPage() {
                         placeholder="your@email.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
+                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300 text-black"
                         required
                         disabled={loading}
                       />
@@ -198,7 +198,7 @@ export default function RegisterPage() {
                         placeholder="รหัสผ่านของคุณ"
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="pl-12 pr-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
+                        className="pl-12 pr-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300 text-black"
                         required
                         disabled={loading}
                         minLength={6}
@@ -228,7 +228,7 @@ export default function RegisterPage() {
                         placeholder="ยืนยันรหัสผ่านของคุณ"
                         value={formData.confirmPassword}
                         onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
+                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300 text-black"
                         required
                         disabled={loading}
                       />
@@ -237,7 +237,7 @@ export default function RegisterPage() {
 
                   {/* PDPA Consent */}
                   <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                    <h3 className="font-semibold text-sm">การให้ความยินยอมตาม PDPA</h3>
+                    <h3 className="text-black font-semibold text-sm">การให้ความยินยอมตาม PDPA</h3>
                     <div className="text-xs text-gray-600 space-y-2">
                       <p>
                         <strong>ข้อมูลที่เราจะเก็บรวบรวม:</strong>
@@ -274,13 +274,15 @@ export default function RegisterPage() {
                           บริการประเมินสุขภาพ การสร้างรายงานสำหรับแพทย์ และการ ปรับปรุงบริการ{" "}
                           <span className="text-red-500">*</span>
                         </label>
-                        <Link
-                          href="/privacy-policy"
+                        <a
+                          href="https://pdpa.pro/policies/view/th/Gxgg1LLE9TqFbyCaJrjo4E3X"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-blue-600 hover:underline inline-flex items-center ml-1"
                         >
                           อ่านนโยบายความเป็นส่วนตัว
                           <ExternalLink className="ml-1 h-3 w-3" />
-                        </Link>
+                        </a>
                       </div>
                     </div>
                   </div>
