@@ -16,6 +16,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, metadata?: any) => Promise<{ data?: any; error?: any }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  resetPasswordForEmail: (email: string) => Promise<{ data?: any; error?: any }> // เพิ่มฟังก์ชันนี้
+  updatePassword: (newPassword: string) => Promise<{ data?: any; error?: any }> // เพิ่มฟังก์ชันนี้
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -26,6 +28,8 @@ const AuthContext = createContext<AuthContextType>({
   signUp: async () => ({ error: new Error("Auth not configured") }),
   signOut: async () => {},
   refreshProfile: async () => {},
+  resetPasswordForEmail: async () => ({ error: new Error("Auth not configured") }), // เพิ่มฟังก์ชันนี้
+  updatePassword: async () => ({ error: new Error("Auth not configured") }), // เพิ่มฟังก์ชันนี้
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -192,10 +196,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const result = await response.json()
 
-      if (response.ok && result.profile) {
-        setProfile(result.profile)
-      } else {
+      if (!response.ok) {
         console.error("Failed to create missing profile:", result.error)
+      } else {
       }
     } catch (error) {
       console.error("Error creating missing profile:", error)
@@ -331,6 +334,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // New: Function to send password reset email
+  const resetPasswordForEmail = async (email: string) => {
+    if (!supabase) {
+      return { error: new Error("Supabase not configured") }
+    }
+    try {
+      setLoading(true)
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`, // Redirect to the new password update page
+      })
+      if (error) {
+        return { data, error }
+      }
+      return { data, error: null }
+    } catch (error: any) {
+      return { error: new Error(error.message || "An unexpected error occurred") }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // New: Function to update user password
+  const updatePassword = async (newPassword: string) => {
+    if (!supabase) {
+      return { error: new Error("Supabase not configured") }
+    }
+    try {
+      setLoading(true)
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+      if (error) {
+        return { data, error }
+      }
+      return { data, error: null }
+    } catch (error: any) {
+      return { error: new Error(error.message || "An unexpected error occurred") }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -341,6 +386,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUp,
         signOut,
         refreshProfile,
+        resetPasswordForEmail, // เพิ่มฟังก์ชันนี้
+        updatePassword, // เพิ่มฟังก์ชันนี้
       }}
     >
       {children}
