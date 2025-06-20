@@ -33,7 +33,6 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
-      console.log("User already logged in, redirecting...")
       router.push("/")
     }
   }, [user, authLoading, router])
@@ -46,13 +45,9 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      console.log("Attempting login...")
-
       const { data, error } = await signIn(formData.email, formData.password)
 
       if (error) {
-        console.error("Login error:", error)
-
         let errorMessage = "เข้าสู่ระบบไม่สำเร็จ"
         if (error.message === "Invalid login credentials") {
           errorMessage = "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
@@ -68,8 +63,6 @@ export default function LoginPage() {
           variant: "destructive",
         })
       } else if (data.user) {
-        console.log("Login successful, user:", data.user.id)
-
         toast({
           title: "เข้าสู่ระบบสำเร็จ",
           description: "ยินดีต้อนรับกลับ!",
@@ -81,7 +74,6 @@ export default function LoginPage() {
         }, 500)
       }
     } catch (error) {
-      console.error("Login exception:", error)
       toast({
         title: "เกิดข้อผิดพลาด",
         description: "กรุณาลองใหม่อีกครั้ง",
@@ -136,7 +128,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">ยินดีต้อนรับ</h1>
+                  <h1 className="text-3xl font-bold text-gray-800 mb-2">ยินดีต้อนรับกลับ</h1>
                   <p className="text-gray-600">เข้าสู่ระบบเพื่อดูแลสุขภาพของคุณ</p>
                 </div>
               </CardHeader>
@@ -155,7 +147,7 @@ export default function LoginPage() {
                         placeholder="your@email.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 transition-all duration-300"
+                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
                         required
                         disabled={loading}
                         autoComplete="email"
@@ -175,7 +167,7 @@ export default function LoginPage() {
                         placeholder="รหัสผ่านของคุณ"
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="pl-12 pr-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 transition-all duration-300"
+                        className="pl-12 pr-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
                         required
                         disabled={loading}
                         autoComplete="current-password"

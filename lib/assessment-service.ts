@@ -42,7 +42,6 @@ export class AssessmentService {
       const result = await response.json()
       return { data: result.analysis, error: null }
     } catch (error) {
-      console.error("Error in AI analysis:", error)
       return { data: null, error }
     }
   }
@@ -151,18 +150,13 @@ export class AssessmentService {
         this.activeRequests.delete(existingKey)
 
         if (error) {
-          console.error("❌ Database insert error:", error)
-
           // Handle specific error cases
           if (error.code === "23505") {
             // Unique constraint violation
-            console.log("⚠️ Duplicate entry detected")
             return { data: null, error: "Assessment already exists for this category" }
           }
 
           if (error.message.includes("JSON")) {
-            console.log("🔄 Retrying with stringified answers...")
-
             const retryData = {
               ...assessmentData,
               answers: JSON.stringify(answers),
@@ -178,7 +172,6 @@ export class AssessmentService {
               throw new Error(`Database retry failed: ${retryError.message}`)
             }
 
-            console.log("✅ Assessment saved successfully on retry")
             return { data: retryResult, error: null }
           }
 
@@ -189,15 +182,13 @@ export class AssessmentService {
           throw new Error("No data returned from insert operation")
         }
 
-        console.log("✅ Assessment saved successfully:", insertedData.id)
-
         // Log audit (non-blocking)
         this.logAudit(userId, "assessment_completed", "assessments", insertedData.id, {
           category_id: categoryId,
           score: result.percentage,
           risk_level: result.riskLevel,
           ai_analysis: categoryId !== "basic",
-        }).catch((err) => console.warn("⚠️ Audit log failed (non-critical):", err))
+        }).catch((err) => {})
 
         return { data: insertedData, error: null }
       } catch (operationError) {
@@ -207,8 +198,6 @@ export class AssessmentService {
         throw operationError
       }
     } catch (error) {
-      console.error("❌ Error in saveAssessment:", error)
-
       // Clean up any remaining requests
       const existingKey = `save-${userId}-${categoryId}`
       this.activeRequests.delete(existingKey)
@@ -225,7 +214,7 @@ export class AssessmentService {
         } else if (error.message.includes("authentication") || error.message.includes("unauthorized")) {
           errorMessage = "กรุณาเข้าสู่ระบบใหม่"
         } else if (error.message.includes("already exists")) {
-          errorMessage = "ข้อม���ลนี้ถูกบันทึกไปแล้ว"
+          errorMessage = "ข้อมูลนี้ถูกบันทึกไปแล้ว"
         } else {
           errorMessage = error.message
         }
@@ -251,7 +240,6 @@ export class AssessmentService {
 
       return { data: data || [], error: null }
     } catch (error) {
-      console.error("Error getting user assessments:", error)
       return { data: [], error }
     }
   }
@@ -286,7 +274,6 @@ export class AssessmentService {
       const latestAssessments = Array.from(latestByCategory.values())
       return { data: latestAssessments, error: null }
     } catch (error) {
-      console.error("Error getting latest user assessments:", error)
       return { data: [], error }
     }
   }
@@ -303,7 +290,6 @@ export class AssessmentService {
 
       return { data, error: null }
     } catch (error) {
-      console.error("Error getting assessment by ID:", error)
       return { data: null, error }
     }
   }
@@ -416,9 +402,7 @@ export class AssessmentService {
         details,
         user_agent: typeof window !== "undefined" ? navigator.userAgent : null,
       })
-    } catch (error) {
-      console.error("Error logging audit:", error)
-    }
+    } catch (error) {}
   }
 
   static async testConnection(): Promise<boolean> {
@@ -428,7 +412,6 @@ export class AssessmentService {
       const { data, error } = await this.supabase.from("profiles").select("id").limit(1)
       return !error
     } catch (error) {
-      console.error("Database connection test failed:", error)
       return false
     }
   }

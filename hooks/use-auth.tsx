@@ -62,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isSupabaseConfigured() || !supabase) {
-      console.error("Supabase not configured in AuthProvider")
       setLoading(false)
       setInitialized(true)
       return
@@ -114,10 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
 
-      console.log("Auth state changed:", event, session?.user?.id || "No user")
-
       if (event === "SIGNED_OUT" || (event === "TOKEN_REFRESHED" && !session)) {
-        console.log("User signed out or token expired")
         clearAuthData()
         setLoading(false)
         return
@@ -125,7 +121,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         if (session?.user) {
-          console.log("User signed in:", session.user.id)
           setUser(session.user)
           await loadUserProfile(session.user.id)
         } else {
@@ -155,21 +150,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadUserProfile = async (userId: string) => {
     if (!supabase) {
-      console.error("Supabase client not available for profile loading")
       return
     }
 
     try {
-      console.log("Loading profile for user:", userId)
-
       const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
 
       if (error) {
-        console.error("Error loading profile:", error)
-
         // If profile doesn't exist, try to create it
         if (error.code === "PGRST116") {
-          console.log("Profile not found, attempting to create...")
           await createMissingProfile(userId)
           return
         }
@@ -177,7 +166,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      console.log("Profile loaded successfully:", data)
       setProfile(data || null)
     } catch (error) {
       console.error("Error loading user profile:", error)
@@ -188,8 +176,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return
 
     try {
-      console.log("Creating missing profile for user:", userId)
-
       const response = await fetch("/api/auth/create-profile", {
         method: "POST",
         headers: {
@@ -207,7 +193,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const result = await response.json()
 
       if (response.ok && result.profile) {
-        console.log("Missing profile created successfully:", result.profile)
         setProfile(result.profile)
       } else {
         console.error("Failed to create missing profile:", result.error)
@@ -225,13 +210,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     if (!supabase) {
-      console.error("Supabase client not available for sign in")
       return { error: new Error("Supabase not configured") }
     }
 
     try {
-      console.log("Attempting sign in for:", email)
-
       // Clear any existing auth data first
       clearAuthData()
       setLoading(true)
@@ -242,13 +224,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        console.error("Sign in error:", error)
         clearAuthData()
         setLoading(false)
         return { data, error }
       }
-
-      console.log("Sign in successful:", data.user?.id)
 
       // Don't set user here, let the auth state change handler do it
       return { data, error: null }
@@ -262,13 +241,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     if (!supabase) {
-      console.error("Supabase client not available for sign up")
       return { error: new Error("Supabase not configured") }
     }
 
     try {
-      console.log("Attempting sign up for:", email, "with metadata:", metadata)
-
       // Clear any existing auth data first
       clearAuthData()
       setLoading(true)
@@ -282,16 +258,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        console.error("Sign up error:", error)
         setLoading(false)
         return { data, error }
       }
 
-      console.log("Sign up successful:", data.user?.id)
-
       // If user is created but no profile exists, create it manually
       if (data.user && !data.user.email_confirmed_at) {
-        console.log("Attempting to create profile manually...")
         try {
           const response = await fetch("/api/auth/create-profile", {
             method: "POST",
@@ -312,7 +284,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!response.ok) {
             console.error("Manual profile creation failed:", result.error)
           } else {
-            console.log("Manual profile creation successful:", result.profile)
           }
         } catch (profileError) {
           console.error("Error creating profile manually:", profileError)
@@ -330,12 +301,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     if (!supabase) {
-      console.error("Supabase client not available for sign out")
       return
     }
 
     try {
-      console.log("Signing out...")
       setLoading(true)
 
       // Clear auth data immediately
@@ -347,7 +316,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error("Error signing out:", error)
       } else {
-        console.log("Sign out successful")
       }
 
       // Force reload to clear any cached state
