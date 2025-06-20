@@ -287,13 +287,9 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                ประเมินสุขภาพ
-              </span>
+              <span className="text-gray-800 dark:text-gray-200">ประเมินสุขภาพ</span>
               <br />
-              <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 bg-clip-text text-transparent">
-                ด้วย AI
-              </span>
+              <span className="text-blue-600 dark:text-blue-400">ด้วย AI</span>
             </h1>
 
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-4 font-light">ง่าย รวดเร็ว แม่นยำ</p>

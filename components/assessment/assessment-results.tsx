@@ -534,7 +534,7 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
                 <div className="text-center py-8">
                   <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
                   <p className="text-gray-600">ไม่พบปัจจัยเสี่ยงที่สำคัญ</p>
-                  <p className="text-sm text-gray-500 mt-1">ข้อมูลสุ��ภาพของคุณอยู่ในเกณฑ์ปกติ</p>
+                  <p className="text-sm text-gray-500 mt-1">ข้อมูลสุ���ภาพของคุณอยู่ในเกณฑ์ปกติ</p>
                 </div>
               )}
             </CardContent>

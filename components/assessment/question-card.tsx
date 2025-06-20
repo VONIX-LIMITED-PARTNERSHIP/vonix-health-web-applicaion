@@ -64,7 +64,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
             {question.options?.map((option, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center space-x-3 p-4 rounded-xl hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
               >
                 <RadioGroupItem value={option} id={`${question.id}-${index}`} />
                 <Label htmlFor={`${question.id}-${index}`} className="flex-1 cursor-pointer">
@@ -129,7 +129,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
             {question.options?.map((option, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center space-x-3 p-4 rounded-xl hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
               >
                 <Checkbox
                   id={`${question.id}-${index}`}

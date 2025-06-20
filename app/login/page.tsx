@@ -136,7 +136,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">ยินดีต้อนรับกลับ</h1>
+                  <h1 className="text-3xl font-bold text-gray-800 mb-2">ยินดีต้อนรับ</h1>
                   <p className="text-gray-600">เข้าสู่ระบบเพื่อดูแลสุขภาพของคุณ</p>
                 </div>
               </CardHeader>
@@ -155,7 +155,7 @@ export default function LoginPage() {
                         placeholder="your@email.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
+                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 transition-all duration-300"
                         required
                         disabled={loading}
                         autoComplete="email"
@@ -175,7 +175,7 @@ export default function LoginPage() {
                         placeholder="รหัสผ่านของคุณ"
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="pl-12 pr-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
+                        className="pl-12 pr-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 transition-all duration-300"
                         required
                         disabled={loading}
                         autoComplete="current-password"
