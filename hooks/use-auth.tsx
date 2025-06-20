@@ -16,8 +16,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, metadata?: any) => Promise<{ data?: any; error?: any }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
-  resetPasswordForEmail: (email: string) => Promise<{ data?: any; error?: any }> // เพิ่มฟังก์ชันนี้
-  updatePassword: (newPassword: string) => Promise<{ data?: any; error?: any }> // เพิ่มฟังก์ชันนี้
+  resetPasswordForEmail: (email: string) => Promise<{ data?: any; error?: any }>
+  updatePassword: (newPassword: string) => Promise<{ data?: any; error?: any }>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -28,8 +28,8 @@ const AuthContext = createContext<AuthContextType>({
   signUp: async () => ({ error: new Error("Auth not configured") }),
   signOut: async () => {},
   refreshProfile: async () => {},
-  resetPasswordForEmail: async () => ({ error: new Error("Auth not configured") }), // เพิ่มฟังก์ชันนี้
-  updatePassword: async () => ({ error: new Error("Auth not configured") }), // เพิ่มฟังก์ชันนี้
+  resetPasswordForEmail: async () => ({ error: new Error("Auth not configured") }),
+  updatePassword: async () => ({ error: new Error("Auth not configured") }),
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -172,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setProfile(data || null)
     } catch (error) {
-      console.error("Error loading user profile:", error)
+      // console.error("Error loading user profile:", error) // Removed for security
     }
   }
 
@@ -197,11 +197,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const result = await response.json()
 
       if (!response.ok) {
-        console.error("Failed to create missing profile:", result.error)
+        // console.error("Failed to create missing profile:", result.error) // Removed for security
       } else {
       }
     } catch (error) {
-      console.error("Error creating missing profile:", error)
+      // console.error("Error creating missing profile:", error) // Removed for security
     }
   }
 
@@ -235,7 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Don't set user here, let the auth state change handler do it
       return { data, error: null }
     } catch (error) {
-      console.error("Sign in exception:", error)
+      // console.error("Sign in exception:", error) // Removed for security
       clearAuthData()
       setLoading(false)
       return { error }
@@ -285,18 +285,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const result = await response.json()
 
           if (!response.ok) {
-            console.error("Manual profile creation failed:", result.error)
+            // console.error("Manual profile creation failed:", result.error) // Removed for security
           } else {
           }
         } catch (profileError) {
-          console.error("Error creating profile manually:", profileError)
+          // console.error("Error creating profile manually:", profileError) // Removed for security
         }
       }
 
       setLoading(false)
       return { data, error: null }
     } catch (error) {
-      console.error("Sign up exception:", error)
+      // console.error("Sign up exception:", error) // Removed for security
       setLoading(false)
       return { error }
     }
@@ -317,7 +317,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signOut()
 
       if (error) {
-        console.error("Error signing out:", error)
+        // console.error("Error signing out:", error) // Removed for security
       } else {
       }
 
@@ -328,7 +328,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }, 100)
       }
     } catch (error) {
-      console.error("Error signing out:", error)
+      // console.error("Error signing out:", error) // Removed for security
     } finally {
       setLoading(false)
     }
@@ -358,6 +358,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // New: Function to update user password
   const updatePassword = async (newPassword: string) => {
     if (!supabase) {
+      console.error("Supabase client not available for password update") // Debugging log
       return { error: new Error("Supabase not configured") }
     }
     try {
@@ -365,11 +366,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase.auth.updateUser({
         password: newPassword,
       })
+
+      // --- TEMPORARY DEBUGGING LOGS ---
+      console.log("Supabase updateUser data:", data)
+      console.log("Supabase updateUser error:", error)
+      // --- END TEMPORARY DEBUGGING LOGS ---
+
       if (error) {
         return { data, error }
       }
       return { data, error: null }
     } catch (error: any) {
+      console.error("updatePassword exception:", error) // Debugging log
       return { error: new Error(error.message || "An unexpected error occurred") }
     } finally {
       setLoading(false)
@@ -386,8 +394,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUp,
         signOut,
         refreshProfile,
-        resetPasswordForEmail, // เพิ่มฟังก์ชันนี้
-        updatePassword, // เพิ่มฟังก์ชันนี้
+        resetPasswordForEmail,
+        updatePassword,
       }}
     >
       {children}

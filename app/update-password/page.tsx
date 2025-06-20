@@ -56,6 +56,7 @@ export default function UpdatePasswordPage() {
       const { error } = await updatePassword(password)
 
       if (error) {
+        console.error("Error from updatePassword hook in page:", error) // Debugging log
         setMessage(`เกิดข้อผิดพลาด: ${error.message}`)
         setIsSuccess(false)
         toast({
@@ -64,6 +65,7 @@ export default function UpdatePasswordPage() {
           variant: "destructive",
         })
       } else {
+        console.log("Password update successful in page!") // Debugging log
         setMessage("ตั้งรหัสผ่านใหม่สำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว")
         setIsSuccess(true)
         toast({
@@ -76,6 +78,7 @@ export default function UpdatePasswordPage() {
         }, 2000)
       }
     } catch (error: any) {
+      console.error("handleSubmit exception in page:", error) // Debugging log
       setMessage(`เกิดข้อผิดพลาดที่ไม่คาดคิด: ${error.message}`)
       setIsSuccess(false)
       toast({
