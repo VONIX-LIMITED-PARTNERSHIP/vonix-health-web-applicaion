@@ -332,7 +332,7 @@ export default function HomePage() {
               >
                 <Link href="/guest-assessment">
                   <FlaskConical className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                  <span className="hidden sm:inline">ลองใช้แบบประเมิน (ไม่ต้องเข้าสู่ระบบ)</span>
+                  <span className="hidden sm:inline">ทดลองใช้งาน</span>
                   <span className="sm:hidden">ลองใช้</span>
                 </Link>
               </Button>
