@@ -83,6 +83,6 @@ export const clearAuthData = () => {
     // Clear session storage
     sessionStorage.clear()
 
-    // console.log("Auth data cleared")
+    console.log("Auth data cleared by lib/supabase.ts") // Uncommented/added for debugging
   }
 }

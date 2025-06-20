@@ -39,6 +39,8 @@ export default function UpdatePasswordPage() {
     setMessage("")
     setIsSuccess(false)
 
+    console.log("handleSubmit started.") // New log
+
     if (password !== confirmPassword) {
       toast({
         title: "รหัสผ่านไม่ตรงกัน",
@@ -58,11 +60,12 @@ export default function UpdatePasswordPage() {
     }
 
     setLoading(true)
+    console.log("Calling updatePassword hook...") // New log
     try {
       const { error } = await updatePassword(password)
 
       if (error) {
-        // console.error("Error from updatePassword hook in page:", error) // Debugging log
+        console.error("Error from updatePassword hook in page:", error) // Uncommented for debugging
         setMessage(`เกิดข้อผิดพลาด: ${error.message}`)
         setIsSuccess(false)
         toast({
@@ -71,20 +74,19 @@ export default function UpdatePasswordPage() {
           variant: "destructive",
         })
       } else {
-        // console.log("Password update successful in page!") // Debugging log
+        console.log("Password update successful in page!") // Uncommented for debugging
         setMessage("ตั้งรหัสผ่านใหม่สำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว")
         setIsSuccess(true)
         toast({
           title: "สำเร็จ!",
           description: "ตั้งรหัสผ่านใหม่สำเร็จ",
         })
-        // Redirect to login page after a short delay
         setTimeout(() => {
           router.push("/login")
         }, 2000)
       }
     } catch (error: any) {
-      // console.error("handleSubmit exception in page:", error) // Debugging log
+      console.error("handleSubmit exception in page:", error) // Uncommented for debugging
       setMessage(`เกิดข้อผิดพลาดที่ไม่คาดคิด: ${error.message}`)
       setIsSuccess(false)
       toast({
@@ -94,6 +96,7 @@ export default function UpdatePasswordPage() {
       })
     } finally {
       setLoading(false)
+      console.log("handleSubmit finished.") // New log
     }
   }
 

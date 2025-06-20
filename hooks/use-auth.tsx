@@ -162,36 +162,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!supabase) {
       return
     }
-
     try {
       const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
-
       if (error) {
-        // If profile doesn't exist, try to create it
         if (error.code === "PGRST116") {
           await createMissingProfile(userId)
           return
         }
-
-        // console.error("Error loading profile:", error) // Removed for security
+        console.error("Error loading profile:", error) // Uncommented for debugging
         return
       }
-
       setProfile(data || null)
     } catch (error) {
-      // console.error("Error loading user profile:", error) // Removed for security
+      console.error("Error loading user profile:", error) // Uncommented for debugging
     }
   }
 
   const createMissingProfile = async (userId: string) => {
     if (!user) return
-
     try {
       const response = await fetch("/api/auth/create-profile", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: userId,
           email: user.email,
@@ -200,15 +192,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           pdpaConsent: user.user_metadata?.pdpa_consent || false,
         }),
       })
-
       const result = await response.json()
-
       if (!response.ok) {
-        // console.error("Failed to create missing profile:", result.error) // Removed for security
+        console.error("Failed to create missing profile:", result.error) // Uncommented for debugging
       } else {
+        console.log("Missing profile created successfully.") // New log
       }
     } catch (error) {
-      // console.error("Error creating missing profile:", error) // Removed for security
+      console.error("Error creating missing profile:", error) // Uncommented for debugging
     }
   }
 
@@ -222,25 +213,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!supabase) {
       return { error: new Error("Supabase not configured") }
     }
-
     try {
-      clearAuthData() // Clear before sign in attempt
+      clearAuthData()
       setLoading(true)
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
         clearAuthData()
         setLoading(false)
+        console.error("Sign in error:", error) // Uncommented for debugging
         return { data, error }
       }
-
+      console.log("Sign in successful.") // New log
       return { data, error: null }
     } catch (error) {
-      // console.error("Sign in exception:", error) // Removed for security
+      console.error("Sign in exception:", error) // Uncommented for debugging
       clearAuthData()
       setLoading(false)
       return { error }
@@ -251,31 +237,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!supabase) {
       return { error: new Error("Supabase not configured") }
     }
-
     try {
-      clearAuthData() // Clear before sign up attempt
+      clearAuthData()
       setLoading(true)
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: metadata,
-        },
+        options: { data: metadata },
       })
-
       if (error) {
         setLoading(false)
+        console.error("Sign up error:", error) // Uncommented for debugging
         return { data, error }
       }
-
       if (data.user && !data.user.email_confirmed_at) {
         try {
           const response = await fetch("/api/auth/create-profile", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               userId: data.user.id,
               email: data.user.email,
@@ -284,22 +263,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               pdpaConsent: metadata?.pdpa_consent || false,
             }),
           })
-
           const result = await response.json()
-
           if (!response.ok) {
-            // console.error("Manual profile creation failed:", result.error) // Removed for security
+            console.error("Manual profile creation failed:", result.error) // Uncommented for debugging
           } else {
+            console.log("Manual profile creation successful.") // New log
           }
         } catch (profileError) {
-          // console.error("Error creating profile manually:", profileError) // Removed for security
+          console.error("Error creating profile manually:", profileError) // Uncommented for debugging
         }
       }
-
       setLoading(false)
+      console.log("Sign up successful.") // New log
       return { data, error: null }
     } catch (error) {
-      // console.error("Sign up exception:", error) // Removed for security
+      console.error("Sign up exception:", error) // Uncommented for debugging
       setLoading(false)
       return { error }
     }
@@ -309,27 +287,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!supabase) {
       return
     }
-
     try {
       setLoading(true)
-      clearAuthData() // Clear auth data immediately
-
+      clearAuthData()
       const { error } = await supabase.auth.signOut()
-
       if (error) {
-        // console.error("Error signing out:", error) // Removed for security
+        console.error("Error signing out:", error) // Uncommented for debugging
       } else {
+        console.log("Sign out successful.") // New log
       }
-
       if (typeof window !== "undefined") {
         setTimeout(() => {
           window.location.href = "/"
         }, 100)
       }
     } catch (error) {
-      // console.error("Error signing out:", error) // Removed for security
+      console.error("Error signing out:", error) // Uncommented for debugging
     } finally {
       setLoading(false)
+    }
+  }
+
+  const updatePassword = async (newPassword: string) => {
+    if (!supabase) {
+      console.error("Supabase client not available for password update") // Uncommented for debugging
+      return { error: new Error("Supabase not configured") }
+    }
+    try {
+      setLoading(true)
+      console.log("Attempting to update user password via Supabase.auth.updateUser...") // New log
+
+      const timeoutPromise = new Promise(
+        (_, reject) =>
+          setTimeout(() => reject(new Error("Password update request timed out after 15 seconds.")), 15000), // 15 seconds timeout
+      )
+
+      const { data, error } = await Promise.race([supabase.auth.updateUser({ password: newPassword }), timeoutPromise])
+
+      console.log("Supabase updateUser data:", data)
+      console.log("Supabase updateUser error:", error)
+
+      if (error) {
+        console.error("Error updating password via Supabase:", error) // Uncommented for debugging
+        return { data, error }
+      }
+      console.log("Password update successful from Supabase.") // New log
+      return { data, error: null }
+    } catch (error: any) {
+      console.error("updatePassword exception caught:", error) // Uncommented for debugging
+      return { error: new Error(error.message || "An unexpected error occurred during password update.") }
+    } finally {
+      setLoading(false)
+      console.log("updatePassword function finished.") // New log
     }
   }
 
@@ -343,39 +352,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         redirectTo: `${window.location.origin}/update-password`,
       })
       if (error) {
+        console.error("resetPasswordForEmail error:", error)
         return { data, error }
       }
+      console.log("resetPasswordForEmail successful.")
       return { data, error: null }
-    } catch (error: any) {
-      return { error: new Error(error.message || "An unexpected error occurred") }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const updatePassword = async (newPassword: string) => {
-    if (!supabase) {
-      // console.error("Supabase client not available for password update") // Removed for security
-      return { error: new Error("Supabase not configured") }
-    }
-    try {
-      setLoading(true)
-      const { data, error } = await supabase.auth.updateUser({
-        password: newPassword,
-      })
-
-      // --- TEMPORARY DEBUGGING LOGS ---
-      console.log("Supabase updateUser data:", data)
-      console.log("Supabase updateUser error:", error)
-      // --- END TEMPORARY DEBUGGING LOGS ---
-
-      if (error) {
-        return { data, error }
-      }
-      return { data, error: null }
-    } catch (error: any) {
-      // console.error("updatePassword exception:", error) // Removed for security
-      return { error: new Error(error.message || "An unexpected error occurred") }
+    } catch (error) {
+      console.error("resetPasswordForEmail exception:", error)
+      return { error }
     } finally {
       setLoading(false)
     }
