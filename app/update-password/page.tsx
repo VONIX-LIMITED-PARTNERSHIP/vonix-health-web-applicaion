@@ -19,14 +19,20 @@ export default function UpdatePasswordPage() {
   const [message, setMessage] = useState("")
   const [isSuccess, setIsSuccess] = useState(false)
   const { toast } = useToast()
-  const { updatePassword } = useAuth()
+  const { updatePassword, user, loading: authLoading } = useAuth() // ดึง user และ authLoading มาใช้
   const router = useRouter()
 
   useEffect(() => {
+    // --- TEMPORARY DEBUGGING LOGS ---
+    console.log("UpdatePasswordPage loaded.")
+    console.log("Current user from useAuth:", user)
+    console.log("Auth loading state:", authLoading)
+    // --- END TEMPORARY DEBUGGING LOGS ---
+
     // Supabase automatically handles session from URL hash for password reset
     // No explicit token parsing needed here, just ensure the user is logged in
     // The useAuth hook will handle the session detection
-  }, [])
+  }, [user, authLoading]) // เพิ่ม user และ authLoading ใน dependency array
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,7 +62,7 @@ export default function UpdatePasswordPage() {
       const { error } = await updatePassword(password)
 
       if (error) {
-        console.error("Error from updatePassword hook in page:", error) // Debugging log
+        // console.error("Error from updatePassword hook in page:", error) // Debugging log
         setMessage(`เกิดข้อผิดพลาด: ${error.message}`)
         setIsSuccess(false)
         toast({
@@ -65,7 +71,7 @@ export default function UpdatePasswordPage() {
           variant: "destructive",
         })
       } else {
-        console.log("Password update successful in page!") // Debugging log
+        // console.log("Password update successful in page!") // Debugging log
         setMessage("ตั้งรหัสผ่านใหม่สำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว")
         setIsSuccess(true)
         toast({
@@ -78,7 +84,7 @@ export default function UpdatePasswordPage() {
         }, 2000)
       }
     } catch (error: any) {
-      console.error("handleSubmit exception in page:", error) // Debugging log
+      // console.error("handleSubmit exception in page:", error) // Debugging log
       setMessage(`เกิดข้อผิดพลาดที่ไม่คาดคิด: ${error.message}`)
       setIsSuccess(false)
       toast({
