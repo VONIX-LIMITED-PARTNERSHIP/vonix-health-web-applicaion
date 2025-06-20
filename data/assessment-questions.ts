@@ -1,4 +1,189 @@
-import type { AssessmentCategory } from "@/types/assessment"
+// Define the AssessmentCategory type
+export type AssessmentCategory = {
+  id: string
+  title: string
+  description: string
+  icon: string
+  required: boolean
+  guest?: boolean // Make guest optional as it's only for guestAssessmentCategory
+  estimatedTime: number
+  questions: AssessmentQuestion[]
+}
+
+// Define the AssessmentQuestion type
+export type AssessmentQuestion = {
+  id: string
+  type: string
+  question: string
+  options?: string[]
+  required: boolean
+  category: string
+  weight: number
+  description?: string
+  riskFactors?: string[] // Add riskFactors if it's used in other parts of the system
+}
+
+// Guest assessment (for non-logged-in users)
+export const guestAssessmentCategory: AssessmentCategory = {
+  id: "guest-assessment",
+  title: "ประเมินสุขภาพเบื้องต้น",
+  description: "ทดลองประเมินสุขภาพเบื้องต้นเพื่อดูผลลัพธ์และคำแนะนำ",
+  icon: "FlaskConical", // ใช้ชื่อ string สำหรับ icon
+  required: false,
+  guest: true, // ระบุว่าเป็น guest assessment
+  estimatedTime: 5, // เพิ่มเวลาประเมินตามจำนวนคำถาม
+  questions: [
+    {
+      id: "guest_q1",
+      type: "number",
+      question: "อายุของคุณ",
+      description: "กรุณาระบุอายุเป็นปี",
+      required: true,
+      category: "guest",
+      weight: 1,
+    },
+    {
+      id: "guest_q2",
+      type: "multiple-choice",
+      question: "เพศ",
+      options: ["ชาย", "หญิง", "ไม่ระบุ"],
+      required: true,
+      category: "guest",
+      weight: 1,
+    },
+    {
+      id: "guest_q3",
+      type: "number",
+      question: "น้ำหนัก (กิโลกรัม)",
+      description: "น้ำหนักปัจจุบันของคุณ",
+      required: true,
+      category: "guest",
+      weight: 2,
+    },
+    {
+      id: "guest_q4",
+      type: "number",
+      question: "ส่วนสูง (เซนติเมตร)",
+      description: "ส่วนสูงของคุณ",
+      required: true,
+      category: "guest",
+      weight: 2,
+    },
+    {
+      id: "guest_q5",
+      type: "checkbox",
+      question: "โรคประจำตัว (เลือกได้หลายข้อ)",
+      options: [
+        "เบาหวาน",
+        "ความดันโลหิตสูง",
+        "โรคหัวใจ",
+        "โรคไต",
+        "โรคตับ",
+        "โรคปอด",
+        "โรคไทรอยด์",
+        "โรคกระดูกพรุน",
+        "ไม่มีโรคประจำตัว",
+      ],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q6",
+      type: "yes-no",
+      question: "คุณมีประวัติโรคหัวใจในครอบครัวหรือไม่?",
+      description: "เช่น พ่อ แม่ พี่น้อง ที่เป็นโรคหัวใจ",
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q7",
+      type: "multiple-choice",
+      question: "ความดันโลหิตของคุณเป็นอย่างไร?",
+      options: ["ปกติ (น้อยกว่า 120/80)", "สูงเล็กน้อย (120-139/80-89)", "สูง (140/90 ขึ้นไป)", "ไม่ทราบ"],
+      required: true,
+      category: "guest",
+      weight: 4,
+    },
+    {
+      id: "guest_q8",
+      type: "yes-no",
+      question: "คุณสูบบุหรี่หรือไม่?",
+      required: true,
+      category: "guest",
+      weight: 4,
+    },
+    {
+      id: "guest_q9",
+      type: "rating",
+      question: "คุณออกกำลังกายสม่ำเสมอแค่ไหน?",
+      description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกวัน)",
+      options: ["1", "2", "3", "4", "5"],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q10",
+      type: "rating",
+      question: "คุณทานผักและผลไม้บ่อยแค่ไหน?",
+      description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกมื้อ)",
+      options: ["1", "2", "3", "4", "5"],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q11",
+      type: "multiple-choice",
+      question: "คุณดื่มน้ำเปล่าวันละกี่แก้ว?",
+      options: ["น้อยกว่า 4 แก้ว", "4-6 แก้ว", "7-8 แก้ว", "มากกว่า 8 แก้ว"],
+      required: true,
+      category: "guest",
+      weight: 2,
+    },
+    {
+      id: "guest_q12",
+      type: "rating",
+      question: "คุณรู้สึกเครียดจากงานหรือชีวิตประจำวันแค่ไหน?",
+      description: "ให้คะแนน 1-5 (1=ไม่เครียด, 5=เครียดมาก)",
+      options: ["1", "2", "3", "4", "5"],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q13",
+      type: "rating",
+      question: "คุณมีปัญหาในการนอนหลับบ่อยแค่ไหน?",
+      description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกคืน)",
+      options: ["1", "2", "3", "4", "5"],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q14",
+      type: "multiple-choice",
+      question: "คุณนอนกี่ชั่วโมงต่อคืนโดยเฉลี่ย?",
+      options: ["น้อยกว่า 5 ชั่วโมง", "5-6 ชั่วโมง", "7-8 ชั่วโมง", "9-10 ชั่วโมง", "มากกว่า 10 ชั่วโมง"],
+      required: true,
+      category: "guest",
+      weight: 4,
+    },
+    {
+      id: "guest_q15",
+      type: "rating",
+      question: "เมื่อตื่นนอนคุณรู้สึกสดชื่นแค่ไหน?",
+      description: "ให้คะแนน 1-5 (1=ไม่สดชื่น, 5=สดชื่นมาก)",
+      options: ["1", "2", "3", "4", "5"],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+  ],
+}
 
 export const assessmentCategories: AssessmentCategory[] = [
   {
@@ -371,7 +556,7 @@ export const assessmentCategories: AssessmentCategory[] = [
         id: "physical-1",
         type: "rating",
         question: "คุณรู้สึกปวดหลังบ่อยแค่ไหน?",
-        description: "ให��คะแนน 1-5 (1=ไม่เคย, 5=ทุกวัน)",
+        description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกวัน)",
         options: ["1", "2", "3", "4", "5"],
         required: true,
         category: "physical",
@@ -497,4 +682,5 @@ export const assessmentCategories: AssessmentCategory[] = [
       },
     ],
   },
+  guestAssessmentCategory,
 ]

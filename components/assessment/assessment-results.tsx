@@ -23,12 +23,16 @@ import {
   Brain,
   Loader2,
   RefreshCw,
+  Info,
+  LogIn,
+  UserPlus,
 } from "lucide-react"
-import { assessmentCategories } from "@/data/assessment-questions"
+import { assessmentCategories, guestAssessmentCategory } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
+import Link from "next/link"
 
 interface AssessmentResultsProps {
   categoryId: string
@@ -53,6 +57,7 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
 
   const category = assessmentCategories.find((cat) => cat.id === categoryId)
   const isBasicAssessment = categoryId === "basic"
+  const isGuestAssessment = categoryId === guestAssessmentCategory.id
 
   useEffect(() => {
     loadAssessmentData()
@@ -91,9 +96,11 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
         const calculatedResult = calculateBasicResults(parsedAnswers)
         setResult(calculatedResult)
         setLoading(false)
+        // ไม่ต้องลบ localStorage ที่นี่ เพราะ saveToDatabase จะเป็นคนลบ
       } else {
         // Use AI analysis for other assessments
         await analyzeWithAI(parsedAnswers)
+        // ไม่ต้องลบ localStorage ที่นี่ เพราะ saveToDatabase จะเป็นคนลบ
       }
     } catch (error) {
       console.error("Error loading assessment data:", error)
@@ -249,18 +256,16 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
         }
 
         throw new Error(errorMessage)
+      } else {
+        console.log("✅ Assessment saved successfully:", data?.id)
+        setSaved(true)
+        // Clear localStorage after successful save
+        localStorage.removeItem(`assessment-${categoryId}`) // <--- ย้ายมาที่นี่
+        toast({
+          title: "บันทึกผลการประเมินสำเร็จ",
+          description: "ข้อมูลของคุณได้รับการบันทึกแล้ว",
+        })
       }
-
-      console.log("✅ Assessment saved successfully:", data?.id)
-
-      setSaved(true)
-      // Clear localStorage after successful save
-      localStorage.removeItem(`assessment-${categoryId}`)
-
-      toast({
-        title: "บันทึกผลการประเมินสำเร็จ",
-        description: "ข้อมูลของคุณได้รับการบันทึกแล้ว",
-      })
     } catch (error) {
       console.error("💥 Error saving assessment:", error)
       const errorMessage = error instanceof Error ? error.message : "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ"
@@ -534,7 +539,7 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
                 <div className="text-center py-8">
                   <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
                   <p className="text-gray-600">ไม่พบปัจจัยเสี่ยงที่สำคัญ</p>
-                  <p className="text-sm text-gray-500 mt-1">ข้อมูลสุ��ภาพของคุณอยู่ในเกณฑ์ปกติ</p>
+                  <p className="text-sm text-gray-500 mt-1">ข้อมูลสุขภาพของคุณอยู่ในเกณฑ์ปกติ</p>
                 </div>
               )}
             </CardContent>
@@ -565,7 +570,7 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
           <CardContent className="p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 justify-center">
-              {!saved && (
+              {!isGuestAssessment && !saved && (
                 <Button
                   onClick={saveToDatabase}
                   disabled={saving || !user || saveInProgressRef.current}
@@ -627,6 +632,36 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
                 <CheckCircle className="h-6 w-6 text-green-600 mx-auto mb-2" />
                 <p className="text-green-800 font-medium">ผลการประเมินได้รับการบันทึกแล้ว</p>
                 <p className="text-green-600 text-sm mt-1">คุณสามารถดูผลการประเมินได้ในหน้าแดชบอร์ด</p>
+              </div>
+            )}
+            {isGuestAssessment && (
+              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl text-center">
+                <Info className="h-6 w-6 text-blue-600 mx-auto mb-2" />
+                <p className="text-blue-800 dark:text-blue-200 font-medium">ผลการประเมินนี้ไม่ถูกบันทึก</p>
+                <p className="text-blue-600 dark:text-blue-400 text-sm mt-1">
+                  หากต้องการบันทึกผลและใช้งานฟีเจอร์เต็มรูปแบบ กรุณาเข้าสู่ระบบหรือสมัครสมาชิก
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-4">
+                  <Button
+                    asChild
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-6 sm:px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+                  >
+                    <Link href="/login">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      เข้าสู่ระบบ
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full sm:w-auto border-2 border-gray-300 hover:border-gray-400 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold px-6 sm:px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+                  >
+                    <Link href="/register">
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      สมัครสมาชิก
+                    </Link>
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

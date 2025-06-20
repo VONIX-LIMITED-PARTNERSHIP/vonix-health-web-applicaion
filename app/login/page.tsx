@@ -19,29 +19,38 @@ export default function LoginPage() {
   const { signIn, user, loading: authLoading } = useAuth()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  })
+  const [loading, setLoading] = useState(false) // Local loading state for form submission
+  const [formData, setFormData] = useState({ email: "", password: "" })
+
+  console.log("LoginPage loaded. Current user from useAuth:", user)
+  console.log("Auth loading state (from useAuth):", authLoading)
+  console.log("Local form submission loading state:", loading)
 
   // Clear auth data when component mounts
   useEffect(() => {
+    console.log("LoginPage useEffect: Clearing auth data on mount.")
     clearAuthData()
   }, [])
 
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
+      console.log("Redirecting to / because user is logged in and auth is not loading.")
       router.push("/")
+    } else if (!authLoading && !user) {
+      console.log("Auth not loading and no user found. Ready for login.")
     }
   }, [user, authLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (loading) return
+    if (loading) {
+      console.log("handleSubmit: Already loading, returning.")
+      return
+    }
 
+    console.log("handleSubmit: Starting form submission.")
     setLoading(true)
 
     try {
@@ -62,11 +71,13 @@ export default function LoginPage() {
           description: error.message,
           variant: "destructive",
         })
+        console.error("Error from signIn hook in page:", error)
       } else if (data.user) {
         toast({
           title: "เข้าสู่ระบบสำเร็จ",
           description: "ยินดีต้อนรับกลับ!",
         })
+        console.log("Login successful, user:", data.user.id)
 
         // Small delay to ensure auth state is updated
         setTimeout(() => {
@@ -79,13 +90,16 @@ export default function LoginPage() {
         description: "กรุณาลองใหม่อีกครั้ง",
         variant: "destructive",
       })
+      console.error("Exception during login form submission:", error)
     } finally {
       setLoading(false)
+      console.log("handleSubmit: Form submission finished, local loading set to false.")
     }
   }
 
-  // Show loading if auth is still loading
+  // Show loading if auth is still loading (full page spinner)
   if (authLoading) {
+    console.log("LoginPage: authLoading is true, showing full page spinner.")
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
         <div className="flex items-center space-x-2">

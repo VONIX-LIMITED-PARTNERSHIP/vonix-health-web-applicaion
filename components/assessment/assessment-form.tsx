@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, ArrowRight, Clock, CheckCircle } from "lucide-react"
 import { QuestionCard } from "./question-card"
-import { assessmentCategories } from "@/data/assessment-questions"
+import { assessmentCategories, guestAssessmentCategory } from "@/data/assessment-questions"
 import type { AssessmentAnswer } from "@/types/assessment"
 
 interface AssessmentFormProps {
@@ -50,9 +50,16 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
   const handleNext = () => {
     if (isLastQuestion) {
-      // Save answers and redirect to results
-      localStorage.setItem(`assessment-${categoryId}`, JSON.stringify(answers))
-      router.push(`/assessment/${categoryId}/results`)
+      if (categoryId === guestAssessmentCategory.id) {
+        // สำหรับ guest assessment: บันทึกคำตอบชั่วคราวใน localStorage และไปที่หน้าผลลัพธ์ guest
+        localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(answers))
+        router.push(`/guest-assessment/results`)
+      } else {
+        // สำหรับ assessment ปกติ: บันทึกคำตอบใน localStorage และไปที่หน้าผลลัพธ์ปกติ
+        // AssessmentResults จะเป็นผู้รับผิดชอบในการบันทึกลง DB และลบ localStorage
+        localStorage.setItem(`assessment-${categoryId}`, JSON.stringify(answers))
+        router.push(`/assessment/${categoryId}/results`)
+      }
     } else {
       setCurrentQuestionIndex((prev) => prev + 1)
     }

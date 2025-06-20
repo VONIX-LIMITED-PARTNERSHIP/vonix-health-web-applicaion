@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react" // Added useEffect import
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -17,10 +17,10 @@ import { useToast } from "@/hooks/use-toast"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { signUp } = useAuth()
+  const { signUp, user, loading: authLoading } = useAuth() // Added user and authLoading from useAuth
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false) // Local loading state for form submission
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -29,8 +29,29 @@ export default function RegisterPage() {
     acceptPDPA: false,
   })
 
+  console.log("RegisterPage loaded. Current user from useAuth:", user)
+  console.log("Auth loading state (from useAuth):", authLoading)
+  console.log("Local form submission loading state:", loading)
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log("Redirecting to / because user is logged in and auth is not loading.")
+      router.push("/")
+    } else if (!authLoading && !user) {
+      console.log("Auth not loading and no user found. Ready for registration.")
+    }
+  }, [user, authLoading, router])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (loading) {
+      console.log("handleSubmit: Already loading, returning.")
+      return
+    }
+
+    console.log("handleSubmit: Starting form submission.")
     setLoading(true)
 
     // Validation
@@ -41,6 +62,7 @@ export default function RegisterPage() {
         variant: "destructive",
       })
       setLoading(false)
+      console.log("handleSubmit: Password mismatch, local loading set to false.")
       return
     }
 
@@ -51,6 +73,7 @@ export default function RegisterPage() {
         variant: "destructive",
       })
       setLoading(false)
+      console.log("handleSubmit: PDPA not accepted, local loading set to false.")
       return
     }
 
@@ -66,11 +89,13 @@ export default function RegisterPage() {
           description: error.message === "User already registered" ? "อีเมลนี้ถูกใช้งานแล้ว" : error.message,
           variant: "destructive",
         })
+        console.error("Error from signUp hook in page:", error)
       } else {
         toast({
           title: "สมัครสมาชิกสำเร็จ",
           description: "กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชี",
         })
+        console.log("Sign up successful, redirecting to /login.")
         router.push("/login")
       }
     } catch (error) {
@@ -79,9 +104,24 @@ export default function RegisterPage() {
         description: "กรุณาลองใหม่อีกครั้ง",
         variant: "destructive",
       })
+      console.error("Exception during registration form submission:", error)
     } finally {
       setLoading(false)
+      console.log("handleSubmit: Form submission finished, local loading set to false.")
     }
+  }
+
+  // Show loading if auth is still loading (full page spinner)
+  if (authLoading) {
+    console.log("RegisterPage: authLoading is true, showing full page spinner.")
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>กำลังตรวจสอบสถานะการเข้าสู่ระบบ...</span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -135,7 +175,7 @@ export default function RegisterPage() {
                         placeholder="ชื่อ-นามสกุลของคุณ"
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        className="pl-12 h-12 text-black rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
+                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
                         required
                         disabled={loading}
                       />
@@ -154,7 +194,7 @@ export default function RegisterPage() {
                         placeholder="your@email.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="pl-12 h-12 text-black rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
+                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
                         required
                         disabled={loading}
                       />
@@ -173,7 +213,7 @@ export default function RegisterPage() {
                         placeholder="รหัสผ่านของคุณ"
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="pl-12 h-12 text-black rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
+                        className="pl-12 pr-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
                         required
                         disabled={loading}
                         minLength={6}
@@ -203,7 +243,7 @@ export default function RegisterPage() {
                         placeholder="ยืนยันรหัสผ่านของคุณ"
                         value={formData.confirmPassword}
                         onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                        className="pl-12 h-12 text-black rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
+                        className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
                         required
                         disabled={loading}
                       />
@@ -212,7 +252,7 @@ export default function RegisterPage() {
 
                   {/* PDPA Consent */}
                   <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                    <h3 className="font-semibold text-sm text-black">การให้ความยินยอมตาม PDPA</h3>
+                    <h3 className="font-semibold text-sm">การให้ความยินยอมตาม PDPA</h3>
                     <div className="text-xs text-gray-600 space-y-2">
                       <p>
                         <strong>ข้อมูลที่เราจะเก็บรวบรวม:</strong>
