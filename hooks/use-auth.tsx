@@ -75,10 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const getInitialSession = async () => {
       try {
-        // Clear any stale data first
-        if (!initialized) {
-          clearAuthData()
-        }
+        // Removed clearAuthData() from here to prevent clearing session too early
+        // Supabase's onAuthStateChange should handle session changes and persistence
 
         const {
           data: { session },
@@ -88,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!mounted) return
 
         if (error) {
-          clearAuthData()
+          clearAuthData() // Clear only if there's an explicit error getting session
           setLoading(false)
           setInitialized(true)
           return
@@ -98,10 +96,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(session.user)
           await loadUserProfile(session.user.id)
         } else {
-          clearAuthData()
+          clearAuthData() // Clear if no session found
         }
       } catch (error) {
-        clearAuthData()
+        clearAuthData() // Clear on any unexpected error
       } finally {
         if (mounted) {
           setLoading(false)
@@ -110,12 +108,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    getInitialSession()
+    // Only run initial session check once
+    if (!initialized) {
+      getInitialSession()
+    }
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
+
+      // --- TEMPORARY DEBUGGING LOGS ---
+      console.log("Auth state changed event:", event)
+      console.log("Auth state changed session:", session?.user?.id || "No user")
+      // --- END TEMPORARY DEBUGGING LOGS ---
 
       if (event === "SIGNED_OUT" || (event === "TOKEN_REFRESHED" && !session)) {
         clearAuthData()
@@ -130,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           clearAuthData()
         }
-        setLoading(false)
+        setLoading(false) // Ensure loading is false after state change
         return
       }
 
@@ -143,14 +149,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null)
       }
 
-      setLoading(false)
+      setLoading(false) // Ensure loading is false after any state change
     })
 
     return () => {
       mounted = false
       subscription.unsubscribe()
     }
-  }, [supabase, initialized])
+  }, [supabase, initialized]) // Keep initialized in dependency array
 
   const loadUserProfile = async (userId: string) => {
     if (!supabase) {
@@ -167,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
 
+        // console.error("Error loading profile:", error) // Removed for security
         return
       }
 
@@ -217,8 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      // Clear any existing auth data first
-      clearAuthData()
+      clearAuthData() // Clear before sign in attempt
       setLoading(true)
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -232,7 +238,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { data, error }
       }
 
-      // Don't set user here, let the auth state change handler do it
       return { data, error: null }
     } catch (error) {
       // console.error("Sign in exception:", error) // Removed for security
@@ -248,8 +253,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      // Clear any existing auth data first
-      clearAuthData()
+      clearAuthData() // Clear before sign up attempt
       setLoading(true)
 
       const { data, error } = await supabase.auth.signUp({
@@ -265,7 +269,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { data, error }
       }
 
-      // If user is created but no profile exists, create it manually
       if (data.user && !data.user.email_confirmed_at) {
         try {
           const response = await fetch("/api/auth/create-profile", {
@@ -309,11 +312,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setLoading(true)
+      clearAuthData() // Clear auth data immediately
 
-      // Clear auth data immediately
-      clearAuthData()
-
-      // Sign out from Supabase
       const { error } = await supabase.auth.signOut()
 
       if (error) {
@@ -321,7 +321,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
       }
 
-      // Force reload to clear any cached state
       if (typeof window !== "undefined") {
         setTimeout(() => {
           window.location.href = "/"
@@ -334,7 +333,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // New: Function to send password reset email
   const resetPasswordForEmail = async (email: string) => {
     if (!supabase) {
       return { error: new Error("Supabase not configured") }
@@ -342,7 +340,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true)
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/update-password`, // Redirect to the new password update page
+        redirectTo: `${window.location.origin}/update-password`,
       })
       if (error) {
         return { data, error }
@@ -355,10 +353,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // New: Function to update user password
   const updatePassword = async (newPassword: string) => {
     if (!supabase) {
-      console.error("Supabase client not available for password update") // Debugging log
+      // console.error("Supabase client not available for password update") // Removed for security
       return { error: new Error("Supabase not configured") }
     }
     try {
@@ -377,7 +374,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return { data, error: null }
     } catch (error: any) {
-      console.error("updatePassword exception:", error) // Debugging log
+      // console.error("updatePassword exception:", error) // Removed for security
       return { error: new Error(error.message || "An unexpected error occurred") }
     } finally {
       setLoading(false)
