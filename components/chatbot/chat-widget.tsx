@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, Loader2 } from "lucide-react"
+import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, Loader2 } from "lucide-react" // Added MoonIcon
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
@@ -24,12 +24,12 @@ interface Message {
 const INITIAL_MESSAGE: Message = {
   id: "welcome",
   content:
-    "สวัสดีครับ! 👋 ผม VONIX Assistant ผู้ช่วยด้านสุขภาพของคุณ\n\nผมพร้อมช่วยเหลือเรื่อง:\n• การใช้งานแอพ VONIX\n• คำแนะนำสุขภาพเบื้องต้น\n• อธิบายผลการประเมิน\n• คุยเล่นทั่วไป 😊\n\nมีอะไรให้ช่วยไหมครับ?",
+    "สวัสดีครับ! 👋 ผม VONIX Assistant ผู้ช่วยด้านสุขภาพส่วนตัวของคุณมีอะไรให้ผมช่วยดูแลสุขภาพของคุณในวันนี้ไหมครับ? 😊",
   sender: "bot",
   timestamp: new Date(),
 }
 
-const QUICK_REPLIES = ["วิธีใช้งานแอพ", "ทำแบบประเมินยังไง", "ดูผลลัพธ์ที่ไหน", "แก้ปัญหาการใช้งาน"]
+const QUICK_REPLIES = ["วิธีใช้งานแอพ", "ทำแบบประเมินยังไง", "ดูผลลัพธ์ที่ไหน", "อยากคุยเรื่องสุขภาพ"]
 
 export function ChatWidget() {
   const { user, profile } = useAuth()
@@ -77,7 +77,12 @@ export function ChatWidget() {
     // === การใช้งานแอพ VONIX ===
 
     // วิธีใช้งานแอพ
-    if (message.includes("วิธีใช้") || message.includes("ใช้งาน") || message.includes("เริ่มต้น")) {
+    if (
+      message.includes("วิธีใช้") ||
+      message.includes("ใช้งาน") ||
+      message.includes("เริ่มต้น") ||
+      message.includes("แอพใช้ยังไง")
+    ) {
       return `🎯 **คู่มือใช้งาน VONIX**
 
 📱 **เริ่มต้นใช้งาน**:
@@ -431,7 +436,7 @@ export function ChatWidget() {
     }
 
     // === Greeting responses ===
-    if (message.includes("สวัสดี") || message.includes("หวัดดี") || message.includes("ดี")) {
+    if (message.includes("สวัสดี") || message.includes("หวัดดี") || message.includes("ดี") || message.includes("เป็นไงบ้าง")) {
       return `สวัสดีครับ ${userName}! 😊
 
 ยินดีที่ได้เป็นผู้ช่วยของคุณ วันนี้มีอะไรให้ช่วยไหมครับ?
@@ -458,7 +463,7 @@ export function ChatWidget() {
     }
 
     // === Motivation and encouragement ===
-    if (message.includes("เหนื่อย") || message.includes("ท้อ") || message.includes("เศร้า")) {
+    if (message.includes("เหนื่อย") || message.includes("ท้อ") || message.includes("เศร้า") || message.includes("ไม่ไหว")) {
       return `เข้าใจความรู้สึกของคุณครับ 🤗
 
 การดูแลสุขภาพเป็นเรื่องที่ต้องใช้เวลา อย่าเพิ่งท้อนะครับ! 
@@ -477,7 +482,32 @@ export function ChatWidget() {
 คุณทำได้แน่นอน! ผมเชื่อในตัวคุณ ✨`
     }
 
-    // === ตรวจสอบคำถามที่ไม่เกี่ยวกับสุขภาพหรือแอพ ===
+    // === General health questions ===
+    if (message.includes("สุขภาพ") || message.includes("ดูแลตัวเอง") || message.includes("สุขภาพดี")) {
+      return `การดูแลสุขภาพเป็นสิ่งสำคัญครับ ${userName}! 💚
+
+ผมสามารถให้คำแนะนำเบื้องต้นเกี่ยวกับ:
+• **อาหาร**: กินอะไรดี, ผลไม้, ผัก
+• **ออกกำลังกาย**: คาร์ดิโอ, เวทเทรนนิ่ง, โยคะ
+• **การนอนหลับ**: เคล็ดลับการนอน
+• **การจัดการความเครียด**: วิธีผ่อนคลาย
+
+คุณสนใจเรื่องไหนเป็นพิเศษไหมครับ?`
+    }
+
+    // === What can you do? ===
+    if (message.includes("ทำอะไรได้บ้าง") || message.includes("ช่วยอะไรได้บ้าง") || message.includes("ความสามารถ")) {
+      return `ผมเป็น VONIX Assistant ผู้ช่วยด้านสุขภาพส่วนตัวของคุณครับ! 🤖
+
+ผมสามารถช่วยคุณได้ในเรื่องเหล่านี้:
+• **การใช้งานแอป VONIX**: เช่น วิธีทำแบบประเมิน, การดูผลลัพธ์, การแก้ไขปัญหาการใช้งาน
+• **คำแนะนำสุขภาพเบื้องต้น**: เช่น อาหาร, การออกกำลังกาย, การนอนหลับ, การจัดการความเครียด
+• **ข้อมูลทั่วไป**: เช่น ความปลอดภัยของข้อมูล, การติดต่อทีมสนับสนุน
+
+มีอะไรที่ผมช่วยคุณได้ในวันนี้ไหมครับ? 😊`
+    }
+
+    // === ตรวจสอบคำถามที่ไม่เกี่ยวกับสุขภาพหรือแอพ (ปรับให้ยืดหยุ่นขึ้น) ===
     const healthAppKeywords = [
       "สุขภาพ",
       "อาหาร",
@@ -524,6 +554,19 @@ export function ChatWidget() {
       "แก้ไข",
       "ปัญหา",
       "ช่วยเหลือ",
+      "ข้อมูล",
+      "ความปลอดภัย",
+      "เก็บ",
+      "ทำอะไรได้บ้าง",
+      "ช่วยอะไรได้บ้าง",
+      "สวัสดี",
+      "ขอบคุณ",
+      "เหนื่อย",
+      "ท้อ",
+      "เศร้า",
+      "เป็นไงบ้าง",
+      "ดูแลตัวเอง",
+      "สุขภาพดี",
     ]
 
     const isRelevant = healthAppKeywords.some((keyword) => message.includes(keyword))
@@ -703,10 +746,10 @@ export function ChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-40 w-96 h-[500px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] sm:max-w-[calc(100vw-3rem)]">
+        <div className="fixed bottom-24 right-6 z-40 w-96 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] sm:max-w-[calc(100vw-3rem)] flex flex-col">
           <Card className="h-full bg-card dark:bg-card-foreground backdrop-blur-xl border border-border shadow-2xl rounded-3xl overflow-hidden flex flex-col">
             {/* Header */}
-            <CardHeader className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white p-6 shadow-lg flex flex-row items-center justify-between">
+            <CardHeader className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white p-6 shadow-lg flex flex-row items-center justify-between flex-shrink-0">
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <Avatar className="h-12 w-12 border-3 border-white/30 shadow-lg">
@@ -748,7 +791,7 @@ export function ChatWidget() {
             {/* Chat Content */}
             {!isMinimized && (
               <>
-                <CardContent className="flex-1 p-0 flex flex-col">
+                <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
                   <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
                     <div className="space-y-4">
                       {messages.map((message) => (
@@ -822,7 +865,7 @@ export function ChatWidget() {
 
                   {/* Quick Replies */}
                   {messages.length <= 1 && (
-                    <div className="px-6 py-4 bg-accent/20 dark:bg-accent/30 border-t border-border">
+                    <div className="px-6 py-4 bg-accent/20 dark:bg-accent/30 border-t border-border flex-shrink-0">
                       <div className="text-sm text-foreground mb-3 font-semibold">💡 คำถามยอดนิยม</div>
                       <div className="grid grid-cols-2 gap-2">
                         {QUICK_REPLIES.map((reply, index) => (
@@ -841,7 +884,7 @@ export function ChatWidget() {
                 </CardContent>
 
                 {/* Input Area */}
-                <div className="p-6 bg-card dark:bg-card-foreground border-t border-border">
+                <div className="p-6 bg-card dark:bg-card-foreground border-t border-border flex-shrink-0">
                   <div className="flex items-end space-x-4">
                     <Input
                       ref={inputRef}

@@ -26,6 +26,7 @@ import {
   Info,
   LogIn,
   UserPlus,
+  BarChart2,
 } from "lucide-react"
 import { assessmentCategories, guestAssessmentCategory } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
@@ -33,6 +34,8 @@ import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
 import Link from "next/link"
+import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
+import { HealthOverviewModal } from "@/components/health-overview-modal" // Import the new health overview modal
 
 interface AssessmentResultsProps {
   categoryId: string
@@ -50,6 +53,8 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
   const [aiAnalysis, setAiAnalysis] = useState<any>(null)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isConsultModalOpen, setIsConsultModalOpen] = useState(false)
+  const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false) // New state for health overview modal
 
   // Refs to prevent multiple saves
   const saveInProgressRef = useRef(false)
@@ -301,7 +306,7 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
         }
       case "high":
         return {
-          label: "ความเสี่ยงสูง",
+          label: "ความเส��่ยงสูง",
           color: "text-orange-600",
           bgColor: "bg-orange-50",
           borderColor: "border-orange-200",
@@ -331,11 +336,29 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
   }
 
   const handleConsultDoctor = () => {
-    toast({
-      title: "กำลังจะมาเร็วๆ นี้!",
-      description: "ฟีเจอร์ปรึกษาแพทย์ออนไลน์กำลังอยู่ในระหว่างการพัฒนา",
-      duration: 3000,
-    })
+    if (!user) {
+      toast({
+        title: "กรุณาเข้าสู่ระบบ",
+        description: "คุณต้องเข้าสู่ระบบเพื่อปรึกษาแพทย์",
+        variant: "destructive",
+      })
+      router.push("/login")
+      return
+    }
+    setIsConsultModalOpen(true)
+  }
+
+  const handleViewHealthOverview = () => {
+    if (!user) {
+      toast({
+        title: "กรุณาเข้าสู่ระบบ",
+        description: "คุณต้องเข้าสู่ระบบเพื่อดูภาพรวมสุขภาพ",
+        variant: "destructive",
+      })
+      router.push("/login")
+      return
+    }
+    setIsHealthOverviewModalOpen(true)
   }
 
   // Loading state
@@ -598,6 +621,16 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
               </Button>
 
               <Button
+                onClick={handleViewHealthOverview} // New button for health overview
+                variant="outline"
+                className="w-full sm:w-auto border-2 border-blue-500 text-blue-600 hover:bg-blue-50 font-semibold px-6 sm:px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+              >
+                <BarChart2 className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">ภาพรวมสุขภาพ</span>
+                <span className="sm:hidden">ภาพรวม</span>
+              </Button>
+
+              <Button
                 variant="outline"
                 className="w-full sm:w-auto border-2 border-gray-300 hover:border-gray-400 font-semibold px-6 sm:px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
               >
@@ -616,13 +649,6 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
               </Button>
             </div>
 
-            {saved && (
-              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-center">
-                <CheckCircle className="h-6 w-6 text-green-600 mx-auto mb-2" />
-                <p className="text-green-800 font-medium">ผลการประเมินได้รับการบันทึกแล้ว</p>
-                <p className="text-green-600 text-sm mt-1">คุณสามารถดูผลการประเมินได้ในหน้าแดชบอร์ด</p>
-              </div>
-            )}
             {isGuestAssessment && (
               <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl text-center">
                 <Info className="h-6 w-6 text-blue-600 mx-auto mb-2" />
@@ -656,6 +682,8 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
           </CardContent>
         </Card>
       </div>
+      <ConsultDoctorIntroModal isOpen={isConsultModalOpen} onOpenChange={setIsConsultModalOpen} />
+      <HealthOverviewModal isOpen={isHealthOverviewModalOpen} onOpenChange={setIsHealthOverviewModalOpen} />
     </div>
   )
 }

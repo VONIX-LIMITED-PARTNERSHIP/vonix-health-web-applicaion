@@ -16,8 +16,7 @@ import {
   Heart,
   Apple,
   Brain,
-  Dumbbell,
-  Moon,
+  MoonIcon,
   ChevronRight,
   FileText,
   Activity,
@@ -28,9 +27,13 @@ import {
   Clock,
   Award,
   FlaskConical,
+  BarChart2,
+  Dumbbell,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
+import { HealthOverviewModal } from "@/components/health-overview-modal" // Import the new health overview modal
 
 const assessmentCategories = [
   {
@@ -64,7 +67,7 @@ const assessmentCategories = [
     status: "เริ่มประเมิน",
     progress: 0,
     gradient: "from-green-500 to-emerald-500",
-    bgGradient: "from-green-50 to-emerald-50",
+    bgGradient: "from-green-50 to-green-50", // Corrected to green-50
   },
   {
     id: "mental",
@@ -75,7 +78,7 @@ const assessmentCategories = [
     status: "ยังไม่ได้ทำการประเมิน",
     progress: 0,
     gradient: "from-purple-500 to-violet-500",
-    bgGradient: "from-purple-50 to-violet-50",
+    bgGradient: "from-purple-50 to-purple-50", // Corrected to purple-50
   },
   {
     id: "physical",
@@ -86,18 +89,18 @@ const assessmentCategories = [
     status: "ยังไม่ได้ทำการประเมิน",
     progress: 0,
     gradient: "from-orange-500 to-amber-500",
-    bgGradient: "from-orange-50 to-amber-50",
+    bgGradient: "from-orange-50 to-orange-50", // Corrected to orange-50
   },
   {
     id: "sleep",
     title: "ประเมินคุณภาพการนอน",
     description: "วิเคราะห์รูปแบบการนอนและคุณภาพการพักผ่อน",
-    icon: Moon,
+    icon: MoonIcon,
     required: false,
     status: "ยังไม่ได้ทำการประเมิน",
     progress: 0,
     gradient: "from-indigo-500 to-blue-500",
-    bgGradient: "from-indigo-50 to-blue-50",
+    bgGradient: "from-indigo-50 to-indigo-50", // Corrected to indigo-50
   },
 ]
 
@@ -130,11 +133,12 @@ export default function HomePage() {
     reportReady: false,
   })
   const [loadingStats, setLoadingStats] = useState(false)
+  const [isConsultModalOpen, setIsConsultModalOpen] = useState(false)
+  const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false) // New state for health overview modal
 
   const router = useRouter()
   const { toast } = useToast()
 
-  // ย้าย isLoggedIn มาไว้ที่นี่
   const isLoggedIn = !loading && user && profile
 
   useEffect(() => {
@@ -161,16 +165,15 @@ export default function HomePage() {
       const allAssessments = data || []
       setAssessments(allAssessments)
 
-      // Calculate stats using the latest assessments only
       const latestAssessments = getLatestAssessments(allAssessments)
       calculateDashboardStats(latestAssessments)
     } catch (error) {
+      // console.error("Error loading user assessments:", error) // Removed sensitive log
     } finally {
       setLoadingStats(false)
     }
   }
 
-  // ฟังก์ชันกรองเอาเฉพาะการประเมินล่าสุดของแต่ละประเภท
   const getLatestAssessments = (assessmentData: any[]) => {
     const latestByCategory = new Map()
 
@@ -197,17 +200,14 @@ export default function HomePage() {
       return
     }
 
-    // คำนวณคะแนนรวมจากการประเมินล่าสุดเท่านั้น
     const totalScore = latestAssessments.reduce((sum, assessment) => sum + assessment.percentage, 0)
     const averageScore = Math.round(totalScore / latestAssessments.length)
 
-    // นับปัจจัยเสี่ยงทั้งหมดจากการประเมินล่าสุด
     const allRiskFactors = latestAssessments.reduce((factors, assessment) => {
       return factors.concat(assessment.risk_factors || [])
     }, [])
     const uniqueRiskFactors = [...new Set(allRiskFactors)].length
 
-    // ตรวจสอบว่ามีการประเมินครบ 3 ประเภทหลักหรือไม่
     const requiredCategories = ["basic", "heart", "nutrition"]
     const completedRequired = requiredCategories.filter((category) =>
       latestAssessments.some((assessment) => assessment.category_id === category),
@@ -222,11 +222,10 @@ export default function HomePage() {
   }
 
   if (!mounted) {
-    return null // Prevent hydration mismatch
+    return null
   }
 
   const getUpdatedCategories = () => {
-    // ใช้การประเมินล่าสุดเท่านั้น
     const latestAssessments = getLatestAssessments(assessments)
 
     return assessmentCategories.map((category) => {
@@ -252,7 +251,6 @@ export default function HomePage() {
       return
     }
 
-    // Scroll to assessment section
     const assessmentSection = document.getElementById("assessment-section")
     if (assessmentSection) {
       assessmentSection.scrollIntoView({ behavior: "smooth" })
@@ -260,11 +258,29 @@ export default function HomePage() {
   }
 
   const handleConsultDoctor = () => {
-    toast({
-      title: "กำลังจะมาเร็วๆ นี้!",
-      description: "ฟีเจอร์ปรึกษาแพทย์ออนไลน์กำลังอยู่ในระหว่างการพัฒนา",
-      duration: 3000,
-    })
+    if (!isLoggedIn) {
+      toast({
+        title: "กรุณาเข้าสู่ระบบ",
+        description: "คุณต้องเข้าสู่ระบบเพื่อปรึกษาแพทย์",
+        variant: "destructive",
+      })
+      router.push("/login")
+      return
+    }
+    setIsConsultModalOpen(true)
+  }
+
+  const handleViewHealthOverview = () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "กรุณาเข้าสู่ระบบ",
+        description: "คุณต้องเข้าสู่ระบบเพื่อดูภาพรวมสุขภาพ",
+        variant: "destructive",
+      })
+      router.push("/login")
+      return
+    }
+    setIsHealthOverviewModalOpen(true)
   }
 
   return (
@@ -376,14 +392,26 @@ export default function HomePage() {
                           </CardTitle>
                           <p className="text-gray-600 dark:text-gray-400 mt-2">ข้อมูลการประเมินและความคืบหน้า (ล่าสุด)</p>
                         </div>
-                        <Button
-                          className="mt-4 md:mt-0 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base"
-                          onClick={handleConsultDoctor}
-                        >
-                          <Stethoscope className="mr-2 h-4 w-4" />
-                          <span className="hidden sm:inline">ปรึกษาแพทย์</span>
-                          <span className="sm:hidden">แพทย์</span>
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
+                          <Button
+                            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base"
+                            onClick={handleConsultDoctor}
+                          >
+                            <Stethoscope className="mr-2 h-4 w-4" />
+                            <span className="hidden sm:inline">ปรึกษาแพทย์</span>
+                            <span className="sm:hidden">แพทย์</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="border-2 border-gray-300 hover:border-blue-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base
+                            dark:border-gray-700 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200" // Added dark mode classes
+                            onClick={handleViewHealthOverview} // New button for health overview
+                          >
+                            <BarChart2 className="mr-2 h-4 w-4" />
+                            <span className="hidden sm:inline">ดูภาพรวมสุขภาพ</span>
+                            <span className="sm:hidden">ภาพรวม</span>
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -487,13 +515,14 @@ export default function HomePage() {
                             ) : (
                               <Badge
                                 variant="secondary"
-                                className="bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full"
+                                className="bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full
+                                dark:bg-blue-900 dark:text-blue-200" // Added dark mode classes
                               >
                                 เสริม
                               </Badge>
                             )}
                             {category.progress > 0 && (
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
                                 {category.progress}% เสร็จสิ้น
                                 {category.score && <span className="ml-1">({category.score}%)</span>}
                               </div>
@@ -501,11 +530,11 @@ export default function HomePage() {
                           </div>
                         </div>
 
-                        <h3 className="font-bold text-xl mb-3 text-gray-800 group-hover:text-gray-900 transition-colors">
+                        <h3 className="font-bold text-xl mb-3 text-gray-800 group-hover:text-gray-900 transition-colors dark:text-gray-200 dark:group-hover:text-gray-100">
                           {category.title}
                         </h3>
-                        <p className="text-gray-600 mb-4 leading-relaxed">{category.description}</p>
-                        <p className="text-sm text-gray-500 mb-6 flex items-center">
+                        <p className="text-gray-600 mb-4 leading-relaxed dark:text-gray-300">{category.description}</p>
+                        <p className="text-sm text-gray-500 mb-6 flex items-center dark:text-gray-400">
                           <Clock className="w-4 h-4 mr-2" />
                           {category.status}
                           {category.lastCompleted && <span className="ml-2 text-xs">({category.lastCompleted})</span>}
@@ -515,7 +544,7 @@ export default function HomePage() {
                           className={`w-full font-semibold py-3 rounded-xl transition-all duration-300 ${
                             category.required
                               ? `bg-gradient-to-r ${category.gradient} hover:shadow-lg text-white`
-                              : "bg-white/80 hover:bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                              : "bg-white/80 hover:bg-white text-gray-700 border border-gray-200 hover:border-gray-300 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-700 dark:hover:border-gray-600" // Added dark mode classes
                           }`}
                           asChild
                         >
@@ -533,6 +562,8 @@ export default function HomePage() {
           )}
         </div>
       </main>
+      <ConsultDoctorIntroModal isOpen={isConsultModalOpen} onOpenChange={setIsConsultModalOpen} />
+      <HealthOverviewModal isOpen={isHealthOverviewModalOpen} onOpenChange={setIsHealthOverviewModalOpen} />
     </div>
   )
 }
