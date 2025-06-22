@@ -3,6 +3,12 @@ import { openai } from "@ai-sdk/openai"
 import { z } from "zod"
 import { NextResponse } from "next/server"
 
+// Define the message structure expected by the AI SDK
+interface AIMessage {
+  role: "user" | "assistant" | "system"
+  content: string
+}
+
 // Schema for intent classification
 const IntentSchema = z.object({
   category: z.enum(["สุขภาพ", "แอป VONIX", "อื่นๆ"]),
@@ -35,13 +41,24 @@ const INTENT_CLASSIFICATION_PROMPT = `คุณคือผู้ช่วยท
 
 export async function POST(req: Request) {
   try {
-    const { message: userMessage } = await req.json()
+    // Expect an array of messages from the client
+    const { messages: clientMessages } = (await req.json()) as { messages: AIMessage[] }
 
-    // First, classify the intent of the user's message
+    // The last message is the current user's query
+    const userMessage = clientMessages[clientMessages.length - 1].content
+
+    // Prepare messages for AI SDK, excluding the system prompt for classification
+    // The system prompt for classification is passed directly to generateObject
+    const conversationHistoryForAI = clientMessages.map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }))
+
+    // First, classify the intent of the user's message using the full conversation history
     const { object: intentClassification } = await generateObject({
       model: openai("gpt-4o"),
       system: INTENT_CLASSIFICATION_PROMPT,
-      prompt: userMessage,
+      messages: conversationHistoryForAI, // Pass full history for context
       schema: IntentSchema,
     })
 
@@ -52,7 +69,7 @@ export async function POST(req: Request) {
       const { text: healthResponse } = await generateText({
         model: openai("gpt-4o"),
         system: HEALTH_SYSTEM_PROMPT,
-        prompt: userMessage,
+        messages: conversationHistoryForAI, // Pass full history for context
       })
       botResponse = healthResponse
     } else if (intentClassification.category === "แอป VONIX") {

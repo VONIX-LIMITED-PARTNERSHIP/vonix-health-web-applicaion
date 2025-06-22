@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Activity, Eye, EyeOff, ArrowLeft, ExternalLink, Mail, Lock, User, Loader2 } from "lucide-react"
+import { Activity, Eye, EyeOff, ArrowLeft, Mail, Lock, User, Loader2 } from "lucide-react"
 import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
@@ -239,26 +239,17 @@ export default function RegisterPage() {
                   <div className="bg-gray-50 p-4 rounded-xl space-y-3">
                     <h3 className="text-black font-semibold text-sm">การให้ความยินยอมตาม PDPA</h3>
                     <div className="text-xs text-gray-600 space-y-2">
-                      <p>
-                        <strong>ข้อมูลที่เราจะเก็บรวบรวม:</strong>
-                      </p>
-                      <ul className="list-disc list-inside space-y-1 ml-2">
-                        <li>
-                          <strong>ข้อมูลส่วนตัว:</strong> ชื่อ-นามสกุล, อีเมล, วันเกิด, เพศ, เบอร์โทรศัพท์
-                        </li>
-                        <li>
-                          <strong>ข้อมูลสุขภาพพื้นฐาน:</strong> น้ำหนัก, ส่วนสูง, หมู่เลือด, BMI
-                        </li>
-                        <li>
-                          <strong>ประวัติการแพทย์:</strong> การแพ้ยา, อาหาร, สิ่งแวดล้อม
-                        </li>
-                        <li>
-                          <strong>ประวัติสุขภาพ:</strong> โรคประจำตัว, ยาที่ใช้, ประวัติครอบครัว
-                        </li>
-                        <li>
-                          <strong>ข้อมูลการประเมิน:</strong> คำตอบแบบประเมินสุขภาพ, ผลการวิเคราะห์
-                        </li>
-                      </ul>
+                      <label htmlFor="pdpa-consent" className="cursor-pointer">
+                        ข้าพเจ้ายินยอมให้ VONIX เก็บรวบรวม ใช้ และประมวลผลข้อมูลส่วนบุคคลและข้อมูลสุขภาพของข้าพเจ้า
+                        รวมถึงข้อมูลจากแบบประเมินสุขภาพ เพื่อให้บริการประเมินสุขภาพเบื้องต้น สร้างรายงานสุขภาพ ส่งต่อให้บุคลากรทางการแพทย์
+                        และปรับปรุงคุณภาพของบริการผ่านการวิเคราะห์โดยระบบ AI และเครื่องมือวิเคราะห์ข้อมูล
+                        ทั้งนี้ข้อมูลของข้าพเจ้าจะได้รับการคุ้มครองตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) และกฎหมาย GDPR
+                        ของสหภาพยุโรป โดยสามารถศึกษารายละเอียดเพิ่มเติมได้ในนโยบายความเป็นส่วนตัว{" "}
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <a href="/privacy-policy" className="text-blue-600 hover:underline inline-flex items-center ml-1">
+                        อ่านนโยบายความเป็นส่วนตัว
+                      </a>
                     </div>
 
                     <div className="flex items-start space-x-2">
@@ -268,22 +259,6 @@ export default function RegisterPage() {
                         onCheckedChange={(checked) => setFormData({ ...formData, acceptPDPA: checked as boolean })}
                         disabled={loading}
                       />
-                      <div className="text-xs text-gray-600 leading-relaxed">
-                        <label htmlFor="pdpa-consent" className="cursor-pointer">
-                          ข้าพเจ้ายินยอมให้ VONIX เก็บรวบรวม ใช้ และประมวลผล ข้อมูลส่วนบุคคลและข้อมูลสุขภาพของข้าพเจ้า เพื่อการให้
-                          บริการประเมินสุขภาพ การสร้างรายงานสำหรับแพทย์ และการ ปรับปรุงบริการ{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <a
-                          href="https://pdpa.pro/policies/view/th/Gxgg1LLE9TqFbyCaJrjo4E3X"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline inline-flex items-center ml-1"
-                        >
-                          อ่านนโยบายความเป็นส่วนตัว
-                          <ExternalLink className="ml-1 h-3 w-3" />
-                        </a>
-                      </div>
                     </div>
                   </div>
 

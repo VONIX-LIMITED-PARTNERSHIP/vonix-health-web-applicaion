@@ -13,11 +13,6 @@ import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, Loader2 } from
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
-// Removed AI SDK imports as they will now be used in the API route
-// import { generateText, generateObject } from "ai"
-// import { openai } from "@ai-sdk/openai"
-// import { z } from "zod"
-
 interface Message {
   id: string
   content: string
@@ -340,12 +335,18 @@ export function ChatWidget() {
 
     // === Fallback to AI via API Route ===
     try {
+      // Map current messages state to AI SDK format
+      const messagesForAI = messages.map((msg) => ({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.content,
+      }))
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: userMessage }),
+        body: JSON.stringify({ messages: messagesForAI }), // Send the full message history
       })
 
       if (!response.ok) {
