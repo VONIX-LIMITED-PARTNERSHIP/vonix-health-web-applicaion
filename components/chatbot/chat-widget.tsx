@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, Loader2 } from "lucide-react" // Added MoonIcon
+import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, Loader2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
@@ -23,8 +23,7 @@ interface Message {
 
 const INITIAL_MESSAGE: Message = {
   id: "welcome",
-  content:
-    "สวัสดีครับ! 👋 ผม VONIX Assistant ผู้ช่วยด้านสุขภาพส่วนตัวของคุณมีอะไรให้ผมช่วยดูแลสุขภาพของคุณในวันนี้ไหมครับ? 😊",
+  content: "สวัสดีครับ! 👋 ผม VONIX Assistant ผู้ช่วยด้านสุขภาพส่วนตัวของคุณมีอะไรให้ผมช่วยดูแลสุขภาพของคุณในวันนี้ไหมครับ? 😊",
   sender: "bot",
   timestamp: new Date(),
 }
@@ -761,7 +760,7 @@ export function ChatWidget() {
                   <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-400 rounded-full border-2 border-white animate-pulse shadow-sm"></div>
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold tracking-wide">VONIX Assistant</CardTitle>
+                  <CardTitle className="text-lg font-bold tracking-wide">ผู้ช่วยอัจฉริยะ</CardTitle>
                   <div className="flex items-center space-x-2 text-sm text-white/90">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     <span className="font-medium">พร้อมช่วยเหลือ 24/7</span>
