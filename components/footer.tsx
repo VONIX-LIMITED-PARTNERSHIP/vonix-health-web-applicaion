@@ -25,24 +25,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
-              {t("main_menu")}
-            </h3>
-            <ul className="space-y-3">
-              <li>
-                <Link
-                  href="/"
-                  className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  {t("home")}
-                </Link>
-              </li>
-              <li></li>
-              <li></li>
-            </ul>
-          </div>
 
           {/* Contact Info */}
           <div>
