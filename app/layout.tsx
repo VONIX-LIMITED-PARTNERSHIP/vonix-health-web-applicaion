@@ -7,7 +7,7 @@ import { AuthProvider } from "@/hooks/use-auth"
 import { Toaster } from "@/components/ui/toaster"
 import { ChatWidget } from "@/components/chatbot/chat-widget"
 import { Footer } from "@/components/footer"
-import { LanguageProvider } from "@/contexts/language-context" // Import LanguageProvider
+import LanguageProviderClient from "./language-provider-client"
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -30,16 +30,14 @@ export default function RootLayout({
     <html lang="th" suppressHydrationWarning>
       <body className={roboto.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <LanguageProvider>
-            {" "}
-            {/* Wrap with LanguageProvider */}
+          <LanguageProviderClient>
             <AuthProvider>
               {children}
               <Footer />
               <Toaster />
               <ChatWidget />
             </AuthProvider>
-          </LanguageProvider>
+          </LanguageProviderClient>
         </ThemeProvider>
       </body>
     </html>
