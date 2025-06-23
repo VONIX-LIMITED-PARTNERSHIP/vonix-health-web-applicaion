@@ -1,4 +1,6 @@
-const en = {
+import type { Dictionary } from "./th"
+
+const en: Dictionary = {
   common: {
     home: "Home",
     back: "Back",
@@ -546,6 +548,24 @@ const en = {
     chatbot_default_response_3_help_2: "• VONIX usage",
     chatbot_default_response_3_help_3: "• Basic advice",
     chatbot_default_response_3_ask: "I can help fully! Available 24/7 😊",
+  },
+  profile: {
+    my_profile: "My Profile",
+    personal_information: "Personal Information",
+    full_name: "Full Name",
+    email: "Email",
+    phone: "Phone",
+    date_of_birth: "Date of Birth",
+    gender: "Gender",
+    data_management: "Data Management",
+    delete_assessment_data: "Delete Health Assessment Data",
+    delete_assessment_data_description:
+      "This action will permanently delete all your health assessment records. This cannot be undone.",
+    delete_assessment_data_confirm_title: "Confirm Data Deletion",
+    delete_assessment_data_confirm_content:
+      "Are you sure you want to delete all your health assessment data? This action is irreversible.",
+    delete_assessment_data_success: "Health assessment data deleted successfully.",
+    delete_assessment_data_error: "Failed to delete health assessment data. Please try again.",
   },
 }
 

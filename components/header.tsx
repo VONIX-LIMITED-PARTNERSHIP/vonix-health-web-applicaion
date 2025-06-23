@@ -147,15 +147,6 @@ export function Header() {
                   <DropdownMenuItem asChild>
                     <Link href="/profile">👤 {t("profile")}</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard">📊 {t("dashboard")}</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/reports">📋 {t("health_reports")}</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings">⚙️ {t("settings")}</Link>
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-600" disabled={signingOut}>
                     {signingOut ? (
                       <>
