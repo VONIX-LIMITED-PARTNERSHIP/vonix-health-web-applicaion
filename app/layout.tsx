@@ -1,18 +1,13 @@
-import type React from "react"
+import type { ReactNode } from "react"
 import type { Metadata } from "next"
 import { Roboto } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { AuthProvider } from "@/hooks/use-auth"
-import { Toaster } from "@/components/ui/toaster"
-import { ChatWidget } from "@/components/chatbot/chat-widget"
-import { Footer } from "@/components/footer"
-import LanguageProviderClient from "./language-provider-client"
+import Providers from "./providers"
 
 const roboto = Roboto({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"], // เลือกน้ำหนักฟอนต์ที่ใช้บ่อย
-  variable: "--font-roboto", // กำหนด CSS variable เพื่อใช้ใน Tailwind
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-roboto",
 })
 
 export const metadata: Metadata = {
@@ -21,24 +16,12 @@ export const metadata: Metadata = {
   generator: "v0.dev",
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="th" suppressHydrationWarning>
       <body className={roboto.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <LanguageProviderClient>
-            <AuthProvider>
-              {children}
-              <Footer />
-              <Toaster />
-              <ChatWidget />
-            </AuthProvider>
-          </LanguageProviderClient>
-        </ThemeProvider>
+        {/* All client logic is encapsulated here */}
+        <Providers>{children}</Providers>
       </body>
     </html>
   )
