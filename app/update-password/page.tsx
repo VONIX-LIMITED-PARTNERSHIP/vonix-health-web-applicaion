@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
+import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("")
@@ -21,6 +22,7 @@ export default function UpdatePasswordPage() {
   const { toast } = useToast()
   const { updatePassword, user, loading: authLoading } = useAuth() // ดึง user และ authLoading มาใช้
   const router = useRouter()
+  const { t } = useTranslation() // Use translation hook
 
   useEffect(() => {
     // Supabase automatically handles session from URL hash for password reset
@@ -35,8 +37,8 @@ export default function UpdatePasswordPage() {
 
     if (password !== confirmPassword) {
       toast({
-        title: "รหัสผ่านไม่ตรงกัน",
-        description: "กรุณากรอกรหัสผ่านและยืนยันรหัสผ่านให้ตรงกัน",
+        title: t("password_mismatch"),
+        description: t("password_mismatch"),
         variant: "destructive",
       })
       return
@@ -44,8 +46,8 @@ export default function UpdatePasswordPage() {
 
     if (password.length < 6) {
       toast({
-        title: "รหัสผ่านสั้นเกินไป",
-        description: "รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร",
+        title: t("password_too_short"),
+        description: t("password_too_short"),
         variant: "destructive",
       })
       return
@@ -56,30 +58,30 @@ export default function UpdatePasswordPage() {
       const { error } = await updatePassword(password)
 
       if (error) {
-        setMessage(`เกิดข้อผิดพลาด: ${error.message}`)
+        setMessage(`${t("error")}: ${error.message}`)
         setIsSuccess(false)
         toast({
-          title: "เกิดข้อผิดพลาด",
+          title: t("error"),
           description: error.message,
           variant: "destructive",
         })
       } else {
-        setMessage("ตั้งรหัสผ่านใหม่สำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว")
+        setMessage(t("password_reset_success"))
         setIsSuccess(true)
         toast({
-          title: "สำเร็จ!",
-          description: "ตั้งรหัสผ่านใหม่สำเร็จ",
+          title: t("success"),
+          description: t("password_reset_success"),
         })
         setTimeout(() => {
           router.push("/login")
         }, 2000)
       }
     } catch (error: any) {
-      setMessage(`เกิดข้อผิดพลาดที่ไม่คาดคิด: ${error.message}`)
+      setMessage(`${t("unexpected_error")}: ${error.message}`)
       setIsSuccess(false)
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถตั้งรหัสผ่านใหม่ได้ กรุณาลองใหม่อีกครั้ง",
+        title: t("error"),
+        description: t("try_again"),
         variant: "destructive",
       })
     } finally {
@@ -99,15 +101,15 @@ export default function UpdatePasswordPage() {
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1">
             <div className="bg-white rounded-3xl">
               <CardHeader className="text-center space-y-4 sm:space-y-6 pt-6 sm:pt-8 pb-4 sm:pb-6 px-6 sm:px-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">ตั้งรหัสผ่านใหม่</h1>
-                <p className="text-gray-600">กรุณากรอกรหัสผ่านใหม่ของคุณ</p>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">{t("reset_password")}</h1>
+                <p className="text-gray-600">{t("enter_email_for_link")}</p>
               </CardHeader>
 
               <CardContent className="space-y-4 sm:space-y-6 px-6 sm:px-8 pb-6 sm:pb-8">
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-gray-700 font-medium">
-                      รหัสผ่านใหม่
+                      {t("new_password")}
                     </Label>
                     <div className="relative">
                       <Key className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -126,7 +128,7 @@ export default function UpdatePasswordPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="confirm-password" className="text-gray-700 font-medium">
-                      ยืนยันรหัสผ่านใหม่
+                      {t("confirm_new_password")}
                     </Label>
                     <div className="relative">
                       <Key className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -155,11 +157,11 @@ export default function UpdatePasswordPage() {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span className="hidden sm:inline">กำลังตั้งรหัสผ่าน...</span>
-                        <span className="sm:hidden">กำลังตั้งรหัสผ่าน...</span>
+                        <span className="hidden sm:inline">{t("setting_password")}...</span>
+                        <span className="sm:hidden">{t("setting_password")}...</span>
                       </>
                     ) : (
-                      <span>ตั้งรหัสผ่านใหม่</span>
+                      <span>{t("reset_password")}</span>
                     )}
                   </Button>
                 </form>
@@ -172,7 +174,7 @@ export default function UpdatePasswordPage() {
                     className="text-gray-600 hover:text-gray-800 transition-colors"
                   >
                     <Link href="/login" className="flex items-center">
-                      กลับสู่หน้าเข้าสู่ระบบ
+                      {t("back_to_login")}
                     </Link>
                   </Button>
                 </div>

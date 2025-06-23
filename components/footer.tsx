@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { Mail, MapPin } from "lucide-react"
+import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
+  const { t } = useTranslation() // Use translation hook
 
   return (
     <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
@@ -16,9 +18,7 @@ export function Footer() {
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">VONIX</span>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
-              ระบบประเมินสุขภาพอัจฉริยะที่ช่วยคุณดูแลสุขภาพได้ดีขึ้น ไม่ต้องมีความรู้ทางการแพทย์ ใช้งานง่าย เข้าใจได้ทันที
-            </p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">{t("ai_powered_description")}</p>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               <p className="font-semibold mb-1">VONIX LIMITED PARTNERSHIP</p>
               <p>ห้างหุ้นส่วนจำกัด วอนิกซ์</p>
@@ -28,7 +28,7 @@ export function Footer() {
           {/* Quick Links */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
-              เมนูหลัก
+              {t("main_menu")}
             </h3>
             <ul className="space-y-3">
               <li>
@@ -36,20 +36,18 @@ export function Footer() {
                   href="/"
                   className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  หน้าแรก
+                  {t("home")}
                 </Link>
               </li>
-              <li>
-              </li>
-              <li>
-              </li>
+              <li></li>
+              <li></li>
             </ul>
           </div>
 
           {/* Contact Info */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
-              ติดต่อเรา
+              {t("contact_us")}
             </h3>
             <ul className="space-y-3">
               <li className="flex items-center space-x-3">
@@ -63,7 +61,7 @@ export function Footer() {
               </li>
               <li className="flex items-start space-x-3">
                 <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                <span className="text-gray-600 dark:text-gray-400 text-sm">ประเทศไทย</span>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">{t("thailand")}</span>
               </li>
             </ul>
           </div>
@@ -73,21 +71,23 @@ export function Footer() {
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-gray-500 dark:text-gray-400 text-center md:text-left">
-              <p>© {currentYear} VONIX LIMITED PARTNERSHIP. สงวนลิขสิทธิ์.</p>
-              <p className="mt-1">ระบบนี้ใช้เพื่อการประเมินเบื้องต้นเท่านั้น ไม่ใช่การวินิจฉัยทางการแพทย์</p>
+              <p>
+                © {currentYear} VONIX LIMITED PARTNERSHIP. {t("all_rights_reserved")}.
+              </p>
+              <p className="mt-1">{t("preliminary_assessment_only")}</p>
             </div>
             <div className="flex space-x-6 text-sm">
               <Link
-                href="/privacy"
+                href="/privacy-policy"
                 className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                นโยบายความเป็นส่วนตัว
+                {t("privacy_policy")}
               </Link>
               <Link
                 href="/terms"
                 className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                ข้อกำหนดการใช้งาน
+                {t("terms_of_use")}
               </Link>
             </div>
           </div>

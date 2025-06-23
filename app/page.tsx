@@ -34,6 +34,7 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
 import { HealthOverviewModal } from "@/components/health-overview-modal" // Import the new health overview modal
+import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
 
 const assessmentCategories = [
   {
@@ -135,6 +136,7 @@ export default function HomePage() {
   const [loadingStats, setLoadingStats] = useState(false)
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false)
   const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false) // New state for health overview modal
+  const { t } = useTranslation() // Use translation hook
 
   const router = useRouter()
   const { toast } = useToast()
@@ -234,7 +236,7 @@ export default function HomePage() {
       if (userAssessment) {
         return {
           ...category,
-          status: "เสร็จสิ้นแล้ว",
+          status: t("finished"),
           progress: 100,
           lastCompleted: new Date(userAssessment.completed_at).toLocaleDateString("th-TH"),
           score: userAssessment.percentage,
@@ -260,8 +262,8 @@ export default function HomePage() {
   const handleConsultDoctor = () => {
     if (!isLoggedIn) {
       toast({
-        title: "กรุณาเข้าสู่ระบบ",
-        description: "คุณต้องเข้าสู่ระบบเพื่อปรึกษาแพทย์",
+        title: t("please_login"),
+        description: t("login_to_consult"),
         variant: "destructive",
       })
       router.push("/login")
@@ -273,8 +275,8 @@ export default function HomePage() {
   const handleViewHealthOverview = () => {
     if (!isLoggedIn) {
       toast({
-        title: "กรุณาเข้าสู่ระบบ",
-        description: "คุณต้องเข้าสู่ระบบเพื่อดูภาพรวมสุขภาพ",
+        title: t("please_login"),
+        description: t("login_to_view_overview"),
         variant: "destructive",
       })
       router.push("/login")
@@ -300,24 +302,20 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-blue-200 text-blue-700 text-sm font-medium mb-6 shadow-lg">
               <Sparkles className="w-4 h-4 mr-2" />
-              ระบบประเมินสุขภาพอัจฉริยะ
+              {t("smart_health_assessment_system")}
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                ประเมินสุขภาพ
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 bg-clip-text text-transparent">
-                ด้วย AI
+                {t("assess_health_with_ai")}
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-4 font-light">ง่าย รวดเร็ว แม่นยำ</p>
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-4 font-semibold">
+              {t("easy_fast_accurate")}
+            </p>
             <p className="text-gray-500 dark:text-gray-400 max-w-3xl mx-auto mb-12 text-lg leading-relaxed">
-              ระบบประเมินสุขภาพอัจฉริยะที่ช่วยคุณดูแลสุขภาพได้ดีขึ้น ไม่ต้องมีความรู้ทางการแพทย์
-              <br className="hidden md:block" />
-              ใช้งานง่าย เข้าใจได้ทันที พร้อมคำแนะนำจากแพทย์ผู้เชี่ยวชาญ
+              {t("ai_powered_description")}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -327,8 +325,8 @@ export default function HomePage() {
                 onClick={handleStartAssessment}
               >
                 <Play className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="hidden sm:inline">เริ่มประเมินสุขภาพ</span>
-                <span className="sm:hidden">เริ่มประเมิน</span>
+                <span className="hidden sm:inline">{t("start_health_assessment")}</span>
+                <span className="sm:hidden">{t("start_health_assessment")}</span>
               </Button>
               <Button
                 size="lg"
@@ -337,8 +335,8 @@ export default function HomePage() {
                 onClick={handleConsultDoctor}
               >
                 <Stethoscope className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="hidden sm:inline">ปรึกษาแพทย์ออนไลน์</span>
-                <span className="sm:hidden">ปรึกษาแพทย์</span>
+                <span className="hidden sm:inline">{t("consult_doctor_online")}</span>
+                <span className="sm:hidden">{t("consult_doctor")}</span>
               </Button>
               {!isLoggedIn && (
                 <Button
@@ -349,8 +347,8 @@ export default function HomePage() {
                 >
                   <Link href="/guest-assessment">
                     <FlaskConical className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                    <span className="hidden sm:inline">ทดลองใช้งาน</span>
-                    <span className="sm:hidden">ลองใช้</span>
+                    <span className="hidden sm:inline">{t("try_it_out")}</span>
+                    <span className="sm:hidden">{t("try_it_out")}</span>
                   </Link>
                 </Button>
               )}
@@ -358,20 +356,33 @@ export default function HomePage() {
 
             {/* Features */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {features.map((feature, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg"
-                >
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                    <feature.icon className="w-5 h-5" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-semibold text-gray-800 dark:text-gray-200">{feature.title}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{feature.description}</div>
-                  </div>
+              <div className="flex items-center justify-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                  <Sparkles className="w-5 h-5" />
                 </div>
-              ))}
+                <div className="text-left">
+                  <div className="font-semibold text-gray-800 dark:text-gray-200">{t("smart_ai")}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("analyze_with_openai")}</div>
+                </div>
+              </div>
+              <div className="flex items-center justify-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-800 dark:text-gray-200">{t("secure")}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("encrypted_data_pdpa")}</div>
+                </div>
+              </div>
+              <div className="flex items-center justify-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-800 dark:text-gray-200">{t("fast_results")}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("results_in_minutes")}</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -388,9 +399,9 @@ export default function HomePage() {
                             <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                               <Activity className="h-6 w-6" />
                             </div>
-                            ภาพรวมสุขภาพของคุณ
+                            {t("your_health_overview")}
                           </CardTitle>
-                          <p className="text-gray-600 dark:text-gray-400 mt-2">ข้อมูลการประเมินและความคืบหน้า (ล่าสุด)</p>
+                          <p className="text-gray-600 dark:text-gray-400 mt-2">{t("assessment_progress")}</p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
                           <Button
@@ -398,8 +409,8 @@ export default function HomePage() {
                             onClick={handleConsultDoctor}
                           >
                             <Stethoscope className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">ปรึกษาแพทย์</span>
-                            <span className="sm:hidden">แพทย์</span>
+                            <span className="hidden sm:inline">{t("consult_doctor")}</span>
+                            <span className="sm:hidden">{t("consult_doctor")}</span>
                           </Button>
                           <Button
                             variant="outline"
@@ -408,8 +419,8 @@ export default function HomePage() {
                             onClick={handleViewHealthOverview} // New button for health overview
                           >
                             <BarChart2 className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">ดูภาพรวมสุขภาพ</span>
-                            <span className="sm:hidden">ภาพรวม</span>
+                            <span className="hidden sm:inline">{t("health_overview")}</span>
+                            <span className="sm:hidden">{t("health_overview")}</span>
                           </Button>
                         </div>
                       </div>
@@ -422,10 +433,10 @@ export default function HomePage() {
                             <div className="text-3xl font-bold text-blue-600 mb-1">
                               {loadingStats ? "..." : `${dashboardStats.overallScore}%`}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 mb-1">คะแนนสุขภาพรวม</div>
+                            <div className="text-sm font-medium text-gray-700 mb-1">{t("overall_health_score")}</div>
                             <div className="text-xs text-gray-500 flex items-center">
                               <Clock className="w-3 h-3 mr-1" />
-                              {dashboardStats.completedAssessments > 0 ? "อัปเดตล่าสุด" : "ยังไม่มีข้อมูล"}
+                              {dashboardStats.completedAssessments > 0 ? t("updated_at") : t("no_data")}
                             </div>
                           </div>
                         </div>
@@ -436,10 +447,10 @@ export default function HomePage() {
                             <div className="text-3xl font-bold text-orange-600 mb-1">
                               {loadingStats ? "..." : dashboardStats.riskFactors}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 mb-1">ปัจจัยเสี่ยง</div>
+                            <div className="text-sm font-medium text-gray-700 mb-1">{t("risk_factors")}</div>
                             <div className="text-xs text-gray-500 flex items-center">
                               <TrendingUp className="w-3 h-3 mr-1" />
-                              ที่ระบุได้
+                              {t("identified")}
                             </div>
                           </div>
                         </div>
@@ -450,10 +461,10 @@ export default function HomePage() {
                             <div className="text-3xl font-bold text-green-600 mb-1">
                               {loadingStats ? "..." : `${dashboardStats.completedAssessments}/6`}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 mb-1">การประเมิน</div>
+                            <div className="text-sm font-medium text-gray-700 mb-1">{t("assessments")}</div>
                             <div className="text-xs text-gray-500 flex items-center">
                               <Award className="w-3 h-3 mr-1" />
-                              เสร็จสิ้น
+                              {t("completed")}
                             </div>
                           </div>
                         </div>
@@ -462,15 +473,19 @@ export default function HomePage() {
                           <div className="absolute top-0 right-0 w-20 h-20 bg-purple-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
                           <div className="relative">
                             <div className="text-2xl font-bold text-purple-600 mb-1">
-                              {loadingStats ? "..." : dashboardStats.reportReady ? "พร้อม" : "ไม่พร้อม"}
+                              {loadingStats
+                                ? "..."
+                                : dashboardStats.reportReady
+                                  ? t("report_ready")
+                                  : t("report_not_ready")}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 mb-1">รายงานสุขภาพ</div>
+                            <div className="text-sm font-medium text-gray-700 mb-1">{t("health_report")}</div>
                             <div className="text-xs text-gray-500 flex items-center mb-1">
                               <FileText className="w-3 h-3 mr-1" />
-                              {dashboardStats.reportReady ? "สร้างรายงานได้" : "สร้างรายงาน"}
+                              {dashboardStats.reportReady ? t("can_generate_report") : t("can_generate_report")}
                             </div>
                             {!dashboardStats.reportReady && (
-                              <div className="text-xs text-gray-400">ต้องทำแบบประเมิน 3 ประเภท</div>
+                              <div className="text-xs text-gray-400">{t("must_complete_3_categories")}</div>
                             )}
                           </div>
                         </div>
@@ -485,12 +500,10 @@ export default function HomePage() {
                 <div className="text-center mb-12">
                   <h2 className="text-4xl font-bold mb-4">
                     <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                      แบบประเมินสุขภาพ
+                      {t("health_assessments")}
                     </span>
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-lg">
-                    เลือกแบบประเมินที่ต้องการทำ เพื่อวิเคราะห์สุขภาพของคุณ
-                  </p>
+                  <p className="text-gray-600 dark:text-gray-400 text-lg">{t("choose_assessment_type")}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -510,7 +523,7 @@ export default function HomePage() {
                           <div className="flex flex-col items-end space-y-2">
                             {category.required ? (
                               <Badge className="bg-red-500 hover:bg-red-600 text-white font-medium px-3 py-1 rounded-full">
-                                จำเป็น
+                                {t("required")}
                               </Badge>
                             ) : (
                               <Badge
@@ -518,12 +531,12 @@ export default function HomePage() {
                                 className="bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full
                                 dark:bg-blue-900 dark:text-blue-200" // Added dark mode classes
                               >
-                                เสริม
+                                {t("optional")}
                               </Badge>
                             )}
                             {category.progress > 0 && (
                               <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {category.progress}% เสร็จสิ้น
+                                {category.progress}% {t("completed")}
                                 {category.score && <span className="ml-1">({category.score}%)</span>}
                               </div>
                             )}
@@ -549,7 +562,7 @@ export default function HomePage() {
                           asChild
                         >
                           <Link href={`/assessment/${category.id}`}>
-                            {category.progress > 0 ? "ประเมินใหม่" : "เริ่มประเมิน"}
+                            {category.progress > 0 ? t("re_assess") : t("start_assessment")}
                             <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                           </Link>
                         </Button>

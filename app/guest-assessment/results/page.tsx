@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { guestAssessmentCategory } from "@/data/assessment-questions"
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
+import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
 
 export default function GuestAssessmentResultsPage() {
   const router = useRouter()
@@ -34,6 +35,7 @@ export default function GuestAssessmentResultsPage() {
   const [result, setResult] = useState<AssessmentResult | null>(null)
   const [aiAnalysis, setAiAnalysis] = useState<any>(null) // To store raw AI analysis
   const [error, setError] = useState<string | null>(null)
+  const { t } = useTranslation() // Use translation hook
 
   useEffect(() => {
     loadAndAnalyzeGuestAssessmentData()
@@ -47,7 +49,7 @@ export default function GuestAssessmentResultsPage() {
 
       const savedAnswers = localStorage.getItem(`guest-assessment-temp-answers`)
       if (!savedAnswers) {
-        setError("ไม่พบข้อมูลแบบประเมินทดลอง กรุณาลองทำใหม่")
+        setError(t("no_guest_assessment_data"))
         setLoading(false)
         setAnalyzing(false)
         return
@@ -70,7 +72,7 @@ export default function GuestAssessmentResultsPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "เกิดข้อผิดพลาดในการวิเคราะห์ผลลัพธ์")
+        throw new Error(errorData.error || t("error_loading_analysis"))
       }
 
       const { analysis } = await response.json() // Destructure analysis from response
@@ -94,7 +96,7 @@ export default function GuestAssessmentResultsPage() {
       localStorage.removeItem(`guest-assessment-temp-answers`)
     } catch (err: any) {
       console.error("Error loading or analyzing guest assessment data:", err)
-      setError(err.message || "ไม่สามารถโหลดหรือวิเคราะห์ผลการประเมินได้")
+      setError(err.message || t("error_loading_analysis"))
     } finally {
       setLoading(false)
       setAnalyzing(false) // End analyzing state
@@ -105,7 +107,7 @@ export default function GuestAssessmentResultsPage() {
     switch (level) {
       case "low":
         return {
-          label: "ความเสี่ยงต่ำ",
+          label: t("low_risk"),
           color: "text-green-600",
           bgColor: "bg-green-50",
           borderColor: "border-green-200",
@@ -113,7 +115,7 @@ export default function GuestAssessmentResultsPage() {
         }
       case "medium":
         return {
-          label: "ความเสี่ยงปานกลาง",
+          label: t("medium_risk"),
           color: "text-yellow-600",
           bgColor: "bg-yellow-50",
           borderColor: "border-yellow-200",
@@ -121,7 +123,7 @@ export default function GuestAssessmentResultsPage() {
         }
       case "high":
         return {
-          label: "ความเสี่ยงสูง",
+          label: t("high_risk"),
           color: "text-orange-600",
           bgColor: "bg-orange-50",
           borderColor: "border-orange-200",
@@ -129,7 +131,7 @@ export default function GuestAssessmentResultsPage() {
         }
       case "very-high":
         return {
-          label: "ความเสี่ยงสูงมาก",
+          label: t("very_high_risk"),
           color: "text-red-600",
           bgColor: "bg-red-50",
           borderColor: "border-red-200",
@@ -137,7 +139,7 @@ export default function GuestAssessmentResultsPage() {
         }
       default:
         return {
-          label: "ไม่ทราบ",
+          label: t("unspecified_risk"),
           color: "text-gray-600",
           bgColor: "bg-gray-50",
           borderColor: "border-gray-200",
@@ -164,10 +166,10 @@ export default function GuestAssessmentResultsPage() {
               )}
             </div>
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-              {analyzing ? "AI กำลังวิเคราะห์ผลการประเมิน" : "กำลังประมวลผลผลการประเมิน"}
+              {analyzing ? t("ai_analyzing_results") : t("processing_results")}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {analyzing ? "ระบบ AI กำลังวิเคราะห์คำตอบของคุณเพื่อให้คำแนะนำที่เหมาะสม" : "กรุณารอสักครู่..."}
+              {analyzing ? t("ai_analyzing_description") : t("please_wait")}
             </p>
             <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
               <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
@@ -187,11 +189,11 @@ export default function GuestAssessmentResultsPage() {
         <Card className="w-full max-w-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
           <CardContent className="p-8 text-center">
             <XCircle className="h-16 w-16 text-red-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">เกิดข้อผิดพลาด</h3>
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t("error")}</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
             <Button onClick={handleBackToHome} className="w-full">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              กลับหน้าหลัก
+              {t("home")}
             </Button>
           </CardContent>
         </Card>
@@ -203,9 +205,9 @@ export default function GuestAssessmentResultsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400">ไม่พบข้อมูลผลการประเมิน</p>
+          <p className="text-gray-600 dark:text-gray-400">{t("no_data")}</p>
           <Button onClick={handleBackToHome} className="mt-4">
-            กลับหน้าหลัก
+            {t("home")}
           </Button>
         </div>
       </div>
@@ -226,7 +228,7 @@ export default function GuestAssessmentResultsPage() {
             className="mb-4 hover:bg-white/80 dark:hover:bg-gray-700/80"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            กลับหน้าหลัก
+            {t("home")}
           </Button>
 
           <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
@@ -235,16 +237,16 @@ export default function GuestAssessmentResultsPage() {
                 <div>
                   <CardTitle className="text-2xl mb-2 flex items-center">
                     <FlaskConical className="mr-3 h-6 w-6 text-purple-600" />
-                    ผลการประเมิน: {guestAssessmentCategory.title}
+                    {t("assessment_results")}: {guestAssessmentCategory.title}
                   </CardTitle>
                   <p className="text-gray-600 dark:text-gray-400">{guestAssessmentCategory.description}</p>
                   <div className="flex items-center mt-2 text-sm text-blue-600 dark:text-blue-400">
                     <Info className="w-4 h-4 mr-1" />
-                    ข้อมูลนี้ไม่ถูกบันทึก
+                    {t("this_data_not_saved")}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">วันที่ประเมิน</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">{t("assessment_date")}</div>
                   <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <Calendar className="w-4 h-4 mr-1" />
                     {new Date().toLocaleDateString("th-TH")}
@@ -261,7 +263,7 @@ export default function GuestAssessmentResultsPage() {
             <CardHeader>
               <CardTitle className="flex items-center text-xl text-gray-800 dark:text-gray-200">
                 <Brain className="mr-3 h-5 w-5 text-purple-600" />
-                สรุปผลการวิเคราะห์โดย AI
+                {t("ai_summary")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -280,13 +282,13 @@ export default function GuestAssessmentResultsPage() {
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-1">{riskInfo.label}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">ระดับความเสี่ยงโดยรวม</p>
+                  <p className="text-gray-600 dark:text-gray-400">{t("overall_risk_level")}</p>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-1">{result.percentage}%</div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  คะแนน {result.totalScore}/{result.maxScore}
+                  {t("score")} {result.totalScore}/{result.maxScore}
                 </div>
               </div>
             </div>
@@ -297,19 +299,19 @@ export default function GuestAssessmentResultsPage() {
               <div className="text-center p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
                 <Activity className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">{result.totalQuestions}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">คำถามที่ตอบ</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{t("questions_answered")}</div>
               </div>
               <div className="text-center p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
                 <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">{result.riskFactors.length}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">ปัจจัยเสี่ยง</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{t("risk_factors")}</div>
               </div>
               <div className="text-center p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
                 <FileText className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
                   {result.recommendations.length}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">คำแนะนำ</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{t("recommendations")}</div>
               </div>
             </div>
           </CardContent>
@@ -321,7 +323,7 @@ export default function GuestAssessmentResultsPage() {
             <CardHeader>
               <CardTitle className="flex items-center text-xl text-gray-800 dark:text-gray-200">
                 <AlertTriangle className="mr-3 h-5 w-5 text-orange-600" />
-                ปัจจัยเสี่ยงที่พบ
+                {t("risk_factors")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -340,8 +342,8 @@ export default function GuestAssessmentResultsPage() {
               ) : (
                 <div className="text-center py-8">
                   <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400">ไม่พบปัจจัยเสี่ยงที่สำคัญ</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">ข้อมูลสุขภาพของคุณอยู่ในเกณฑ์ปกติ</p>
+                  <p className="text-gray-600 dark:text-gray-400">{t("no_significant_risk_factors")}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{t("your_health_normal")}</p>
                 </div>
               )}
             </CardContent>
@@ -352,7 +354,7 @@ export default function GuestAssessmentResultsPage() {
             <CardHeader>
               <CardTitle className="flex items-center text-xl text-gray-800 dark:text-gray-200">
                 <Heart className="mr-3 h-5 w-5 text-red-600" />
-                คำแนะนำสำหรับคุณ
+                {t("recommendations")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -371,8 +373,8 @@ export default function GuestAssessmentResultsPage() {
               ) : (
                 <div className="text-center py-8">
                   <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400">ไม่มีคำแนะนำเพิ่มเติม</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">สุขภาพของคุณอยู่ในเกณฑ์ดีเยี่ยม</p>
+                  <p className="text-gray-600 dark:text-gray-400">{t("no_additional_recommendations")}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{t("your_health_excellent")}</p>
                 </div>
               )}
             </CardContent>
@@ -382,20 +384,16 @@ export default function GuestAssessmentResultsPage() {
         {/* Call to Action for Login/Register */}
         <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
           <CardContent className="p-6 text-center">
-            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-              ต้องการบันทึกผลและใช้งานฟีเจอร์เต็มรูปแบบหรือไม่?
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              เข้าสู่ระบบเพื่อติดตามความคืบหน้าสุขภาพของคุณ, ดูรายงานฉบับเต็ม, และปรึกษาแพทย์ออนไลน์
-            </p>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{t("want_to_save_results")}</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">{t("login_to_track_progress")}</p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Button
                 asChild
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-6 sm:px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-6 sm:px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 text-sm sm:text-base"
               >
                 <Link href="/login">
                   <LogIn className="mr-2 h-4 w-4" />
-                  เข้าสู่ระบบ
+                  {t("login")}
                 </Link>
               </Button>
               <Button
@@ -405,7 +403,7 @@ export default function GuestAssessmentResultsPage() {
               >
                 <Link href="/register">
                   <UserPlus className="mr-2 h-4 w-4" />
-                  สมัครสมาชิก
+                  {t("register")}
                 </Link>
               </Button>
             </div>

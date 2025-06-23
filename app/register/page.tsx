@@ -14,6 +14,7 @@ import { Activity, Eye, EyeOff, ArrowLeft, Mail, Lock, User, Loader2 } from "luc
 import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
+import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -28,6 +29,7 @@ export default function RegisterPage() {
     confirmPassword: "",
     acceptPDPA: false,
   })
+  const { t } = useTranslation() // Use translation hook
 
   // Redirect if already logged in
   useEffect(() => {
@@ -49,8 +51,8 @@ export default function RegisterPage() {
     // Validation
     if (formData.password !== formData.confirmPassword) {
       toast({
-        title: "รหัสผ่านไม่ตรงกัน",
-        description: "กรุณาตรวจสอบรหัสผ่านให้ตรงกัน",
+        title: t("password_mismatch"),
+        description: t("password_mismatch"),
         variant: "destructive",
       })
       setLoading(false)
@@ -59,8 +61,8 @@ export default function RegisterPage() {
 
     if (!formData.acceptPDPA) {
       toast({
-        title: "กรุณายอมรับเงื่อนไข PDPA",
-        description: "จำเป็นต้องยอมรับเงื่อนไขการใช้งานก่อนสมัครสมาชิก",
+        title: t("accept_pdpa_terms"),
+        description: t("accept_pdpa_terms"),
         variant: "destructive",
       })
       setLoading(false)
@@ -75,21 +77,21 @@ export default function RegisterPage() {
 
       if (error) {
         toast({
-          title: "สมัครสมาชิกไม่สำเร็จ",
-          description: error.message === "User already registered" ? "อีเมลนี้ถูกใช้งานแล้ว" : error.message,
+          title: t("registration_failed"),
+          description: error.message === "User already registered" ? t("email_already_used") : error.message,
           variant: "destructive",
         })
       } else {
         toast({
-          title: "สมัครสมาชิกสำเร็จ",
-          description: "กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชี",
+          title: t("register_success"),
+          description: t("check_email_for_confirmation"),
         })
         router.push("/login")
       }
     } catch (error) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "กรุณาลองใหม่อีกครั้ง",
+        title: t("error"),
+        description: t("try_again"),
         variant: "destructive",
       })
     } finally {
@@ -103,7 +105,7 @@ export default function RegisterPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <span>กำลังตรวจสอบสถานะการเข้าสู่ระบบ...</span>
+          <span>{t("loading_profile")}...</span>
         </div>
       </div>
     )
@@ -141,8 +143,8 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">สมัครสมาชิก</h1>
-                  <p className="text-gray-600">เริ่มต้นดูแลสุขภาพของคุณวันนี้</p>
+                  <h1 className="text-3xl font-bold text-gray-800 mb-2">{t("register")}</h1>
+                  <p className="text-gray-600">{t("start_health_assessment")}</p>
                 </div>
               </CardHeader>
 
@@ -150,14 +152,14 @@ export default function RegisterPage() {
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-gray-700 font-medium">
-                      ชื่อ-นามสกุล
+                      {t("full_name")}
                     </Label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                       <Input
                         id="fullName"
                         type="text"
-                        placeholder="ชื่อ-นามสกุลของคุณ"
+                        placeholder={t("full_name")}
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                         className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300 text-black"
@@ -169,7 +171,7 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-gray-700 font-medium">
-                      อีเมล
+                      {t("email")}
                     </Label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -188,14 +190,14 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-gray-700 font-medium">
-                      รหัสผ่าน
+                      {t("password")}
                     </Label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="รหัสผ่านของคุณ"
+                        placeholder={t("password")}
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         className="pl-12 pr-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300 text-black"
@@ -218,14 +220,14 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">
-                      ยืนยันรหัสผ่าน
+                      {t("confirm_password")}
                     </Label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                       <Input
                         id="confirmPassword"
                         type="password"
-                        placeholder="ยืนยันรหัสผ่านของคุณ"
+                        placeholder={t("confirm_password")}
                         value={formData.confirmPassword}
                         onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                         className="pl-12 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300 text-black"
@@ -237,18 +239,13 @@ export default function RegisterPage() {
 
                   {/* PDPA Consent */}
                   <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                    <h3 className="text-black font-semibold text-sm">การให้ความยินยอมตาม PDPA</h3>
+                    <h3 className="text-black font-semibold text-sm">{t("pdpa_consent_title")}</h3>
                     <div className="text-xs text-gray-600 space-y-2">
                       <label htmlFor="pdpa-consent" className="cursor-pointer">
-                        ข้าพเจ้ายินยอมให้ VONIX เก็บรวบรวม ใช้ และประมวลผลข้อมูลส่วนบุคคลและข้อมูลสุขภาพของข้าพเจ้า
-                        รวมถึงข้อมูลจากแบบประเมินสุขภาพ เพื่อให้บริการประเมินสุขภาพเบื้องต้น สร้างรายงานสุขภาพ ส่งต่อให้บุคลากรทางการแพทย์
-                        และปรับปรุงคุณภาพของบริการผ่านการวิเคราะห์โดยระบบ AI และเครื่องมือวิเคราะห์ข้อมูล
-                        ทั้งนี้ข้อมูลของข้าพเจ้าจะได้รับการคุ้มครองตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) และกฎหมาย GDPR
-                        ของสหภาพยุโรป โดยสามารถศึกษารายละเอียดเพิ่มเติมได้ในนโยบายความเป็นส่วนตัว{" "}
-                        <span className="text-red-500">*</span>
+                        {t("pdpa_consent_text")} <span className="text-red-500">*</span>
                       </label>
                       <a href="/privacy-policy" className="text-blue-600 hover:underline inline-flex items-center ml-1">
-                        อ่านนโยบายความเป็นส่วนตัว
+                        {t("read_privacy_policy")}
                       </a>
                     </div>
 
@@ -270,23 +267,23 @@ export default function RegisterPage() {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span className="hidden sm:inline">กำลังสมัครสมาชิก...</span>
-                        <span className="sm:hidden">กำลังสมัคร...</span>
+                        <span className="hidden sm:inline">{t("signing_up")}...</span>
+                        <span className="sm:hidden">{t("signing_up")}...</span>
                       </>
                     ) : (
-                      <span>สมัครสมาชิก</span>
+                      <span>{t("register")}</span>
                     )}
                   </Button>
                 </form>
 
                 <div className="text-center space-y-4">
                   <div className="flex items-center justify-center space-x-2 text-gray-600">
-                    <span>มีบัญชีอยู่แล้ว?</span>
+                    <span>{t("already_have_account")}</span>
                     <Link
                       href="/login"
                       className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
                     >
-                      เข้าสู่ระบบ
+                      {t("login")}
                     </Link>
                   </div>
                 </div>
@@ -300,7 +297,7 @@ export default function RegisterPage() {
                   >
                     <Link href="/" className="flex items-center">
                       <ArrowLeft className="mr-2 h-4 w-4" />
-                      กลับหน้าหลัก
+                      {t("home")}
                     </Link>
                   </Button>
                 </div>

@@ -10,12 +10,16 @@ import { useAuth } from "@/hooks/use-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useLanguage } from "@/contexts/language-context" // Import useLanguage
+import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
 
 export function Header() {
   const { user, profile, signOut, loading, refreshProfile } = useAuth()
   const [refreshing, setRefreshing] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const router = useRouter()
+  const { locale, setLocale } = useLanguage() // Use language context
+  const { t } = useTranslation() // Use translation hook
 
   const getInitials = (name: string | null) => {
     if (!name) return "U"
@@ -30,13 +34,13 @@ export function Header() {
   const getRoleLabel = (role: string) => {
     switch (role) {
       case "patient":
-        return "ผู้ใช้งานทั่วไป"
+        return t("patient")
       case "doctor":
-        return "แพทย์"
+        return t("doctor")
       case "admin":
-        return "ผู้ดูแลระบบ"
+        return t("admin")
       default:
-        return "ผู้ใช้งาน"
+        return t("user")
     }
   }
 
@@ -85,12 +89,22 @@ export function Header() {
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-4">
+          {/* Language Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocale(locale === "th" ? "en" : "th")}
+            className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-lg font-semibold"
+          >
+            {locale === "th" ? "EN" : "TH"}
+          </Button>
+
           <ModeToggle />
 
           {loading ? (
             <div className="flex items-center space-x-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">กำลังโหลด...</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">{t("loading")}...</span>
             </div>
           ) : user ? (
             <div className="flex items-center space-x-2 sm:space-x-3">
@@ -114,11 +128,11 @@ export function Header() {
                     </Avatar>
                     <div className="text-left hidden sm:block">
                       <div className="font-medium text-sm text-gray-800 dark:text-gray-200">
-                        {profile?.full_name || "ผู้ใช้งาน"}
-                        {!profile && user && <span className="text-red-500 text-xs ml-2">(ไม่มีโปรไฟล์)</span>}
+                        {profile?.full_name || t("user")}
+                        {!profile && user && <span className="text-red-500 text-xs ml-2">{t("no_profile")}</span>}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {profile ? getRoleLabel(profile.role || "patient") : "กำลังโหลด..."}
+                        {profile ? getRoleLabel(profile.role || "patient") : t("loading_profile")}
                       </div>
                     </div>
                   </Button>
@@ -127,31 +141,31 @@ export function Header() {
                   {!profile && user && (
                     <DropdownMenuItem onClick={handleRefreshProfile} disabled={refreshing}>
                       <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-                      {refreshing ? "กำลังโหลด..." : "โหลดโปรไฟล์"}
+                      {refreshing ? t("loading") : t("refresh_profile")}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem asChild>
-                    <Link href="/profile">👤 โปรไฟล์ของฉัน</Link>
+                    <Link href="/profile">👤 {t("profile")}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard">📊 แดชบอร์ด</Link>
+                    <Link href="/dashboard">📊 {t("dashboard")}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/reports">📋 รายงานสุขภาพ</Link>
+                    <Link href="/reports">📋 {t("health_reports")}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/settings">⚙️ การตั้งค่า</Link>
+                    <Link href="/settings">⚙️ {t("settings")}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-600" disabled={signingOut}>
                     {signingOut ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        กำลังออกจากระบบ...
+                        {t("signing_out")}
                       </>
                     ) : (
                       <>
                         <LogOut className="mr-2 h-4 w-4" />
-                        ออกจากระบบ
+                        {t("sign_out")}
                       </>
                     )}
                   </DropdownMenuItem>
@@ -162,8 +176,8 @@ export function Header() {
             <div className="flex items-center space-x-2 sm:space-x-3">
               <Button variant="ghost" className="font-medium text-sm sm:text-base px-3 sm:px-4" asChild>
                 <Link href="/login">
-                  <span className="hidden sm:inline">เข้าสู่ระบบ</span>
-                  <span className="sm:hidden">เข้าสู่</span>
+                  <span className="hidden sm:inline">{t("login")}</span>
+                  <span className="sm:hidden">{t("login")}</span>
                 </Link>
               </Button>
               <Button
@@ -171,8 +185,8 @@ export function Header() {
                 asChild
               >
                 <Link href="/register">
-                  <span className="hidden sm:inline">เริ่มต้นฟรี</span>
-                  <span className="sm:hidden">สมัคร</span>
+                  <span className="hidden sm:inline">{t("start_free")}</span>
+                  <span className="sm:hidden">{t("register")}</span>
                 </Link>
               </Button>
             </div>

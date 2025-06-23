@@ -1,47 +1,48 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useEffect, useState } from "react"
+import Link from "next/link"
 import {
   Activity,
-  FileText,
+  AlertTriangle,
+  ArrowLeft,
+  Bed,
+  Brain,
+  Calendar,
+  CheckCircle,
+  ChevronRight,
   Clock,
+  Dumbbell,
+  FileText,
+  FlaskConical,
+  HeartPulse,
   Info,
   Loader2,
-  XCircle,
   RefreshCw,
-  Calendar,
-  ChevronRight,
-  ArrowLeft,
-  HeartPulse,
-  Brain,
-  Utensils,
   ShieldCheck,
-  Bed,
-  Dumbbell,
-  FlaskConical,
-  CheckCircle,
-  AlertTriangle,
+  Utensils,
+  XCircle,
 } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAuth } from "@/hooks/use-auth"
+import { useTranslation } from "@/hooks/use-translation"
 import { AssessmentService } from "@/lib/assessment-service"
 import { isSupabaseConfigured } from "@/lib/supabase"
 import { assessmentCategories as allAssessmentCategories } from "@/data/assessment-questions"
-import Link from "next/link"
 
 interface HealthOverviewModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
 
-// Mapping for category icons
-const iconMap: { [key: string]: React.ElementType } = {
+// Map assessment category → icon component
+const iconMap: Record<string, React.ElementType> = {
   basic: ShieldCheck,
   heart: HeartPulse,
   mental: Brain,
@@ -49,14 +50,16 @@ const iconMap: { [key: string]: React.ElementType } = {
   sleep: Bed,
   physical: Dumbbell,
   stress: FlaskConical,
-  // Add other category icons here if needed
 }
 
 export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModalProps) {
+  const { t } = useTranslation()
   const { user, loading: authLoading } = useAuth()
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [assessments, setAssessments] = useState<any[]>([])
+
   const [dashboardStats, setDashboardStats] = useState({
     overallScore: 0,
     riskFactors: 0,
@@ -64,45 +67,56 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
     reportReady: false,
   })
 
-  // State for detailed assessment view
+  // Detailed-view state
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string | null>(null)
   const [detailedAssessmentData, setDetailedAssessmentData] = useState<any | null>(null)
   const [loadingDetailedAssessment, setLoadingDetailedAssessment] = useState(false)
   const [detailedAssessmentError, setDetailedAssessmentError] = useState<string | null>(null)
 
+  /* ────────────────────────────────────────────────────────────────────
+     Lifecycle
+  ──────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     if (isOpen && !authLoading && user?.id && isSupabaseConfigured()) {
-      loadUserAssessments()
+      void loadUserAssessments()
     } else if (!isOpen) {
-      // Reset all states when modal closes
-      setAssessments([])
-      setDashboardStats({
-        overallScore: 0,
-        riskFactors: 0,
-        completedAssessments: 0,
-        reportReady: false,
-      })
-      setLoading(true)
-      setError(null)
-      setSelectedAssessmentId(null)
-      setDetailedAssessmentData(null)
-      setLoadingDetailedAssessment(false)
-      setDetailedAssessmentError(null)
+      resetState()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, authLoading, user?.id])
 
+  const resetState = () => {
+    setAssessments([])
+    setDashboardStats({
+      overallScore: 0,
+      riskFactors: 0,
+      completedAssessments: 0,
+      reportReady: false,
+    })
+    setLoading(true)
+    setError(null)
+    setSelectedAssessmentId(null)
+    setDetailedAssessmentData(null)
+    setLoadingDetailedAssessment(false)
+    setDetailedAssessmentError(null)
+  }
+
+  /* ────────────────────────────────────────────────────────────────────
+     Data loaders
+  ──────────────────────────────────────────────────────────────────── */
   const loadUserAssessments = async () => {
     if (!user?.id || !isSupabaseConfigured()) {
-      setError("กรุณาเข้าสู่ระบบเพื่อดูภาพรวมสุขภาพ")
+      setError(t("login_to_view_health_overview"))
       setLoading(false)
       return
     }
 
     setLoading(true)
     setError(null)
+
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("การโหลดข้อมูลใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง")), 15000),
+        setTimeout(() => reject(new Error(t("save_timeout"))), 15_000),
       )
 
       const result = await Promise.race([
@@ -110,24 +124,19 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
         timeoutPromise.then((res) => ({ type: "timeout", data: res })),
       ])
 
-      if (result.type === "timeout") {
-        throw new Error("การโหลดข้อมูลใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง")
-      }
+      if (result.type === "timeout") throw new Error(t("save_timeout"))
 
       const { data, error: serviceError } = result.data
+      if (serviceError) throw serviceError
 
-      if (serviceError) {
-        throw serviceError
-      }
-
-      const allAssessments = data || []
+      const allAssessments = data ?? []
       setAssessments(allAssessments)
 
       const latestAssessments = getLatestAssessments(allAssessments)
       calculateDashboardStats(latestAssessments)
     } catch (err: any) {
       console.error("Error loading user assessments:", err)
-      setError(err.message || "ไม่สามารถโหลดข้อมูลการประเมินได้ กรุณาลองใหม่อีกครั้ง")
+      setError(err.message ?? t("error_loading_analysis"))
     } finally {
       setLoading(false)
     }
@@ -136,9 +145,10 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
   const loadDetailedAssessment = async (assessmentId: string) => {
     setLoadingDetailedAssessment(true)
     setDetailedAssessmentError(null)
+
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("การโหลดรายละเอียดใช้เวลานานเกินไป")), 15000),
+        setTimeout(() => reject(new Error(t("loading_details"))), 15_000),
       )
 
       const result = await Promise.race([
@@ -146,35 +156,31 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
         timeoutPromise.then((res) => ({ type: "timeout", data: res })),
       ])
 
-      if (result.type === "timeout") {
-        throw new Error("การโหลดรายละเอียดใช้เวลานานเกินไป")
-      }
+      if (result.type === "timeout") throw new Error(t("loading_details"))
 
       const { data, error: serviceError } = result.data
-
-      if (serviceError) {
-        throw serviceError
-      }
+      if (serviceError) throw serviceError
 
       setDetailedAssessmentData(data)
       setSelectedAssessmentId(assessmentId)
     } catch (err: any) {
       console.error("Error loading detailed assessment:", err)
-      setDetailedAssessmentError(err.message || "ไม่สามารถโหลดรายละเอียดการประเมินได้")
+      setDetailedAssessmentError(err.message ?? t("error_loading_details"))
     } finally {
       setLoadingDetailedAssessment(false)
     }
   }
 
+  /* ────────────────────────────────────────────────────────────────────
+     Helpers
+  ──────────────────────────────────────────────────────────────────── */
   const getLatestAssessments = (assessmentData: any[]) => {
-    const latestByCategory = new Map()
+    const latestByCategory = new Map<string, any>()
 
     assessmentData.forEach((assessment) => {
-      const categoryId = assessment.category_id
-      const currentLatest = latestByCategory.get(categoryId)
-
-      if (!currentLatest || new Date(assessment.completed_at) > new Date(currentLatest.completed_at)) {
-        latestByCategory.set(categoryId, assessment)
+      const current = latestByCategory.get(assessment.category_id)
+      if (!current || new Date(assessment.completed_at) > new Date(current.completed_at)) {
+        latestByCategory.set(assessment.category_id, assessment)
       }
     })
 
@@ -182,7 +188,7 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
   }
 
   const calculateDashboardStats = (latestAssessments: any[]) => {
-    if (latestAssessments.length === 0) {
+    if (!latestAssessments.length) {
       setDashboardStats({
         overallScore: 0,
         riskFactors: 0,
@@ -192,61 +198,48 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
       return
     }
 
-    const totalScore = latestAssessments.reduce((sum, assessment) => sum + assessment.percentage, 0)
-    const averageScore = Math.round(totalScore / latestAssessments.length)
+    const totalScore = latestAssessments.reduce((sum, a) => sum + a.percentage, 0)
+    const avgScore = Math.round(totalScore / latestAssessments.length)
 
-    const allRiskFactors = latestAssessments.reduce((factors, assessment) => {
-      return factors.concat(assessment.risk_factors || [])
-    }, [])
-    const uniqueRiskFactors = [...new Set(allRiskFactors)].length
+    const allRiskFactors = latestAssessments.flatMap((a) => a.risk_factors ?? [])
+    const uniqueRiskFactors = new Set(allRiskFactors).size
 
-    const requiredCategories = ["basic", "heart", "nutrition"]
-    const completedRequired = requiredCategories.filter((category) =>
-      latestAssessments.some((assessment) => assessment.category_id === category),
-    ).length
+    const required = ["basic", "heart", "nutrition"]
+    const completedRequired = required.filter((cat) => latestAssessments.some((a) => a.category_id === cat)).length
 
     setDashboardStats({
-      overallScore: averageScore,
+      overallScore: avgScore,
       riskFactors: uniqueRiskFactors,
       completedAssessments: latestAssessments.length,
-      reportReady: completedRequired >= 3,
+      reportReady: completedRequired >= required.length,
     })
   }
 
-  const getCategoryIcon = (categoryId: string) => {
-    const category = allAssessmentCategories.find((cat) => cat.id === categoryId)
-    const IconComponent = category && iconMap[category.id] ? iconMap[category.id] : Info
-    return IconComponent
-  }
+  const getCategoryIcon = (categoryId: string) => (iconMap[categoryId] ?? Info) as React.ElementType
 
-  const getCategoryTitle = (categoryId: string) => {
-    const category = allAssessmentCategories.find((cat) => cat.id === categoryId)
-    return category ? category.title : "ไม่ระบุประเภท"
-  }
+  const getCategoryTitle = (categoryId: string) =>
+    allAssessmentCategories.find((c) => c.id === categoryId)?.title ?? t("not_available")
 
-  const getRiskLevelBadge = (riskLevel: string) => {
-    switch (riskLevel) {
-      case "low":
-        return <Badge className="bg-green-500 text-white dark:bg-green-700">ความเสี่ยงต่ำ</Badge>
-      case "medium":
-        return <Badge className="bg-yellow-500 text-white dark:bg-yellow-700">ความเสี่ยงปานกลาง</Badge>
-      case "high":
-        return <Badge className="bg-orange-500 text-white dark:bg-orange-700">ความเสี่ยงสูง</Badge>
-      case "very-high":
-        return <Badge className="bg-red-500 text-white dark:bg-red-700">ความเสี่ยงสูงมาก</Badge>
-      default:
-        return <Badge variant="secondary">ไม่ระบุ</Badge>
+  const getRiskLevelBadge = (level: string) => {
+    const badgeMap: Record<string, { color: string; label: string }> = {
+      low: { color: "bg-green-500 dark:bg-green-700", label: t("low_risk") },
+      medium: { color: "bg-yellow-500 dark:bg-yellow-700", label: t("medium_risk") },
+      high: { color: "bg-orange-500 dark:bg-orange-700", label: t("high_risk") },
+      "very-high": { color: "bg-red-500 dark:bg-red-700", label: t("very_high_risk") },
     }
+    const { color, label } = badgeMap[level] ?? { color: "bg-gray-200", label: t("unspecified_risk") }
+    return <Badge className={`${color} text-white`}>{label}</Badge>
   }
 
+  /* ────────────────────────────────────────────────────────────────────
+     Render
+  ──────────────────────────────────────────────────────────────────── */
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="sm:max-w-[600px] h-[90vh] flex flex-col rounded-xl shadow-2xl p-6
-      bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-      >
+      <DialogContent className="sm:max-w-[600px] h-[90vh] flex flex-col rounded-xl shadow-2xl p-6 bg-white dark:bg-gray-900">
+        {/* ---------- Header ---------- */}
         <DialogHeader className="text-center pb-4 border-b border-gray-200 dark:border-gray-700">
-          <DialogTitle className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center justify-center">
+          <DialogTitle className="relative flex items-center justify-center text-2xl font-bold">
             {selectedAssessmentId && (
               <Button
                 variant="ghost"
@@ -255,282 +248,321 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
                   setSelectedAssessmentId(null)
                   setDetailedAssessmentData(null)
                 }}
-                className="absolute left-4 top-4 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="absolute left-4 top-0 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="h-5 w-5" />
-                <span className="sr-only">กลับ</span>
+                <span className="sr-only">{t("back")}</span>
               </Button>
             )}
             <Activity className="mr-3 h-7 w-7 text-blue-600" />
-            ภาพรวมสุขภาพของคุณ
+            {t("health_overview_modal_title")}
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-300 mt-2">
-            {selectedAssessmentId ? "รายละเอียดการประเมิน" : "ข้อมูลการประเมินสุขภาพทั้งหมดของคุณ (ล่าสุด)"}
+          <DialogDescription>
+            {selectedAssessmentId ? t("detailed_assessment_description") : t("health_overview_modal_description")}
           </DialogDescription>
         </DialogHeader>
 
+        {/* ---------- Body ---------- */}
         {selectedAssessmentId ? (
-          // Detailed Assessment View
+          /* ===== Detailed view ===== */
           loadingDetailedAssessment ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-              <Loader2 className="h-16 w-16 text-blue-600 mx-auto animate-spin mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">กำลังโหลดรายละเอียด...</h3>
-              <p className="text-gray-600 dark:text-gray-300">กรุณารอสักครู่</p>
-            </div>
+            <LoaderSection text={t("loading_details")} />
           ) : detailedAssessmentError ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-              <XCircle className="h-16 w-16 text-red-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">เกิดข้อผิดพลาด</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">{detailedAssessmentError}</p>
-              <Button onClick={() => loadDetailedAssessment(selectedAssessmentId!)}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                ลองใหม่อีกครั้ง
-              </Button>
-            </div>
+            <ErrorSection
+              message={detailedAssessmentError}
+              onRetry={() => selectedAssessmentId && loadDetailedAssessment(selectedAssessmentId)}
+            />
           ) : detailedAssessmentData ? (
-            <ScrollArea className="flex-1 pr-4">
-              <div className="py-4 space-y-6">
-                <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
-                  <CardHeader>
-                    <CardTitle className="text-xl flex items-center gap-2 dark:text-gray-100">
-                      <Activity className="h-5 w-5 text-blue-600" />
-                      {getCategoryTitle(detailedAssessmentData.category_id)}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">คะแนน:</span>
-                      <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
-                        {detailedAssessmentData.percentage}%
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">ระดับความเสี่ยง:</span>
-                      {getRiskLevelBadge(detailedAssessmentData.risk_level)}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600 dark:text-gray-300">วันที่ประเมิน:</span>
-                      <span className="text-gray-800 dark:text-gray-100">
-                        {new Date(detailedAssessmentData.completed_at).toLocaleDateString("th-TH")}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {detailedAssessmentData.risk_factors && detailedAssessmentData.risk_factors.length > 0 && (
-                  <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
-                    <CardHeader>
-                      <CardTitle className="text-xl flex items-center gap-2 dark:text-gray-100">
-                        <AlertTriangle className="h-5 w-5 text-orange-600" />
-                        ปัจจัยเสี่ยง
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-200">
-                        {detailedAssessmentData.risk_factors.map((factor: string, index: number) => (
-                          <li key={index}>{factor}</li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {detailedAssessmentData.recommendations && detailedAssessmentData.recommendations.length > 0 && (
-                  <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
-                    <CardHeader>
-                      <CardTitle className="text-xl flex items-center gap-2 dark:text-gray-100">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                        คำแนะนำ
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-200">
-                        {detailedAssessmentData.recommendations.map((rec: string, index: number) => (
-                          <li key={index}>{rec}</li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </ScrollArea>
+            <DetailedAssessmentView data={detailedAssessmentData} />
           ) : null
-        ) : // Overview List View
+        ) : /* ===== Overview list ===== */
         loading ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-            <Loader2 className="h-16 w-16 text-blue-600 mx-auto animate-spin mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">กำลังโหลดข้อมูล...</h3>
-            <p className="text-gray-600 dark:text-gray-300">กรุณารอสักครู่</p>
-          </div>
+          <LoaderSection text={t("loading")} />
         ) : error ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-            <XCircle className="h-16 w-16 text-red-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">เกิดข้อผิดพลาด</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
-            <Button onClick={loadUserAssessments}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              ลองใหม่อีกครั้ง
-            </Button>
-          </div>
+          <ErrorSection message={error} onRetry={loadUserAssessments} />
         ) : !user ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-            <Info className="h-16 w-16 text-gray-500 dark:text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">คุณยังไม่ได้เข้าสู่ระบบ</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">กรุณาเข้าสู่ระบบเพื่อดูภาพรวมสุขภาพของคุณ</p>
-            <Button asChild>
-              <Link href="/login">เข้าสู่ระบบ</Link>
-            </Button>
-          </div>
-        ) : assessments.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-            <FileText className="h-16 w-16 text-gray-500 dark:text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">ยังไม่มีข้อมูลการประเมิน</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              คุณยังไม่เคยทำแบบประเมินใดๆ กรุณาเริ่มทำแบบประเมินเพื่อดูภาพรวมสุขภาพของคุณ
-            </p>
-            <Button onClick={() => onOpenChange(false)} asChild>
-              <Link href="/">เริ่มประเมินสุขภาพ</Link>
-            </Button>
-          </div>
+          <NotLoggedInSection />
+        ) : !assessments.length ? (
+          <NoAssessmentSection />
         ) : (
-          <ScrollArea className="flex-1 pr-4">
-            <div className="py-4 space-y-6">
-              {/* Overall Stats */}
-              <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2 dark:text-gray-100">
-                    <Activity className="h-5 w-5 text-blue-600" />
-                    สรุปภาพรวม
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-3xl font-bold text-blue-600">{dashboardStats.overallScore}%</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300">คะแนนสุขภาพรวม</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold text-orange-600">{dashboardStats.riskFactors}</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300">ปัจจัยเสี่ยงที่พบ</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold text-green-600">{dashboardStats.completedAssessments}</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300">การประเมินที่เสร็จสิ้น</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-purple-600">
-                        {dashboardStats.reportReady ? "พร้อม" : "ไม่พร้อม"}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300">รายงานสุขภาพ</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Latest Assessments List */}
-              <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2 dark:text-gray-100">
-                    <Clock className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                    การประเมินล่าสุด
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {getLatestAssessments(assessments).map((assessment) => {
-                    const CategoryIcon = getCategoryIcon(assessment.category_id)
-                    return (
-                      <div
-                        key={assessment.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200
-                        dark:bg-gray-950 dark:border-gray-700"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <CategoryIcon className="h-6 w-6 text-blue-500" />
-                          <div>
-                            <div className="font-semibold text-gray-800 dark:text-gray-100">
-                              {getCategoryTitle(assessment.category_id)}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {new Date(assessment.completed_at).toLocaleDateString("th-TH")}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge
-                            variant="secondary"
-                            className="bg-blue-100 text-blue-700
-                          dark:bg-blue-900 dark:text-blue-200"
-                          >
-                            {assessment.percentage}%
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => loadDetailedAssessment(assessment.id)} // Changed to load detailed view
-                          >
-                            <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                            <span className="sr-only">ดูรายละเอียด</span>
-                          </Button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </CardContent>
-              </Card>
-
-              {/* All Assessments (Optional, if needed) */}
-              {assessments.length > getLatestAssessments(assessments).length && (
-                <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
-                  <CardHeader>
-                    <CardTitle className="text-xl flex items-center gap-2 dark:text-gray-100">
-                      <FileText className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                      ประวัติการประเมินทั้งหมด
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {assessments
-                      .sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
-                      .map((assessment) => {
-                        const CategoryIcon = getCategoryIcon(assessment.category_id)
-                        return (
-                          <div
-                            key={assessment.id}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200
-                            dark:bg-gray-950 dark:border-gray-700"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <CategoryIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                              <span className="dark:text-gray-200">{getCategoryTitle(assessment.category_id)}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-gray-700 dark:text-gray-200">
-                                {new Date(assessment.completed_at).toLocaleDateString("th-TH")}
-                              </span>
-                              <Badge variant="secondary" className="dark:bg-secondary dark:text-secondary-foreground">
-                                {assessment.percentage}%
-                              </Badge>
-                            </div>
-                          </div>
-                        )
-                      })}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </ScrollArea>
+          <OverviewSection />
         )}
-
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-          <Button
-            onClick={() => onOpenChange(false)}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg
-            dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
-          >
-            ปิด
-          </Button>
-        </div>
       </DialogContent>
     </Dialog>
   )
+
+  /* ────────────  Sub-components used above  ──────────── */
+
+  function LoaderSection({ text }: { text: string }) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
+        <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />
+        <h3 className="text-xl font-semibold">{text}...</h3>
+        <p className="text-gray-500">{t("please_wait")}</p>
+      </div>
+    )
+  }
+
+  function ErrorSection({ message, onRetry }: { message: string; onRetry: () => void }) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+        <XCircle className="h-16 w-16 text-red-600" />
+        <div>
+          <h3 className="text-xl font-semibold">{t("error")}</h3>
+          <p className="text-gray-500 mt-1">{message}</p>
+        </div>
+        <Button onClick={onRetry}>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          {t("try_again")}
+        </Button>
+      </div>
+    )
+  }
+
+  function NotLoggedInSection() {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+        <Info className="h-16 w-16 text-gray-500" />
+        <div>
+          <h3 className="text-xl font-semibold">{t("not_logged_in")}</h3>
+          <p className="text-gray-500 mt-1">{t("login_to_view_health_overview")}</p>
+        </div>
+        <Button asChild>
+          <Link href="/login">{t("login")}</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  function NoAssessmentSection() {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+        <FileText className="h-16 w-16 text-gray-500" />
+        <div>
+          <h3 className="text-xl font-semibold">{t("no_assessment_data")}</h3>
+          <p className="text-gray-500 mt-1">{t("start_assessment_to_view")}</p>
+        </div>
+        <Button asChild onClick={() => onOpenChange(false)}>
+          <Link href="/">{t("start_health_assessment")}</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  function DetailedAssessmentView({ data }: { data: any }) {
+    return (
+      <ScrollArea className="flex-1 pr-4">
+        <div className="py-4 space-y-6">
+          {/* ---------- Summary card ---------- */}
+          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-blue-600" />
+                {getCategoryTitle(data.category_id)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <StatRow label={t("score_label")}>
+                <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+                  {data.percentage}%
+                </Badge>
+              </StatRow>
+              <StatRow label={t("risk_level_label")}>{getRiskLevelBadge(data.risk_level)}</StatRow>
+              <StatRow label={t("assessment_date_label")}>
+                {new Date(data.completed_at).toLocaleDateString("th-TH")}
+              </StatRow>
+            </CardContent>
+          </Card>
+
+          {/* ---------- Risk factors ---------- */}
+          {data.risk_factors?.length > 0 && (
+            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-600" />
+                  {t("risk_factors")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-200">
+                  {data.risk_factors.map((factor: string, idx: number) => (
+                    <li key={idx}>{factor}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ---------- Recommendations ---------- */}
+          {data.recommendations?.length > 0 && (
+            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  {t("recommendations")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-200">
+                  {data.recommendations.map((rec: string, idx: number) => (
+                    <li key={idx}>{rec}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </ScrollArea>
+    )
+  }
+
+  function StatRow({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+      <div className="flex items-center justify-between">
+        <span className="text-gray-600 dark:text-gray-300">{label}:</span>
+        {children}
+      </div>
+    )
+  }
+
+  function OverviewSection() {
+    return (
+      <ScrollArea className="flex-1 pr-4">
+        <div className="py-4 space-y-6">
+          {/* ---------- Dashboard stats ---------- */}
+          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-blue-600" />
+                {t("summary_overview")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <Metric
+                  value={`${dashboardStats.overallScore}%`}
+                  label={t("overall_health_score")}
+                  color="text-blue-600"
+                />
+                <Metric value={dashboardStats.riskFactors} label={t("risk_factors_found")} color="text-orange-600" />
+                <Metric
+                  value={dashboardStats.completedAssessments}
+                  label={t("assessments_completed")}
+                  color="text-green-600"
+                />
+                <Metric
+                  value={dashboardStats.reportReady ? t("report_ready") : t("report_not_ready")}
+                  label={t("health_report_status")}
+                  color="text-purple-600"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ---------- Latest assessments ---------- */}
+          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                {t("latest_assessments")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {getLatestAssessments(assessments).map((assessment) => {
+                const CategoryIcon = getCategoryIcon(assessment.category_id)
+                return (
+                  <AssessmentRow
+                    key={assessment.id}
+                    assessment={assessment}
+                    Icon={CategoryIcon}
+                    onClick={() => loadDetailedAssessment(assessment.id)}
+                  />
+                )
+              })}
+            </CardContent>
+          </Card>
+
+          {/* ---------- Full history (only if more than latest) ---------- */}
+          {assessments.length > getLatestAssessments(assessments).length && (
+            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                  {t("all_assessment_history")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {assessments
+                  .sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
+                  .map((assessment) => {
+                    const CategoryIcon = getCategoryIcon(assessment.category_id)
+                    return (
+                      <AssessmentRow
+                        key={assessment.id}
+                        assessment={assessment}
+                        Icon={CategoryIcon}
+                        onClick={() => loadDetailedAssessment(assessment.id)}
+                      />
+                    )
+                  })}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </ScrollArea>
+    )
+  }
+
+  function Metric({
+    value,
+    label,
+    color,
+  }: {
+    value: React.ReactNode
+    label: string
+    color: string
+  }) {
+    return (
+      <div>
+        <div className={`text-3xl font-bold ${color}`}>{value}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-300">{label}</div>
+      </div>
+    )
+  }
+
+  function AssessmentRow({
+    assessment,
+    Icon,
+    onClick,
+  }: {
+    assessment: any
+    Icon: React.ElementType
+    onClick: () => void
+  }) {
+    return (
+      <div
+        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-950 rounded-lg border border-gray-200 dark:border-gray-700"
+        onClick={onClick}
+        role="button"
+        tabIndex={0}
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="h-6 w-6 text-blue-500" />
+          <div>
+            <div className="font-semibold">{getCategoryTitle(assessment.category_id)}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+              <Calendar className="h-3 w-3 mr-1" />
+              {new Date(assessment.completed_at).toLocaleDateString("th-TH")}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+            {assessment.percentage}%
+          </Badge>
+          <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+        </div>
+      </div>
+    )
+  }
 }

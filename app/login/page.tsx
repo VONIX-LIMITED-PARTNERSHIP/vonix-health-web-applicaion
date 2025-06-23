@@ -13,6 +13,7 @@ import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { clearAuthData } from "@/lib/supabase"
+import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
 
 export default function LoginPage() {
   const router = useRouter()
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false) // Local loading state for form submission
   const [formData, setFormData] = useState({ email: "", password: "" })
+  const { t } = useTranslation() // Use translation hook
 
   useEffect(() => {
     clearAuthData()
@@ -47,13 +49,13 @@ export default function LoginPage() {
       const { data, error } = await signIn(formData.email, formData.password)
 
       if (error) {
-        let errorMessage = "เข้าสู่ระบบไม่สำเร็จ"
+        let errorMessage = t("login_failed")
         if (error.message === "Invalid login credentials") {
-          errorMessage = "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
+          errorMessage = t("invalid_credentials")
         } else if (error.message.includes("Email not confirmed")) {
-          errorMessage = "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ"
+          errorMessage = t("email_not_confirmed")
         } else if (error.message.includes("network")) {
-          errorMessage = "ปัญหาการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง"
+          errorMessage = t("network_issue")
         }
 
         toast({
@@ -63,8 +65,8 @@ export default function LoginPage() {
         })
       } else if (data.user) {
         toast({
-          title: "เข้าสู่ระบบสำเร็จ",
-          description: "ยินดีต้อนรับกลับ!",
+          title: t("login_success"),
+          description: t("welcome_back"),
         })
 
         // Small delay to ensure auth state is updated
@@ -74,8 +76,8 @@ export default function LoginPage() {
       }
     } catch (error) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "กรุณาลองใหม่อีกครั้ง",
+        title: t("error"),
+        description: t("try_again"),
         variant: "destructive",
       })
     } finally {
@@ -89,7 +91,7 @@ export default function LoginPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <span>กำลังตรวจสอบสถานะการเข้าสู่ระบบ...</span>
+          <span>{t("loading_profile")}...</span>
         </div>
       </div>
     )
@@ -127,8 +129,8 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">ยินดีต้อนรับ</h1>
-                  <p className="text-gray-600">เข้าสู่ระบบเพื่อดูแลสุขภาพของคุณ</p>
+                  <h1 className="text-3xl font-bold text-gray-800 mb-2">{t("welcome")}</h1>
+                  <p className="text-gray-600">{t("login_to_manage_health")}</p>
                 </div>
               </CardHeader>
 
@@ -136,7 +138,7 @@ export default function LoginPage() {
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-gray-700 font-medium">
-                      อีเมล
+                      {t("email")}
                     </Label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -156,14 +158,14 @@ export default function LoginPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-gray-700 font-medium">
-                      รหัสผ่าน
+                      {t("password")}
                     </Label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="รหัสผ่านของคุณ"
+                        placeholder={t("password")}
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         className="pl-12 h-12 text-black rounded-xl border-2 border-gray-200 focus:border-blue-400 bg-gray-50 focus:bg-white transition-all duration-300"
@@ -192,11 +194,11 @@ export default function LoginPage() {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span className="hidden sm:inline">กำลังเข้าสู่ระบบ...</span>
-                        <span className="sm:hidden">กำลังเข้าสู่...</span>
+                        <span className="hidden sm:inline">{t("loading")}...</span>
+                        <span className="sm:hidden">{t("loading")}...</span>
                       </>
                     ) : (
-                      <span>เข้าสู่ระบบ</span>
+                      <span>{t("login")}</span>
                     )}
                   </Button>
                 </form>
@@ -206,16 +208,16 @@ export default function LoginPage() {
                     href="/forgot-password"
                     className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
                   >
-                    ลืมรหัสผ่าน?
+                    {t("forgot_password")}
                   </Link>
 
                   <div className="flex items-center justify-center space-x-2 text-gray-600">
-                    <span>ยังไม่มีบัญชี?</span>
+                    <span>{t("no_account_yet")}</span>
                     <Link
                       href="/register"
                       className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
                     >
-                      สมัครสมาชิกฟรี
+                      {t("sign_up_free")}
                     </Link>
                   </div>
                 </div>
@@ -229,7 +231,7 @@ export default function LoginPage() {
                   >
                     <Link href="/" className="flex items-center">
                       <ArrowLeft className="mr-2 h-4 w-4" />
-                      กลับหน้าหลัก
+                      {t("home")}
                     </Link>
                   </Button>
                 </div>

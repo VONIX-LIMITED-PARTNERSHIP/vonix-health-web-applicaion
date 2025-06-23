@@ -11,12 +11,14 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
+import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const { resetPasswordForEmail } = useAuth()
+  const { t } = useTranslation() // Use translation hook
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,20 +27,20 @@ export default function ForgotPasswordPage() {
       const { error } = await resetPasswordForEmail(email)
       if (error) {
         toast({
-          title: "เกิดข้อผิดพลาด",
+          title: t("error"),
           description: error.message,
           variant: "destructive",
         })
       } else {
         toast({
-          title: "ส่งอีเมลเรียบร้อย",
-          description: "กรุณาตรวจสอบอีเมลของคุณเพื่อตั้งรหัสผ่านใหม่",
+          title: t("email_sent"),
+          description: t("check_email_for_reset"),
         })
       }
     } catch (error) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถส่งอีเมลได้ กรุณาลองใหม่อีกครั้ง",
+        title: t("error"),
+        description: t("unexpected_error"),
         variant: "destructive",
       })
     } finally {
@@ -58,15 +60,15 @@ export default function ForgotPasswordPage() {
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1">
             <div className="bg-white rounded-3xl">
               <CardHeader className="text-center space-y-4 sm:space-y-6 pt-6 sm:pt-8 pb-4 sm:pb-6 px-6 sm:px-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">ลืมรหัสผ่าน?</h1>
-                <p className="text-gray-600">กรอกอีเมลของคุณเพื่อรับลิงก์ตั้งรหัสผ่านใหม่</p>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">{t("forgot_password")}</h1>
+                <p className="text-gray-600">{t("enter_email_for_link")}</p>
               </CardHeader>
 
               <CardContent className="space-y-4 sm:space-y-6 px-6 sm:px-8 pb-6 sm:pb-8">
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-gray-700 font-medium">
-                      อีเมล
+                      {t("email")}
                     </Label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -91,11 +93,11 @@ export default function ForgotPasswordPage() {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span className="hidden sm:inline">กำลังส่ง...</span>
-                        <span className="sm:hidden">กำลังส่ง...</span>
+                        <span className="hidden sm:inline">{t("sending")}...</span>
+                        <span className="sm:hidden">{t("sending")}...</span>
                       </>
                     ) : (
-                      <span>ส่งลิงก์ตั้งรหัสผ่านใหม่</span>
+                      <span>{t("send_link")}</span>
                     )}
                   </Button>
                 </form>
@@ -109,7 +111,7 @@ export default function ForgotPasswordPage() {
                   >
                     <Link href="/login" className="flex items-center">
                       <ChevronLeft className="mr-2 h-4 w-4" />
-                      กลับสู่หน้าเข้าสู่ระบบ
+                      {t("back_to_login")}
                     </Link>
                   </Button>
                 </div>
