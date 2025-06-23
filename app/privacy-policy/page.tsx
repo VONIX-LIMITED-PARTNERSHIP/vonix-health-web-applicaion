@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white/80 backdrop-blur-lg border-0 shadow-2xl rounded-3xl p-8 sm:p-10">
+      <div className="max-w-5xl mx-auto bg-white/80 backdrop-blur-lg border-0 shadow-2xl rounded-3xl p-8 sm:p-10">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
             นโยบายความเป็นส่วนตัวของบริษัท วอนิกซ์ จำกัด (VONIX LIMITED PARTNERSHIP)
@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
           </Button>
         </div>
 
-        <div className="prose prose-lg max-w-none text-gray-700 dark:text-gray-300">
+        <div className="prose prose-lg max-w-none text-gray-700 dark:text-gray-300 prose-p:my-4 prose-li:my-2 prose-h2:mt-8 prose-h2:mb-4">
           <p>
             บริษัท วอนิกซ์ จำกัด (“VONIX”) ให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคลของผู้ใช้ทุกท่าน โดยดำเนินงานภายใต้กรอบกฎหมาย PDPA
             (พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ.2562) และ GDPR ของสหภาพยุโรป หลักการสำคัญของ PDPA ได้รับอิทธิพลจาก GDPR เป็นอย่างมาก
