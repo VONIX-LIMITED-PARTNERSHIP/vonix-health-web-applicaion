@@ -578,6 +578,11 @@ const en: Dictionary = {
     consent_given: "Given",
     consent_not_given: "Not Given",
     withdraw_consent_button: "Withdraw Consent",
+    edit_profile: "Edit Profile",
+    save_changes: "Save Changes",
+    cancel_edit: "Cancel",
+    profile_updated_success: "Profile updated successfully!",
+    profile_update_error: "Failed to update profile. Please try again.",
   },
 }
 

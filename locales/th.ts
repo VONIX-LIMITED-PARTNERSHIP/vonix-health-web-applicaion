@@ -570,6 +570,11 @@ const th = {
     consent_given: "ให้ความยินยอมแล้ว",
     consent_not_given: "ยังไม่ให้ความยินยอม",
     withdraw_consent_button: "ถอนคำยินยอม",
+    edit_profile: "แก้ไขโปรไฟล์",
+    save_changes: "บันทึกการเปลี่ยนแปลง",
+    cancel_edit: "ยกเลิก",
+    profile_updated_success: "อัปเดตโปรไฟล์สำเร็จ!",
+    profile_update_error: "ไม่สามารถอัปเดตโปรไฟล์ได้ โปรดลองอีกครั้ง",
   },
 }
 
