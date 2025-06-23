@@ -9,7 +9,8 @@ interface LanguageContextType {
   setLocale: (locale: Locale) => void
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
+// 👇 Export so other modules can import it directly
+export const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("th") // Default to Thai

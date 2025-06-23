@@ -566,6 +566,18 @@ const en: Dictionary = {
       "Are you sure you want to delete all your health assessment data? This action is irreversible.",
     delete_assessment_data_success: "Health assessment data deleted successfully.",
     delete_assessment_data_error: "Failed to delete health assessment data. Please try again.",
+    withdraw_consent: "Withdraw Consent",
+    withdraw_consent_description:
+      "This will revoke your consent for VONIX to collect, use, and process your personal and health data. Some features may become unavailable.",
+    withdraw_consent_confirm_title: "Confirm Withdrawal of Consent",
+    withdraw_consent_confirm_content:
+      "Are you sure you want to withdraw your consent? This may affect your ability to use certain features.",
+    withdraw_consent_success: "Consent withdrawn successfully.",
+    withdraw_consent_error: "Failed to withdraw consent. Please try again.",
+    consent_status: "Consent Status",
+    consent_given: "Given",
+    consent_not_given: "Not Given",
+    withdraw_consent_button: "Withdraw Consent",
   },
 }
 

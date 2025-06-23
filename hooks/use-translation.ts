@@ -4,15 +4,34 @@ import { useLanguage } from "@/contexts/language-context"
 import th from "@/locales/th"
 import en from "@/locales/en"
 
-type TranslationKeys = typeof th.common // Assuming all common keys are in th.ts
-
-export function useTranslation() {
+/**
+ * Basic translation hook.
+ * Pass an array of namespaces you want to use (e.g. ["common","profile"]).
+ * The hook will look up keys in those namespaces, falling back to the key itself.
+ */
+export function useTranslation(namespaces: string[] = ["common"]) {
   const { locale } = useLanguage()
 
-  const translations = locale === "en" ? en : th
+  // Pick the proper dictionary
+  const dict = locale === "en" ? en : th
 
-  const t = (key: keyof TranslationKeys["common"]) => {
-    return translations.common[key] || key // Fallback to key if translation not found
+  function t(key: string): string {
+    // 1. If the key includes a namespace ("namespace.key"), resolve deeply.
+    if (key.includes(".")) {
+      const [ns, subKey] = key.split(".")
+      // Only look up if the namespace is one of the requested ones
+      if (namespaces.includes(ns) && dict[ns]?.[subKey] !== undefined) {
+        // @ts-ignore – dynamic index access
+        return dict[ns][subKey]
+      }
+    }
+
+    // 2. Try `common` namespace by default
+    // @ts-ignore – dynamic index access
+    if (dict.common?.[key] !== undefined) return dict.common[key]
+
+    // 3. Fallback to raw key
+    return key
   }
 
   return { t, locale }
