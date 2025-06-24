@@ -3,7 +3,27 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Activity, AlertTriangle, ArrowLeft, Bed, Brain, Calendar, CheckCircle, ChevronRight, Clock, Dumbbell, FileText, FlaskConical, HeartPulse, Info, Loader2, RefreshCw, ShieldCheck, Utensils, XCircle } from 'lucide-react'
+import {
+  Activity,
+  AlertTriangle,
+  ArrowLeft,
+  Bed,
+  Brain,
+  Calendar,
+  CheckCircle,
+  ChevronRight,
+  Clock,
+  Dumbbell,
+  FileText,
+  FlaskConical,
+  HeartPulse,
+  Info,
+  Loader2,
+  RefreshCw,
+  ShieldCheck,
+  Utensils,
+  XCircle,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -34,11 +54,11 @@ const iconMap: Record<string, React.ElementType> = {
   stress: FlaskConical,
 }
 
-export function HealthOverviewModal({ 
-  isOpen, 
-  onOpenChange, 
+export function HealthOverviewModal({
+  isOpen,
+  onOpenChange,
   targetAssessmentId = null,
-  onTargetAssessmentIdChange 
+  onTargetAssessmentIdChange,
 }: HealthOverviewModalProps) {
   const { t } = useTranslation()
   const { user, loading: authLoading } = useAuth()
@@ -77,7 +97,7 @@ export function HealthOverviewModal({
     if (targetAssessmentId && assessments.length > 0 && !loading) {
       console.log("🎯 HealthOverviewModal: เปิด detailed view สำหรับ assessment ID:", targetAssessmentId)
       loadDetailedAssessment(targetAssessmentId)
-      
+
       // เคลียร์ targetAssessmentId หลังจากใช้แล้ว
       if (onTargetAssessmentIdChange) {
         onTargetAssessmentIdChange(null)
@@ -116,7 +136,7 @@ export function HealthOverviewModal({
 
     try {
       console.log("📊 HealthOverviewModal: กำลังโหลดข้อมูลแบบประเมินจาก Supabase...")
-      
+
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("หมดเวลาการโหลดข้อมูล")), 15_000),
       )
@@ -151,7 +171,7 @@ export function HealthOverviewModal({
 
     try {
       console.log("🔍 HealthOverviewModal: กำลังโหลดรายละเอียดแบบประเมิน ID:", assessmentId)
-      
+
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("หมดเวลาการโหลดรายละเอียด")), 15_000),
       )
@@ -180,6 +200,16 @@ export function HealthOverviewModal({
   /* ────────────────────────────────────────────────────────────────────
      Helpers
   ──────────────────────────────────────────────────────────────────── */
+
+  // ฟังก์ชันแปลงเปอร์เซ็นต์เป็นระดับคุณภาพ
+  const getHealthLevel = (percentage: number): string => {
+    if (percentage >= 81) return t("health_level_excellent")
+    if (percentage >= 61) return t("health_level_good")
+    if (percentage >= 41) return t("health_level_fair")
+    if (percentage >= 21) return t("health_level_poor")
+    return t("health_level_very_poor")
+  }
+
   const getLatestAssessments = (assessmentData: any[]) => {
     const latestByCategory = new Map<string, any>()
 
@@ -370,13 +400,11 @@ export function HealthOverviewModal({
             <CardContent className="space-y-4">
               <StatRow label="คะแนน">
                 <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
-                  {data.percentage}%
+                  {getHealthLevel(data.percentage)}
                 </Badge>
               </StatRow>
               <StatRow label="ระดับความเสี่ยง">{getRiskLevelBadge(data.risk_level)}</StatRow>
-              <StatRow label="วันที่ประเมิน">
-                {new Date(data.completed_at).toLocaleDateString("th-TH")}
-              </StatRow>
+              <StatRow label="วันที่ประเมิน">{new Date(data.completed_at).toLocaleDateString("th-TH")}</StatRow>
             </CardContent>
           </Card>
 
@@ -445,17 +473,9 @@ export function HealthOverviewModal({
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4 text-center">
-                <Metric
-                  value={`${dashboardStats.overallScore}%`}
-                  label="คะแนนสุขภาพรวม"
-                  color="text-blue-600"
-                />
+                <Metric value={`${dashboardStats.overallScore}%`} label="คะแนนสุขภาพรวม" color="text-blue-600" />
                 <Metric value={dashboardStats.riskFactors} label="ปัจจัยเสี่ยงที่พบ" color="text-orange-600" />
-                <Metric
-                  value={dashboardStats.completedAssessments}
-                  label="แบบประเมินที่เสร็จสิ้น"
-                  color="text-green-600"
-                />
+                <Metric value={dashboardStats.completedAssessments} label="แบบประเมินที่เสร็จสิ้น" color="text-green-600" />
                 <Metric
                   value={dashboardStats.reportReady ? "พร้อมใช้งาน" : "ยังไม่พร้อม"}
                   label="รายงานสุขภาพ"
@@ -564,7 +584,7 @@ export function HealthOverviewModal({
         </div>
         <div className="flex items-center gap-2">
           <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
-            {assessment.percentage}%
+            {getHealthLevel(assessment.percentage)}
           </Badge>
           <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         </div>

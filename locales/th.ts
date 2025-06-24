@@ -323,6 +323,12 @@ const th = {
     no_risk_factors_found: "ไม่พบปัจจัยเสี่ยง",
     recommendations_label: "คำแนะนำ",
     no_recommendations_found: "ไม่มีคำแนะนำ",
+    // Health levels
+    health_level_excellent: "ดีมาก",
+    health_level_good: "ดี",
+    health_level_fair: "ปกติ",
+    health_level_poor: "แย่",
+    health_level_very_poor: "แย่มาก",
     // Consult Doctor Intro Modal
     consult_doctor_modal_title: "ปรึกษาแพทย์ออนไลน์",
     consult_doctor_modal_description: "ขั้นตอนง่ายๆ ในการส่งเคสของคุณให้แพทย์พิจารณา",
