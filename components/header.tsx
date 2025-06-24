@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Activity, Bell, LogOut, RefreshCw, Loader2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -84,9 +83,6 @@ export function Header() {
               <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 VONIX
               </span>
-              <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs font-medium">
-                DEMO
-              </Badge>
             </div>
           </Link>
         </div>
