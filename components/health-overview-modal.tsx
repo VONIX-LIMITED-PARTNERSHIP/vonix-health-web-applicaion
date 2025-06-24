@@ -3,27 +3,7 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import {
-  Activity,
-  AlertTriangle,
-  ArrowLeft,
-  Bed,
-  Brain,
-  Calendar,
-  CheckCircle,
-  ChevronRight,
-  Clock,
-  Dumbbell,
-  FileText,
-  FlaskConical,
-  HeartPulse,
-  Info,
-  Loader2,
-  RefreshCw,
-  ShieldCheck,
-  Utensils,
-  XCircle,
-} from "lucide-react"
+import { Activity, AlertTriangle, ArrowLeft, Bed, Brain, Calendar, CheckCircle, ChevronRight, Clock, Dumbbell, FileText, FlaskConical, HeartPulse, Info, Loader2, RefreshCw, ShieldCheck, Utensils, XCircle } from 'lucide-react'
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,6 +19,8 @@ import { assessmentCategories as allAssessmentCategories } from "@/data/assessme
 interface HealthOverviewModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
+  targetAssessmentId?: string | null
+  onTargetAssessmentIdChange?: (id: string | null) => void
 }
 
 // Map assessment category → icon component
@@ -52,7 +34,12 @@ const iconMap: Record<string, React.ElementType> = {
   stress: FlaskConical,
 }
 
-export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModalProps) {
+export function HealthOverviewModal({ 
+  isOpen, 
+  onOpenChange, 
+  targetAssessmentId = null,
+  onTargetAssessmentIdChange 
+}: HealthOverviewModalProps) {
   const { t } = useTranslation()
   const { user, loading: authLoading } = useAuth()
 
@@ -85,6 +72,19 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, authLoading, user?.id])
 
+  // ตรวจสอบ targetAssessmentId และเปิด detailed view อัตโนมัติ
+  useEffect(() => {
+    if (targetAssessmentId && assessments.length > 0 && !loading) {
+      console.log("🎯 HealthOverviewModal: เปิด detailed view สำหรับ assessment ID:", targetAssessmentId)
+      loadDetailedAssessment(targetAssessmentId)
+      
+      // เคลียร์ targetAssessmentId หลังจากใช้แล้ว
+      if (onTargetAssessmentIdChange) {
+        onTargetAssessmentIdChange(null)
+      }
+    }
+  }, [targetAssessmentId, assessments, loading, onTargetAssessmentIdChange])
+
   const resetState = () => {
     setAssessments([])
     setDashboardStats({
@@ -106,7 +106,7 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
   ──────────────────────────────────────────────────────────────────── */
   const loadUserAssessments = async () => {
     if (!user?.id || !isSupabaseConfigured()) {
-      setError(t("login_to_view_health_overview"))
+      setError("กรุณาเข้าสู่ระบบเพื่อดูภาพรวมสุขภาพ")
       setLoading(false)
       return
     }
@@ -115,8 +115,10 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
     setError(null)
 
     try {
+      console.log("📊 HealthOverviewModal: กำลังโหลดข้อมูลแบบประเมินจาก Supabase...")
+      
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(t("save_timeout"))), 15_000),
+        setTimeout(() => reject(new Error("หมดเวลาการโหลดข้อมูล")), 15_000),
       )
 
       const result = await Promise.race([
@@ -124,18 +126,20 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
         timeoutPromise.then((res) => ({ type: "timeout", data: res })),
       ])
 
-      if (result.type === "timeout") throw new Error(t("save_timeout"))
+      if (result.type === "timeout") throw new Error("หมดเวลาการโหลดข้อมูล")
 
       const { data, error: serviceError } = result.data
       if (serviceError) throw serviceError
 
       const allAssessments = data ?? []
       setAssessments(allAssessments)
+      console.log("✅ HealthOverviewModal: โหลดข้อมูลแบบประเมินสำเร็จ จำนวน:", allAssessments.length)
 
       const latestAssessments = getLatestAssessments(allAssessments)
       calculateDashboardStats(latestAssessments)
     } catch (err: any) {
-      setError(err.message ?? t("error_loading_analysis"))
+      console.error("❌ HealthOverviewModal: เกิดข้อผิดพลาดในการโหลดข้อมูล:", err)
+      setError(err.message ?? "เกิดข้อผิดพลาดในการโหลดข้อมูล")
     } finally {
       setLoading(false)
     }
@@ -146,8 +150,10 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
     setDetailedAssessmentError(null)
 
     try {
+      console.log("🔍 HealthOverviewModal: กำลังโหลดรายละเอียดแบบประเมิน ID:", assessmentId)
+      
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(t("loading_details"))), 15_000),
+        setTimeout(() => reject(new Error("หมดเวลาการโหลดรายละเอียด")), 15_000),
       )
 
       const result = await Promise.race([
@@ -155,15 +161,17 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
         timeoutPromise.then((res) => ({ type: "timeout", data: res })),
       ])
 
-      if (result.type === "timeout") throw new Error(t("loading_details"))
+      if (result.type === "timeout") throw new Error("หมดเวลาการโหลดรายละเอียด")
 
       const { data, error: serviceError } = result.data
       if (serviceError) throw serviceError
 
       setDetailedAssessmentData(data)
       setSelectedAssessmentId(assessmentId)
+      console.log("✅ HealthOverviewModal: โหลดรายละเอียดแบบประเมินสำเร็จ")
     } catch (err: any) {
-      setDetailedAssessmentError(err.message ?? t("error_loading_details"))
+      console.error("❌ HealthOverviewModal: เกิดข้อผิดพลาดในการโหลดรายละเอียด:", err)
+      setDetailedAssessmentError(err.message ?? "เกิดข้อผิดพลาดในการโหลดรายละเอียด")
     } finally {
       setLoadingDetailedAssessment(false)
     }
@@ -216,16 +224,16 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
   const getCategoryIcon = (categoryId: string) => (iconMap[categoryId] ?? Info) as React.ElementType
 
   const getCategoryTitle = (categoryId: string) =>
-    allAssessmentCategories.find((c) => c.id === categoryId)?.title ?? t("not_available")
+    allAssessmentCategories.find((c) => c.id === categoryId)?.title ?? "ไม่พบข้อมูล"
 
   const getRiskLevelBadge = (level: string) => {
     const badgeMap: Record<string, { color: string; label: string }> = {
-      low: { color: "bg-green-500 dark:bg-green-700", label: t("low_risk") },
-      medium: { color: "bg-yellow-500 dark:bg-yellow-700", label: t("medium_risk") },
-      high: { color: "bg-orange-500 dark:bg-orange-700", label: t("high_risk") },
-      "very-high": { color: "bg-red-500 dark:bg-red-700", label: t("very_high_risk") },
+      low: { color: "bg-green-500 dark:bg-green-700", label: "ความเสี่ยงต่ำ" },
+      medium: { color: "bg-yellow-500 dark:bg-yellow-700", label: "ความเสี่ยงปานกลาง" },
+      high: { color: "bg-orange-500 dark:bg-orange-700", label: "ความเสี่ยงสูง" },
+      "very-high": { color: "bg-red-500 dark:bg-red-700", label: "ความเสี่ยงสูงมาก" },
     }
-    const { color, label } = badgeMap[level] ?? { color: "bg-gray-200", label: t("unspecified_risk") }
+    const { color, label } = badgeMap[level] ?? { color: "bg-gray-200", label: "ไม่ระบุระดับความเสี่ยง" }
     return <Badge className={`${color} text-white`}>{label}</Badge>
   }
 
@@ -249,14 +257,14 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
                 className="absolute left-4 top-0 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="h-5 w-5" />
-                <span className="sr-only">{t("back")}</span>
+                <span className="sr-only">กลับ</span>
               </Button>
             )}
             <Activity className="mr-3 h-7 w-7 text-blue-600" />
-            {t("health_overview_modal_title")}
+            ภาพรวมสุขภาพของคุณ
           </DialogTitle>
           <DialogDescription>
-            {selectedAssessmentId ? t("detailed_assessment_description") : t("health_overview_modal_description")}
+            {selectedAssessmentId ? "รายละเอียดผลการประเมิน" : "ข้อมูลสรุปและประวัติการประเมินสุขภาพ"}
           </DialogDescription>
         </DialogHeader>
 
@@ -264,7 +272,7 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
         {selectedAssessmentId ? (
           /* ===== Detailed view ===== */
           loadingDetailedAssessment ? (
-            <LoaderSection text={t("loading_details")} />
+            <LoaderSection text="กำลังโหลดรายละเอียด" />
           ) : detailedAssessmentError ? (
             <ErrorSection
               message={detailedAssessmentError}
@@ -275,7 +283,7 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
           ) : null
         ) : /* ===== Overview list ===== */
         loading ? (
-          <LoaderSection text={t("loading")} />
+          <LoaderSection text="กำลังโหลดข้อมูล" />
         ) : error ? (
           <ErrorSection message={error} onRetry={loadUserAssessments} />
         ) : !user ? (
@@ -296,7 +304,7 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
         <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />
         <h3 className="text-xl font-semibold">{text}...</h3>
-        <p className="text-gray-500">{t("please_wait")}</p>
+        <p className="text-gray-500">กรุณารอสักครู่</p>
       </div>
     )
   }
@@ -306,12 +314,12 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
         <XCircle className="h-16 w-16 text-red-600" />
         <div>
-          <h3 className="text-xl font-semibold">{t("error")}</h3>
+          <h3 className="text-xl font-semibold">เกิดข้อผิดพลาด</h3>
           <p className="text-gray-500 mt-1">{message}</p>
         </div>
         <Button onClick={onRetry}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          {t("try_again")}
+          ลองใหม่อีกครั้ง
         </Button>
       </div>
     )
@@ -322,11 +330,11 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
         <Info className="h-16 w-16 text-gray-500" />
         <div>
-          <h3 className="text-xl font-semibold">{t("not_logged_in")}</h3>
-          <p className="text-gray-500 mt-1">{t("login_to_view_health_overview")}</p>
+          <h3 className="text-xl font-semibold">ยังไม่ได้เข้าสู่ระบบ</h3>
+          <p className="text-gray-500 mt-1">กรุณาเข้าสู่ระบบเพื่อดูภาพรวมสุขภาพ</p>
         </div>
         <Button asChild>
-          <Link href="/login">{t("login")}</Link>
+          <Link href="/login">เข้าสู่ระบบ</Link>
         </Button>
       </div>
     )
@@ -337,11 +345,11 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
         <FileText className="h-16 w-16 text-gray-500" />
         <div>
-          <h3 className="text-xl font-semibold">{t("no_assessment_data")}</h3>
-          <p className="text-gray-500 mt-1">{t("start_assessment_to_view")}</p>
+          <h3 className="text-xl font-semibold">ยังไม่มีข้อมูลการประเมิน</h3>
+          <p className="text-gray-500 mt-1">เริ่มทำแบบประเมินเพื่อดูภาพรวมสุขภาพของคุณ</p>
         </div>
         <Button asChild onClick={() => onOpenChange(false)}>
-          <Link href="/">{t("start_health_assessment")}</Link>
+          <Link href="/">เริ่มประเมินสุขภาพ</Link>
         </Button>
       </div>
     )
@@ -360,13 +368,13 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <StatRow label={t("score_label")}>
+              <StatRow label="คะแนน">
                 <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
                   {data.percentage}%
                 </Badge>
               </StatRow>
-              <StatRow label={t("risk_level_label")}>{getRiskLevelBadge(data.risk_level)}</StatRow>
-              <StatRow label={t("assessment_date_label")}>
+              <StatRow label="ระดับความเสี่ยง">{getRiskLevelBadge(data.risk_level)}</StatRow>
+              <StatRow label="วันที่ประเมิน">
                 {new Date(data.completed_at).toLocaleDateString("th-TH")}
               </StatRow>
             </CardContent>
@@ -378,7 +386,7 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-orange-600" />
-                  {t("risk_factors")}
+                  ปัจจัยเสี่ยงที่พบ
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -397,7 +405,7 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-green-600" />
-                  {t("recommendations")}
+                  คำแนะนำ
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -432,25 +440,25 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-5 w-5 text-blue-600" />
-                {t("summary_overview")}
+                สรุปภาพรวม
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4 text-center">
                 <Metric
                   value={`${dashboardStats.overallScore}%`}
-                  label={t("overall_health_score")}
+                  label="คะแนนสุขภาพรวม"
                   color="text-blue-600"
                 />
-                <Metric value={dashboardStats.riskFactors} label={t("risk_factors_found")} color="text-orange-600" />
+                <Metric value={dashboardStats.riskFactors} label="ปัจจัยเสี่ยงที่พบ" color="text-orange-600" />
                 <Metric
                   value={dashboardStats.completedAssessments}
-                  label={t("assessments_completed")}
+                  label="แบบประเมินที่เสร็จสิ้น"
                   color="text-green-600"
                 />
                 <Metric
-                  value={dashboardStats.reportReady ? t("report_ready") : t("report_not_ready")}
-                  label={t("health_report_status")}
+                  value={dashboardStats.reportReady ? "พร้อมใช้งาน" : "ยังไม่พร้อม"}
+                  label="รายงานสุขภาพ"
                   color="text-purple-600"
                 />
               </div>
@@ -462,7 +470,7 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                {t("latest_assessments")}
+                แบบประเมินล่าสุด
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -486,7 +494,7 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                  {t("all_assessment_history")}
+                  ประวัติการประเมินทั้งหมด
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -539,7 +547,7 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
   }) {
     return (
       <div
-        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-950 rounded-lg border border-gray-200 dark:border-gray-700"
+        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-950 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         onClick={onClick}
         role="button"
         tabIndex={0}

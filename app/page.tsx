@@ -10,27 +10,7 @@ import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { AssessmentService } from "@/lib/assessment-service"
 import { isSupabaseConfigured } from "@/lib/supabase"
-import {
-  Play,
-  Stethoscope,
-  User,
-  Heart,
-  Apple,
-  Brain,
-  MoonIcon,
-  ChevronRight,
-  FileText,
-  Activity,
-  Sparkles,
-  Shield,
-  Zap,
-  TrendingUp,
-  Clock,
-  Award,
-  FlaskConical,
-  BarChart2,
-  Dumbbell,
-} from "lucide-react"
+import { Play, Stethoscope, User, Heart, Apple, Brain, MoonIcon, ChevronRight, FileText, Activity, Sparkles, Shield, Zap, TrendingUp, Clock, Award, FlaskConical, BarChart2, Dumbbell } from 'lucide-react'
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
@@ -126,6 +106,7 @@ export default function HomePage() {
   const [loadingStats, setLoadingStats] = useState(false)
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false)
   const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false)
+  const [targetAssessmentId, setTargetAssessmentId] = useState<string | null>(null)
   const { t } = useTranslation()
 
   const router = useRouter()
@@ -145,13 +126,24 @@ export default function HomePage() {
 
   // ตรวจสอบ URL parameter เพื่อเปิด Health Overview Modal
   useEffect(() => {
-    if (mounted && searchParams.get("openHealthOverview") === "true") {
+    if (mounted && searchParams.get("openHealthOverview")) {
+      const categoryToOpen = searchParams.get("openHealthOverview")
+      const assessmentId = searchParams.get("assessmentId")
+      
       console.log("🎯 HomePage: เปิด Health Overview Modal จาก URL parameter")
+      console.log("📋 HomePage: Category:", categoryToOpen, "Assessment ID:", assessmentId)
+      
       setIsHealthOverviewModalOpen(true)
+      
+      // ถ้ามี assessmentId ให้เก็บไว้เพื่อใช้ใน modal
+      if (assessmentId) {
+        setTargetAssessmentId(assessmentId)
+      }
 
       // ลบ parameter ออกจาก URL หลังจากเปิด modal แล้ว
       const url = new URL(window.location.href)
       url.searchParams.delete("openHealthOverview")
+      url.searchParams.delete("assessmentId")
       window.history.replaceState({}, "", url.toString())
     }
   }, [mounted, searchParams])
@@ -579,7 +571,12 @@ export default function HomePage() {
         </div>
       </main>
       <ConsultDoctorIntroModal isOpen={isConsultModalOpen} onOpenChange={setIsConsultModalOpen} />
-      <HealthOverviewModal isOpen={isHealthOverviewModalOpen} onOpenChange={setIsHealthOverviewModalOpen} />
+      <HealthOverviewModal 
+        isOpen={isHealthOverviewModalOpen} 
+        onOpenChange={setIsHealthOverviewModalOpen}
+        targetAssessmentId={targetAssessmentId}
+        onTargetAssessmentIdChange={setTargetAssessmentId}
+      />
     </div>
   )
 }
