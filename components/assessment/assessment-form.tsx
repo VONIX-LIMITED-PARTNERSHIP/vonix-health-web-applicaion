@@ -30,9 +30,15 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const progress = ((currentQuestionIndex + 1) / category.questions.length) * 100
   const isLastQuestion = currentQuestionIndex === category.questions.length - 1
 
-  const handleAnswer = (questionId: string, answer: string | number | string[] | null, score: number) => {
+  // อัปเดต handleAnswer ให้รับ isValid ด้วย
+  const handleAnswer = (
+    questionId: string,
+    answer: string | number | string[] | null,
+    score: number,
+    isValid: boolean,
+  ) => {
     const newAnswers = answers.filter((a) => a.questionId !== questionId)
-    newAnswers.push({ questionId, answer, score })
+    newAnswers.push({ questionId, answer, score, isValid }) // เก็บ isValid
     setAnswers(newAnswers)
   }
 
@@ -40,35 +46,15 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     return answers.find((a) => a.questionId === currentQuestion.id)
   }
 
+  // ปรับปรุง canProceed ให้ตรวจสอบ isValid ของคำตอบปัจจุบัน
   const canProceed = () => {
-    if (!currentQuestion.required) {
-      return true // ถ้าไม่จำเป็น สามารถไปต่อได้เสมอ
-    }
-
     const answerEntry = getCurrentAnswer()
-
-    if (!answerEntry || answerEntry.answer === null) {
-      return false // ไม่มีคำตอบ หรือคำตอบเป็น null
+    // ถ้าคำถามจำเป็นต้องตอบ ต้องมีคำตอบและคำตอบนั้นต้องถูกต้อง (isValid === true)
+    if (currentQuestion.required) {
+      return answerEntry?.isValid === true
     }
-
-    // ตรวจสอบตามประเภทคำถาม
-    switch (currentQuestion.type) {
-      case "text":
-      case "number":
-        // สำหรับ text/number, ตรวจสอบว่าไม่ใช่ string ว่างเปล่า หรือ 0 ที่มาจาก string ว่างเปล่า
-        return typeof answerEntry.answer === "string" ? answerEntry.answer.trim() !== "" : true
-      case "checkbox":
-      case "multi-select-combobox-with-other":
-        // สำหรับ checkbox/multi-select, ตรวจสอบว่า array ไม่ว่างเปล่า
-        return Array.isArray(answerEntry.answer) && answerEntry.answer.length > 0
-      case "multiple-choice":
-      case "yes-no":
-      case "rating":
-        // สำหรับประเภทอื่นๆ, ตรวจสอบว่ามีค่าที่ไม่ใช่ null/undefined/empty string
-        return String(answerEntry.answer).trim() !== ""
-      default:
-        return true // สำหรับประเภทที่ไม่รู้จัก ให้ถือว่าผ่าน
-    }
+    // ถ้าคำถามไม่จำเป็นต้องตอบ สามารถไปต่อได้เสมอ
+    return true
   }
 
   const handleNext = () => {
@@ -167,7 +153,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
               <Button
                 onClick={handleNext}
-                disabled={!canProceed()}
+                disabled={!canProceed()} // ปุ่มจะถูกปิดใช้งานหากคำตอบปัจจุบันไม่ถูกต้อง
                 className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm sm:text-base"
               >
                 {isLastQuestion ? (

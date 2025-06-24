@@ -28,6 +28,7 @@ export type AssessmentAnswer = {
   questionId: string
   answer: string | number | string[] | null // Allow null for answer
   score: number
+  isValid: boolean // เพิ่ม property นี้เพื่อเก็บสถานะความถูกต้อง
 }
 
 export interface AssessmentResult {
