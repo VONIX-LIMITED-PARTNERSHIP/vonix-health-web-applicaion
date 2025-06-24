@@ -26,6 +26,10 @@ export default function ResultsPage() {
   const hasRunEffect = useRef(false)
 
   useEffect(() => {
+    console.log("ResultsPage: --- Start useEffect Cycle ---")
+    console.log("ResultsPage: Current user ID:", user?.id)
+    console.log("ResultsPage: Is user loading?", isUserLoading)
+    console.log("ResultsPage: Category ID:", categoryId)
     console.log(
       "ResultsPage: useEffect triggered. isUserLoading:",
       isUserLoading,
@@ -44,6 +48,7 @@ export default function ResultsPage() {
 
     const loadAndSaveOrFetchAssessment = async () => {
       setLoading(true)
+      console.log("ResultsPage: Starting data processing for category:", categoryId)
       setError(null)
       console.log("ResultsPage: Starting loadAndSaveOrFetchAssessment function.")
 
@@ -64,11 +69,14 @@ export default function ResultsPage() {
         // 1. Try to save the assessment if answers are in localStorage (meaning it's a fresh submission)
         const localStorageKey =
           categoryId === guestAssessmentCategory.id ? `guest-assessment-temp-answers` : `assessment-${categoryId}`
+        console.log("ResultsPage: Checking localStorage for key:", localStorageKey)
         const storedAnswersString = localStorage.getItem(localStorageKey)
 
         if (storedAnswersString) {
           console.log("ResultsPage: Found answers in localStorage, attempting to save.")
           const parsedAnswers: AssessmentAnswer[] = JSON.parse(storedAnswersString)
+          console.log("ResultsPage: Parsed answers from localStorage (count):", parsedAnswers.length)
+          console.log("ResultsPage: Parsed answers from localStorage (data sample):", parsedAnswers.slice(0, 2)) // แสดงตัวอย่าง 2 คำตอบแรก
 
           if (parsedAnswers.length === 0) {
             console.warn("ResultsPage: Parsed answers from localStorage are empty. Will attempt to fetch from DB.")
@@ -83,11 +91,13 @@ export default function ResultsPage() {
             }
 
             if (categoryId !== "basic") {
+              console.log("ResultsPage: Attempting AI analysis for category:", categoryId)
               console.log("ResultsPage: Calling analyzeWithAI for fresh submission...")
               const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, parsedAnswers)
               if (aiError) {
-                console.error("ResultsPage: AI Analysis Error for fresh submission:", aiError)
+                console.error("ResultsPage: AI Analysis Error:", aiError)
               } else {
+                console.log("ResultsPage: AI Analysis successful. Data:", aiData ? "present" : "null")
                 currentAiAnalysis = aiData
                 setAiAnalysis(aiData)
               }
@@ -95,6 +105,7 @@ export default function ResultsPage() {
 
             if (user?.id) {
               // Only save if user is logged in
+              console.log("ResultsPage: Attempting to save assessment to Supabase for user:", user?.id)
               console.log("ResultsPage: Calling saveAssessment for fresh submission...")
               const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
                 user.id,
@@ -105,7 +116,10 @@ export default function ResultsPage() {
               )
 
               if (saveError) {
+                console.error("ResultsPage: Supabase Save Error:", saveError)
                 throw new Error(saveError)
+              } else {
+                console.log("ResultsPage: Supabase Save successful. Saved data ID:", savedData?.id)
               }
               currentAssessmentData = savedData
               console.log("ResultsPage: Fresh assessment saved successfully:", currentAssessmentData.id)
@@ -131,15 +145,25 @@ export default function ResultsPage() {
 
         // 2. If no fresh submission (or if localStorage was empty/cleared), try to fetch latest from Supabase
         if (!currentAssessmentData && user?.id) {
+          console.log(
+            "ResultsPage: No fresh data, attempting to fetch latest from Supabase for user:",
+            user?.id,
+            "category:",
+            categoryId,
+          )
           console.log("ResultsPage: No fresh submission data, attempting to fetch latest from Supabase.")
           const { data: fetchedData, error: fetchError } =
             await AssessmentService.getLatestAssessmentForUserAndCategory(user.id, categoryId)
 
           if (fetchError) {
+            console.error("ResultsPage: Supabase Fetch Latest Error:", fetchError)
             throw new Error(fetchError)
-          }
-          if (!fetchedData) {
+          } else if (!fetchedData) {
+            console.warn("ResultsPage: Supabase Fetch Latest: No data found for user and category.")
             throw new Error("assessment.no_data_found: ไม่พบข้อมูลแบบประเมินล่าสุดในฐานข้อมูล")
+          } else {
+            console.log("ResultsPage: Supabase Fetch Latest successful. Fetched data ID:", fetchedData.id)
+            console.log("ResultsPage: Fetched answers count:", fetchedData.answers?.length)
           }
           currentAssessmentData = fetchedData
           currentAnswers = fetchedData.answers || [] // Ensure answers are retrieved
@@ -163,6 +187,7 @@ export default function ResultsPage() {
           throw new Error("assessment.no_data_found: ไม่สามารถโหลดข้อมูลแบบประเมินได้")
         }
 
+        console.log("ResultsPage: Final assessment data to be set:", currentAssessmentData ? "present" : "null")
         setAssessmentResult(currentAssessmentData)
         console.log("ResultsPage: Assessment result set in state.")
       } catch (err: any) {
