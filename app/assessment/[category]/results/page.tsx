@@ -9,6 +9,7 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, Loader2 } from "lucide-react"
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
+import { guestAssessmentCategory } from "@/data/assessment-questions" // Import guestAssessmentCategory
 
 export default function ResultsPage() {
   const params = useParams()
@@ -30,16 +31,19 @@ export default function ResultsPage() {
       setError(null)
 
       try {
-        const localStorageKey = `assessment-${categoryId}`
-        console.log("ResultsPage: Attempting to retrieve answers from localStorage with key:", localStorageKey) // Debug log
+        // Determine the correct localStorage key based on categoryId
+        const localStorageKey =
+          categoryId === guestAssessmentCategory.id ? `guest-assessment-temp-answers` : `assessment-${categoryId}`
+
+        console.log("ResultsPage: Attempting to retrieve answers from localStorage with key:", localStorageKey)
         const storedAnswersString = localStorage.getItem(localStorageKey)
-        console.log("ResultsPage: Retrieved string from localStorage:", storedAnswersString) // Debug log
+        console.log("ResultsPage: Retrieved string from localStorage:", storedAnswersString)
 
         if (!storedAnswersString) {
           throw new Error("assessment.no_answers_found: ไม่พบคำตอบใน Local Storage (Key: " + localStorageKey + ")")
         }
         const parsedAnswers: AssessmentAnswer[] = JSON.parse(storedAnswersString)
-        console.log("ResultsPage: Parsed answers from localStorage:", parsedAnswers) // Debug log
+        console.log("ResultsPage: Parsed answers from localStorage:", parsedAnswers)
 
         setAnswers(parsedAnswers) // Store answers in state for AssessmentResults component
 
@@ -72,6 +76,12 @@ export default function ResultsPage() {
           throw new Error("User not authenticated. Please log in to save your assessment.")
         }
 
+        console.log("ResultsPage: Preparing to call saveAssessment with:", {
+          userId: user.id,
+          categoryId,
+          categoryTitle: category.title,
+          answers: parsedAnswers,
+        })
         const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
           user.id,
           categoryId,
@@ -79,6 +89,7 @@ export default function ResultsPage() {
           parsedAnswers,
           analysisData,
         )
+        console.log("ResultsPage: saveAssessment returned:", { savedData, saveError })
 
         if (saveError) {
           throw new Error(saveError)
@@ -88,7 +99,7 @@ export default function ResultsPage() {
 
         // 5. Clear answers from localStorage after successful save
         localStorage.removeItem(localStorageKey)
-        console.log("ResultsPage: Cleared localStorage key:", localStorageKey) // Debug log
+        console.log("ResultsPage: Cleared localStorage key:", localStorageKey)
       } catch (err: any) {
         console.error("ResultsPage: Error loading or saving assessment:", err)
         setError(err.message || "เกิดข้อผิดพลาดในการประมวลผลแบบประเมิน")
