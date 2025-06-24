@@ -31,7 +31,7 @@ export function ChatWidget() {
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [hasNewMessage, setHasNewMessage] = useState(false)
-  const [hasInteracted, setHasInteracted] = useState(false) // New state to track interaction
+  const [hasInteracted, setHasInteracted] = useState(false) // Changed back to false
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -94,6 +94,9 @@ export function ChatWidget() {
       sender: "user",
       timestamp: new Date(),
     }
+
+    // Set hasInteracted to true when a message is sent
+    setHasInteracted(true)
 
     // Optimistically render the user message
     setMessages((prev) => [...prev, userMessage])
@@ -298,8 +301,8 @@ export function ChatWidget() {
                     </div>
                   </ScrollArea>
 
-                  {/* Quick Replies - Always visible initially */}
-                  {!hasInteracted && ( // Only show quick replies if no interaction yet
+                  {/* Quick Replies - Only visible if not interacted yet */}
+                  {!hasInteracted && (
                     <div className="px-6 py-4 bg-accent/20 dark:bg-accent/30 border-t border-border flex-shrink-0">
                       <div className="text-sm text-foreground mb-3 font-semibold">💡 คำถามยอดนิยม</div>
                       <div className="grid grid-cols-2 gap-2">
@@ -318,34 +321,32 @@ export function ChatWidget() {
                   )}
                 </CardContent>
 
-                {/* Input Area - Only visible after interaction */}
-                {hasInteracted && ( // Only show input area after interaction
-                  <div className="p-6 bg-card dark:bg-card-foreground border-t border-border flex-shrink-0">
-                    <div className="flex items-end space-x-4">
-                      <Input
-                        ref={inputRef}
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="พิมพ์ข้อความ..."
-                        className="flex-1 rounded-2xl border-2 border-input focus:border-primary px-5 py-4 bg-background focus:bg-background transition-all duration-200 resize-none min-h-[52px] text-foreground placeholder:text-muted-foreground"
-                        disabled={isTyping}
-                      />
-                      <Button
-                        onClick={handleSendMessage}
-                        disabled={!inputValue.trim() || isTyping}
-                        className="rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 p-4 h-[52px] w-[52px] shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0"
-                      >
-                        {isTyping ? (
-                          <Loader2 className="h-5 w-5 animate-spin text-white" />
-                        ) : (
-                          <Send className="h-5 w-5 text-white" />
-                        )}
-                      </Button>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-4 text-center leading-relaxed font-medium"></div>
+                {/* Input Area - Always visible */}
+                <div className="p-6 bg-card dark:bg-card-foreground border-t border-border flex-shrink-0">
+                  <div className="flex items-end space-x-4">
+                    <Input
+                      ref={inputRef}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="พิมพ์ข้อความ..."
+                      className="flex-1 rounded-2xl border-2 border-input focus:border-primary px-5 py-4 bg-background focus:bg-background transition-all duration-200 resize-none min-h-[52px] text-foreground placeholder:text-muted-foreground"
+                      disabled={isTyping}
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={!inputValue.trim() || isTyping}
+                      className="rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 p-4 h-[52px] w-[52px] shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0"
+                    >
+                      {isTyping ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-white" />
+                      ) : (
+                        <Send className="h-5 w-5 text-white" />
+                      )}
+                    </Button>
                   </div>
-                )}
+                  <div className="text-xs text-muted-foreground mt-4 text-center leading-relaxed font-medium"></div>
+                </div>
               </>
             )}
           </Card>
