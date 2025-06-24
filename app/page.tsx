@@ -47,6 +47,7 @@ const assessmentCategories = [
     progress: 0,
     gradient: "from-blue-500 to-cyan-500",
     bgGradient: "from-blue-50 to-cyan-50",
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
   },
   {
     id: "heart",
@@ -58,6 +59,7 @@ const assessmentCategories = [
     progress: 0,
     gradient: "from-red-500 to-pink-500",
     bgGradient: "from-red-50 to-pink-50",
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
   },
   {
     id: "nutrition",
@@ -68,7 +70,8 @@ const assessmentCategories = [
     status: "เริ่มประเมิน",
     progress: 0,
     gradient: "from-green-500 to-emerald-500",
-    bgGradient: "from-green-50 to-green-50", // Corrected to green-50
+    bgGradient: "from-green-50 to-green-50",
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
   },
   {
     id: "mental",
@@ -79,7 +82,8 @@ const assessmentCategories = [
     status: "ยังไม่ได้ทำการประเมิน",
     progress: 0,
     gradient: "from-purple-500 to-violet-500",
-    bgGradient: "from-purple-50 to-purple-50", // Corrected to purple-50
+    bgGradient: "from-purple-50 to-purple-50",
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
   },
   {
     id: "physical",
@@ -90,7 +94,8 @@ const assessmentCategories = [
     status: "ยังไม่ได้ทำการประเมิน",
     progress: 0,
     gradient: "from-orange-500 to-amber-500",
-    bgGradient: "from-orange-50 to-orange-50", // Corrected to orange-50
+    bgGradient: "from-orange-50 to-orange-50",
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
   },
   {
     id: "sleep",
@@ -101,7 +106,8 @@ const assessmentCategories = [
     status: "ยังไม่ได้ทำการประเมิน",
     progress: 0,
     gradient: "from-indigo-500 to-blue-500",
-    bgGradient: "from-indigo-50 to-indigo-50", // Corrected to indigo-50
+    bgGradient: "from-indigo-50 to-indigo-50",
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
   },
 ]
 
@@ -510,7 +516,7 @@ export default function HomePage() {
                   {getUpdatedCategories().map((category, index) => (
                     <Card
                       key={category.id}
-                      className={`group relative overflow-hidden bg-gradient-to-br ${category.bgGradient} border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 cursor-pointer rounded-3xl`}
+                      className={`group relative overflow-hidden bg-gradient-to-br ${category.bgGradient} ${category.darkBgGradient} border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 cursor-pointer rounded-3xl`}
                     >
                       <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent"></div>
                       <CardContent className="relative p-8">
@@ -543,11 +549,11 @@ export default function HomePage() {
                           </div>
                         </div>
 
-                        <h3 className="font-bold text-xl mb-3 text-gray-800 group-hover:text-gray-900 transition-colors dark:text-gray-200 dark:group-hover:text-gray-100">
+                        <h3 className="font-bold text-xl mb-3 text-gray-800 group-hover:text-gray-900 transition-colors dark:text-white dark:group-hover:text-gray-50">
                           {category.title}
                         </h3>
-                        <p className="text-gray-600 mb-4 leading-relaxed dark:text-gray-300">{category.description}</p>
-                        <p className="text-sm text-gray-500 mb-6 flex items-center dark:text-gray-400">
+                        <p className="text-gray-600 mb-4 leading-relaxed dark:text-gray-100">{category.description}</p>
+                        <p className="text-sm text-gray-500 mb-6 flex items-center dark:text-gray-200">
                           <Clock className="w-4 h-4 mr-2" />
                           {category.status}
                           {category.lastCompleted && <span className="ml-2 text-xs">({category.lastCompleted})</span>}
