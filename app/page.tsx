@@ -272,9 +272,9 @@ export default function HomePage() {
           status: "เสร็จสิ้น",
           progress: 100,
           lastCompleted: new Date(userAssessment.completed_at).toLocaleDateString("th-TH"),
-          score: userAssessment.percentage,
-          healthLevel: getHealthLevel(userAssessment.percentage),
-          healthLevelColor: getHealthLevelColor(userAssessment.percentage),
+          riskLevel: userAssessment.risk_level,
+          riskFactorsCount: userAssessment.risk_factors ? userAssessment.risk_factors.length : 0,
+          // เอา score และ healthLevel ออก
         }
       }
 
@@ -572,9 +572,31 @@ export default function HomePage() {
                             {category.progress > 0 && (
                               <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
                                 <div className="font-medium">{t("completed")}</div>
-                                {category.healthLevel && (
-                                  <div className={`font-semibold ${category.healthLevelColor} text-sm mt-1`}>
-                                    ({category.healthLevel})
+                                {category.id !== "basic" && category.riskLevel && (
+                                  <div
+                                    className={`font-semibold text-sm mt-1 ${
+                                      category.riskLevel === "low"
+                                        ? "text-green-600"
+                                        : category.riskLevel === "medium"
+                                          ? "text-yellow-600"
+                                          : category.riskLevel === "high"
+                                            ? "text-orange-600"
+                                            : category.riskLevel === "very-high"
+                                              ? "text-red-600"
+                                              : "text-gray-600"
+                                    }`}
+                                  >
+                                    (
+                                    {category.riskLevel === "low"
+                                      ? "ความเสี่ยงต่ำ"
+                                      : category.riskLevel === "medium"
+                                        ? "ความเสี่ยงปานกลาง"
+                                        : category.riskLevel === "high"
+                                          ? "ความเสี่ยงสูง"
+                                          : category.riskLevel === "very-high"
+                                            ? "ความเสี่ยงสูงมาก"
+                                            : "ไม่ระบุ"}
+                                    )
                                   </div>
                                 )}
                               </div>

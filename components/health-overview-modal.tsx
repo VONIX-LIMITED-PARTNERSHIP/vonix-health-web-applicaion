@@ -398,9 +398,9 @@ export function HealthOverviewModal({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <StatRow label="คะแนน">
-                <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
-                  {getHealthLevel(data.percentage)}
+              <StatRow label="จำนวนปัจจัยเสี่ยงที่พบ">
+                <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200">
+                  {data.risk_factors ? data.risk_factors.length : 0} ปัจจัย
                 </Badge>
               </StatRow>
               <StatRow label="ระดับความเสี่ยง">{getRiskLevelBadge(data.risk_level)}</StatRow>
@@ -583,9 +583,33 @@ export function HealthOverviewModal({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
-            {getHealthLevel(assessment.percentage)}
-          </Badge>
+          {assessment.category_id !== "basic" ? (
+            <Badge
+              className={`${
+                assessment.risk_level === "low"
+                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
+                  : assessment.risk_level === "medium"
+                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200"
+                    : assessment.risk_level === "high"
+                      ? "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200"
+                      : assessment.risk_level === "very-high"
+                        ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200"
+                        : "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-200"
+              }`}
+            >
+              {assessment.risk_level === "low"
+                ? "ความเสี่ยงต่ำ"
+                : assessment.risk_level === "medium"
+                  ? "ความเสี่ยงปานกลาง"
+                  : assessment.risk_level === "high"
+                    ? "ความเสี่ยงสูง"
+                    : assessment.risk_level === "very-high"
+                      ? "ความเสี่ยงสูงมาก"
+                      : "ไม่ระบุ"}
+            </Badge>
+          ) : (
+            <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">ข้อมูลส่วนตัว</Badge>
+          )}
           <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         </div>
       </div>
