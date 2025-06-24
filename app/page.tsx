@@ -571,7 +571,7 @@ export default function HomePage() {
                             )}
                             {category.progress > 0 && (
                               <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {category.progress}% {t("completed")}
+                                {t("completed")}
                                 {category.healthLevel && (
                                   <span className={`ml-2 font-semibold ${category.healthLevelColor}`}>
                                     ({category.healthLevel})
