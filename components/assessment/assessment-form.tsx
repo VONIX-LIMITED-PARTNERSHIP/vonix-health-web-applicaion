@@ -58,15 +58,41 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   }
 
   const handleNext = () => {
+    // เมื่อคลิก "ถัดไป" โดยเฉพาะอย่างยิ่งในคำถามสุดท้าย
+    // ตรวจสอบให้แน่ใจว่าอาร์เรย์ `answers` มีคำตอบล่าสุดสำหรับคำถามปัจจุบัน
+    // สถานะ `answers` อาจจะยังไม่อัปเดตเต็มที่หาก `handleAnswer` เพิ่งถูกเรียก
+    const currentAnswerForSubmission = getCurrentAnswer() // ดึงคำตอบสำหรับคำถามปัจจุบันจาก state
+
+    // สร้างอาร์เรย์ใหม่สำหรับส่งข้อมูล โดยให้แน่ใจว่าคำตอบของคำถามปัจจุบันถูกรวมอยู่
+    // และเป็นเวอร์ชันล่าสุด
+    let answersToSubmit: AssessmentAnswer[] = []
+    if (currentAnswerForSubmission) {
+      // กรองคำตอบเก่าของคำถามปัจจุบันออก แล้วเพิ่มคำตอบล่าสุดเข้าไป
+      answersToSubmit = answers.filter((a) => a.questionId !== currentQuestion.id)
+      answersToSubmit.push(currentAnswerForSubmission)
+    } else {
+      // หาก currentAnswerForSubmission เป็น null/undefined หมายความว่า:
+      // 1. คำถามเป็นทางเลือกและไม่ได้ตอบ
+      // 2. มีข้อผิดพลาดและคำตอบที่จำเป็นไม่อยู่ใน state (ควรถูกดักโดย canProceed)
+      // ในกรณีนี้ ให้ใช้สถานะ `answers` ที่มีอยู่
+      answersToSubmit = [...answers]
+    }
+
+    // หากแบบประเมินมีคำถามแต่ `answersToSubmit` ยังว่างเปล่า
+    // แสดงว่าไม่มีคำตอบถูกบันทึกไว้ ซึ่งควรถูกป้องกันโดย `canProceed` สำหรับคำถามที่จำเป็น
+    // สำหรับคำถามทางเลือก อาร์เรย์ว่างเปล่าเป็นที่ยอมรับ
+    if (isLastQuestion && answersToSubmit.length === 0 && category.questions.length > 0) {
+      console.warn(
+        "Attempting to save an empty answers array for a non-empty assessment category. This might indicate missing required answers.",
+      )
+    }
+
     if (isLastQuestion) {
       if (categoryId === guestAssessmentCategory.id) {
-        // สำหรับ guest assessment: บันทึกคำตอบชั่วคราวใน localStorage และไปที่หน้าผลลัพธ์ guest
-        localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(answers))
+        localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(answersToSubmit))
         router.push(`/guest-assessment/results`)
       } else {
-        // สำหรับ assessment ปกติ: บันทึกคำตอบใน localStorage และไปที่หน้าผลลัพธ์ปกติ
-        // AssessmentResults จะเป็นผู้รับผิดชอบในการบันทึกลง DB และลบ localStorage
-        localStorage.setItem(`assessment-${categoryId}`, JSON.stringify(answers))
+        localStorage.setItem(`assessment-${categoryId}`, JSON.stringify(answersToSubmit))
         router.push(`/assessment/${categoryId}/results`)
       }
     } else {
