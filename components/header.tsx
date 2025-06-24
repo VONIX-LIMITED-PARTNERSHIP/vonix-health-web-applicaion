@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Activity, Bell, LogOut, RefreshCw, Loader2, Settings, Sun, Moon, Languages } from "lucide-react" // Import Settings, Sun, Moon, Languages
+import { Activity, Bell, LogOut, RefreshCw, Loader2, Settings, Sun, Moon, Languages } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -10,16 +10,16 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useLanguage } from "@/contexts/language-context"
 import { useTranslation } from "@/hooks/use-translation"
-import { useTheme } from "next-themes" // Import useTheme
+import { useTheme } from "next-themes"
 
 export function Header() {
-  const { user, profile, signOut, loading, refreshProfile } = useAuth()
+  const { user, profile, isAuthSessionLoading, isProfileLoading, signOut, refreshProfile } = useAuth() // Destructure new states
   const [refreshing, setRefreshing] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const router = useRouter()
   const { locale, setLocale } = useLanguage()
-  const { t } = useTranslation(["common", "profile"]) // Ensure common namespace is loaded
-  const { setTheme, theme } = useTheme() // Use theme hook
+  const { t } = useTranslation(["common", "profile"])
+  const { setTheme, theme } = useTheme()
 
   const getInitials = (name: string | null) => {
     if (!name) return "U"
@@ -53,11 +53,9 @@ export function Header() {
     } catch (error) {
       // Removed console.error
     } finally {
-      // เพิ่ม delay เล็กน้อยเพื่อให้การนำทาง (redirect) มีเวลาดำเนินการ
-      // ก่อนที่จะรีเซ็ตสถานะการโหลด เพื่อป้องกันปัญหาการอัปเดตสถานะบนคอมโพเนนต์ที่อาจถูก unmount ไปแล้ว
       setTimeout(() => {
         setSigningOut(false)
-      }, 100) // หน่วงเวลา 100 มิลลิวินาที
+      }, 100)
     }
   }
 
@@ -124,7 +122,7 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {loading ? (
+          {isAuthSessionLoading ? ( // Use isAuthSessionLoading here
             <div className="flex items-center space-x-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">{t("loading")}...</span>
@@ -152,24 +150,42 @@ export function Header() {
                     <div className="text-left hidden sm:block">
                       <div className="font-medium text-sm text-gray-800 dark:text-gray-200">
                         {profile?.full_name || t("user")}
-                        {!profile && user && <span className="text-red-500 text-xs ml-2">{t("no_profile")}</span>}
+                        {!profile && user && !isProfileLoading && (
+                          <span className="text-red-500 text-xs ml-2">{t("no_profile")}</span>
+                        )}
+                        {isProfileLoading && (
+                          <span className="text-gray-500 text-xs ml-2">{t("loading_profile")}...</span>
+                        )}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {profile ? getRoleLabel(profile.role || "patient") : t("loading_profile")}
+                        {profile
+                          ? getRoleLabel(profile.role || "patient")
+                          : isProfileLoading
+                            ? "" // Don't show "loading_profile" here, as it's already above
+                            : t("user")}{" "}
+                        {/* Default to "user" if no profile and not loading */}
                       </div>
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  {!profile && user && (
+                  {isProfileLoading && (
+                    <DropdownMenuItem disabled>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t("loading_profile")}...
+                    </DropdownMenuItem>
+                  )}
+                  {!profile && user && !isProfileLoading && (
                     <DropdownMenuItem onClick={handleRefreshProfile} disabled={refreshing}>
                       <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                       {refreshing ? t("loading") : t("refresh_profile")}
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">👤 {t("profile")}</Link>
-                  </DropdownMenuItem>
+                  {profile && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">👤 {t("profile")}</Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-600" disabled={signingOut}>
                     {signingOut ? (
                       <>

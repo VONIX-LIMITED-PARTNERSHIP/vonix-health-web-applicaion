@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import type { User } from "@supabase/supabase-js"
 import { createClientComponentClient, isSupabaseConfigured } from "@/lib/supabase"
 import type { Database } from "@/types/database"
@@ -11,7 +11,8 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"]
 interface AuthContextType {
   user: User | null
   profile: Profile | null
-  loading: boolean
+  isAuthSessionLoading: boolean // Indicates if the initial Supabase session check is ongoing
+  isProfileLoading: boolean // Indicates if the user profile data is being fetched
   signIn: (email: string, password: string) => Promise<{ data?: any; error?: any }>
   signUp: (email: string, password: string, metadata?: any) => Promise<{ data?: any; error?: any }>
   signOut: () => Promise<void>
@@ -23,7 +24,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
-  loading: true,
+  isAuthSessionLoading: true,
+  isProfileLoading: false,
   signIn: async () => ({ error: new Error("Auth not configured") }),
   signUp: async () => ({ error: new Error("Auth not configured") }),
   signOut: async () => {},
@@ -35,38 +37,91 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [isAuthSessionLoading, setIsAuthSessionLoading] = useState(true)
+  const [isProfileLoading, setIsProfileLoading] = useState(false)
   const [initialized, setInitialized] = useState(false)
 
   const supabase = createClientComponentClient()
 
-  // Clear all auth-related data (only call this on explicit sign out)
-  const clearAuthData = () => {
+  const clearAuthData = useCallback(() => {
     setUser(null)
     setProfile(null)
-
-    // Clear localStorage
     if (typeof window !== "undefined") {
-      // Clear Supabase auth data
       localStorage.removeItem("sb-hybtdrtuyovowhzinbbu-auth-token")
       localStorage.removeItem("supabase.auth.token")
-
-      // Clear assessment data
       Object.keys(localStorage).forEach((key) => {
         if (key.startsWith("assessment-")) {
           localStorage.removeItem(key)
         }
       })
-
-      // Clear any other app-specific data
       localStorage.removeItem("user-preferences")
       localStorage.removeItem("dashboard-cache")
     }
-  }
+  }, [])
 
+  const loadUserProfile = useCallback(
+    async (userId: string) => {
+      if (!supabase) {
+        return
+      }
+      setIsProfileLoading(true)
+      try {
+        const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
+        if (error) {
+          if (error.code === "PGRST116") {
+            await createMissingProfile(userId)
+          } else {
+            setProfile(null)
+          }
+          return
+        }
+        setProfile(data || null)
+      } catch (error) {
+        setProfile(null)
+      } finally {
+        setIsProfileLoading(false)
+      }
+    },
+    [supabase],
+  )
+
+  const createMissingProfile = useCallback(
+    async (userId: string) => {
+      if (!user) {
+        return
+      }
+      try {
+        const response = await fetch("/api/auth/create-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: userId,
+            email: user.email,
+            fullName: user.user_metadata?.full_name || "",
+            role: user.user_metadata?.role || "patient",
+            pdpaConsent: user.user_metadata?.pdpa_consent || false,
+          }),
+        })
+        if (response.ok) {
+          await loadUserProfile(userId)
+        }
+      } catch (profileError) {
+        // console.error("Error creating missing profile:", profileError);
+      }
+    },
+    [user, loadUserProfile],
+  )
+
+  const refreshProfile = useCallback(async () => {
+    if (user?.id) {
+      await loadUserProfile(user.id)
+    }
+  }, [user, loadUserProfile])
+
+  // Effect for initial session check and auth state changes
   useEffect(() => {
     if (!isSupabaseConfigured() || !supabase) {
-      setLoading(false)
+      setIsAuthSessionLoading(false)
       setInitialized(true)
       return
     }
@@ -74,37 +129,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true
 
     const initializeAuth = async () => {
+      setIsAuthSessionLoading(true)
       try {
         const {
           data: { session },
           error,
         } = await supabase.auth.getSession()
 
-        if (!mounted) {
-          return
-        }
+        if (!mounted) return
 
         if (error) {
-          // Only clear auth data if there's a real auth error, not just missing session
           if (error.message?.includes("invalid") || error.message?.includes("expired")) {
             clearAuthData()
           }
+          setUser(null)
+          setProfile(null)
         } else if (session?.user) {
           setUser(session.user)
-          await loadUserProfile(session.user.id)
+          // Profile loading will be handled by the separate useEffect below
         } else {
-          // Don't clear auth data here - just set states to null
           setUser(null)
           setProfile(null)
         }
       } catch (err) {
-        // Only clear on actual errors, not on missing sessions
         if (err instanceof Error && (err.message?.includes("invalid") || err.message?.includes("expired"))) {
           clearAuthData()
         }
+        setUser(null)
+        setProfile(null)
       } finally {
         if (mounted) {
-          setLoading(false)
+          setIsAuthSessionLoading(false)
           setInitialized(true)
         }
       }
@@ -117,31 +172,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) {
-        return
-      }
+      if (!mounted) return
 
-      if (event === "SIGNED_OUT") {
+      if (event === "SIGNED_OUT" || (event === "TOKEN_REFRESHED" && !session)) {
         clearAuthData()
-        setLoading(false)
-        if (typeof window !== "undefined") {
+        setUser(null)
+        setProfile(null)
+        setIsAuthSessionLoading(false)
+        if (typeof window !== "undefined" && event === "SIGNED_OUT") {
           window.location.href = "/"
         }
-      } else if (event === "TOKEN_REFRESHED" && !session) {
-        clearAuthData()
-        setLoading(false)
       } else if (event === "SIGNED_IN" && session?.user) {
         setUser(session.user)
-        await loadUserProfile(session.user.id)
-        setLoading(false)
+        setIsAuthSessionLoading(false)
       } else if (session?.user) {
         setUser(session.user)
-        await loadUserProfile(session.user.id)
-        setLoading(false)
+        setIsAuthSessionLoading(false)
       } else if (event === "INITIAL_SESSION" && !session) {
         setUser(null)
         setProfile(null)
-        setLoading(false)
+        setIsAuthSessionLoading(false)
       }
     })
 
@@ -149,63 +199,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false
       subscription.unsubscribe()
     }
-  }, [supabase, initialized])
+  }, [supabase, initialized, clearAuthData])
 
-  const loadUserProfile = async (userId: string) => {
-    if (!supabase) {
-      return
-    }
-    try {
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
-
-      if (error) {
-        if (error.code === "PGRST116") {
-          await createMissingProfile(userId)
-          return
-        }
-        return
-      }
-      setProfile(data || null)
-    } catch (error) {}
-  }
-
-  const createMissingProfile = async (userId: string) => {
-    if (!user) {
-      return
-    }
-    try {
-      const response = await fetch("/api/auth/create-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: userId,
-          email: user.email,
-          fullName: user.user_metadata?.full_name || "",
-          role: user.user_metadata?.role || "patient",
-          pdpaConsent: user.user_metadata?.pdpa_consent || false,
-        }),
-      })
-      const result = await response.json()
-      if (!response.ok) {
-      } else {
-        await refreshProfile()
-      }
-    } catch (profileError) {}
-  }
-
-  const refreshProfile = async () => {
+  // Effect for loading user profile when user state changes
+  useEffect(() => {
     if (user?.id) {
-      await loadUserProfile(user.id)
+      loadUserProfile(user.id)
     } else {
+      setProfile(null)
+      setIsProfileLoading(false)
     }
-  }
+  }, [user, loadUserProfile])
 
   const signIn = async (email: string, password: string) => {
     if (!supabase) {
       return { error: new Error("Supabase not configured") }
     }
     try {
-      setLoading(true)
+      setIsAuthSessionLoading(true)
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
         return { data, error }
@@ -214,7 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       return { error }
     } finally {
-      setLoading(false)
+      setIsAuthSessionLoading(false)
     }
   }
 
@@ -223,7 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: new Error("Supabase not configured") }
     }
     try {
-      setLoading(true)
+      setIsAuthSessionLoading(true)
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -232,30 +243,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         return { data, error }
       }
-      if (data.user && !data.user.email_confirmed_at) {
-        try {
-          const response = await fetch("/api/auth/create-profile", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId: data.user.id,
-              email: data.user.email,
-              fullName: metadata?.full_name,
-              role: metadata?.role || "patient",
-              pdpaConsent: metadata?.pdpa_consent || false,
-            }),
-          })
-          const result = await response.json()
-          if (!response.ok) {
-          } else {
-          }
-        } catch (profileError) {}
-      }
       return { data, error: null }
     } catch (error) {
       return { error }
     } finally {
-      setLoading(false)
+      setIsAuthSessionLoading(false)
     }
   }
 
@@ -264,15 +256,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
     try {
-      setLoading(true)
+      setIsAuthSessionLoading(true)
       const { error } = await supabase.auth.signOut()
       if (error) {
-      } else {
+        // console.error("Error signing out:", error);
       }
-      // clearAuthData will be called by the onAuthStateChange listener when SIGNED_OUT event is triggered
     } catch (error) {
+      // console.error("Unexpected error during sign out:", error);
     } finally {
-      setLoading(false)
+      setIsAuthSessionLoading(false)
     }
   }
 
@@ -281,7 +273,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: new Error("Supabase not configured") }
     }
     try {
-      setLoading(true)
+      setIsAuthSessionLoading(true)
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/update-password`,
       })
@@ -292,7 +284,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       return { error: new Error(error.message || "An unexpected error occurred") }
     } finally {
-      setLoading(false)
+      setIsAuthSessionLoading(false)
     }
   }
 
@@ -301,7 +293,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: new Error("Supabase not configured") }
     }
     try {
-      setLoading(true)
+      setIsAuthSessionLoading(true)
 
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Password update request timed out after 15 seconds.")), 15000),
@@ -316,7 +308,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       return { error: new Error(error.message || "An unexpected error occurred during password update.") }
     } finally {
-      setLoading(false)
+      setIsAuthSessionLoading(false)
     }
   }
 
@@ -325,7 +317,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         profile,
-        loading,
+        isAuthSessionLoading,
+        isProfileLoading,
         signIn,
         signUp,
         signOut,
