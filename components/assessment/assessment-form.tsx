@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from 'lucide-react'
 import { QuestionCard } from "./question-card"
 import { assessmentCategories } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
@@ -115,11 +115,11 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
         console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
 
-        // สำหรับแบบประเมิน basic ให้กลับหน้า home พร้อมเปิด popup ภาพรวมสุขภาพ
+        // สำหรับแบบประเมิน basic ให้กลับหน้า home พร้อมเปิด popup ภาพรวมสุขภาพไปยังข้อมูลส่วนตัวโดยตรง
         // สำหรับแบบประเมินอื่นๆ ให้ไปหน้าผลลัพธ์
         if (categoryId === "basic") {
-          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ภาพรวมสุขภาพ")
-          router.push("/?openHealthOverview=true")
+          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
+          router.push(`/?openHealthOverview=basic&assessmentId=${savedData.id}`)
         } else {
           console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
           router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
