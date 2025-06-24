@@ -83,24 +83,24 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       }
 
       setIsSubmitting(true)
-      console.log("🚀 AssessmentForm: Starting assessment submission...")
+      console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
 
       try {
         // วิเคราะห์ด้วย AI หากไม่ใช่ basic category
         let aiAnalysis = null
         if (categoryId !== "basic") {
-          console.log("🤖 AssessmentForm: Analyzing with AI...")
+          console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
           const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, finalAnswersToSave)
           if (aiError) {
-            console.error("❌ AssessmentForm: AI Analysis failed:", aiError)
+            console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
           } else {
             aiAnalysis = aiData
-            console.log("✅ AssessmentForm: AI Analysis completed")
+            console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
           }
         }
 
         // บันทึกลง Supabase
-        console.log("💾 AssessmentForm: Saving to Supabase...")
+        console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
         const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
           user.id,
           categoryId,
@@ -113,12 +113,19 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
           throw new Error(saveError)
         }
 
-        console.log("✅ AssessmentForm: Assessment saved successfully with ID:", savedData.id)
+        console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
 
-        // ไปหน้าผลลัพธ์พร้อม assessmentId
-        router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
+        // สำหรับแบบประเมิน basic ให้กลับหน้า home
+        // สำหรับแบบประเมินอื่นๆ ให้ไปหน้าผลลัพธ์
+        if (categoryId === "basic") {
+          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลัก")
+          router.push("/")
+        } else {
+          console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
+          router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
+        }
       } catch (error) {
-        console.error("❌ AssessmentForm: Submission failed:", error)
+        console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
         alert("เกิดข้อผิดพลาดในการบันทึกแบบประเมิน กรุณาลองใหม่อีกครั้ง")
       } finally {
         setIsSubmitting(false)
@@ -137,6 +144,23 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const handleBack = () => {
     router.push("/")
   }
+
+  // ปรับข้อความปุ่มสำหรับแบบประเมิน basic
+  const getSubmitButtonText = () => {
+    if (categoryId === "basic") {
+      return {
+        full: "บันทึกข้อมูล",
+        short: "บันทึก",
+      }
+    } else {
+      return {
+        full: "ดูผลการประเมิน",
+        short: "ดูผล",
+      }
+    }
+  }
+
+  const submitButtonText = getSubmitButtonText()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -218,8 +242,8 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                   </>
                 ) : isLastQuestion ? (
                   <>
-                    <span className="hidden sm:inline">ดูผลการประเมิน</span>
-                    <span className="sm:hidden">ดูผล</span>
+                    <span className="hidden sm:inline">{submitButtonText.full}</span>
+                    <span className="sm:hidden">{submitButtonText.short}</span>
                     <CheckCircle className="ml-1 sm:ml-2 h-4 w-4" />
                   </>
                 ) : (

@@ -25,10 +25,10 @@ export default function ResultsPage() {
     if (isUserLoading) return
 
     const loadAssessmentResults = async () => {
-      console.log("📊 ResultsPage: Starting to load assessment results...")
-      console.log("📊 ResultsPage: Category ID:", categoryId)
-      console.log("📊 ResultsPage: Assessment ID:", assessmentId)
-      console.log("📊 ResultsPage: User ID:", user?.id)
+      console.log("📊 ResultsPage: เริ่มโหลดผลการประเมิน...")
+      console.log("📊 ResultsPage: หมวดหมู่:", categoryId)
+      console.log("📊 ResultsPage: รหัสแบบประเมิน:", assessmentId)
+      console.log("📊 ResultsPage: รหัสผู้ใช้:", user?.id)
 
       setLoading(true)
       setError(null)
@@ -42,68 +42,68 @@ export default function ResultsPage() {
 
         if (assessmentId) {
           // ดึงข้อมูลจาก assessmentId ที่ระบุ
-          console.log("🔍 ResultsPage: Fetching specific assessment by ID...")
+          console.log("🔍 ResultsPage: กำลังดึงข้อมูลแบบประเมินตามรหัสที่ระบุ...")
           const { data, error: fetchError } = await AssessmentService.getAssessmentById(assessmentId)
 
           if (fetchError) {
-            console.error("❌ ResultsPage: Failed to fetch assessment by ID:", fetchError)
+            console.error("❌ ResultsPage: ไม่สามารถดึงข้อมูลแบบประเมินได้:", fetchError)
             throw new Error(fetchError)
           }
 
           if (!data) {
-            console.warn("⚠️ ResultsPage: No assessment found with ID:", assessmentId)
+            console.warn("⚠️ ResultsPage: ไม่พบแบบประเมินที่มีรหัส:", assessmentId)
             throw new Error("ไม่พบข้อมูลแบบประเมินที่ระบุ")
           }
 
           resultData = data
-          console.log("✅ ResultsPage: Successfully loaded assessment by ID:", data.id)
+          console.log("✅ ResultsPage: โหลดข้อมูลแบบประเมินสำเร็จ รหัส:", data.id)
         } else {
           // ดึงข้อมูลแบบประเมินล่าสุดของ user และ category นี้
-          console.log("🔍 ResultsPage: Fetching latest assessment for user and category...")
+          console.log("🔍 ResultsPage: กำลังดึงข้อมูลแบบประเมินล่าสุด...")
           const { data, error: fetchError } = await AssessmentService.getLatestAssessmentForUserAndCategory(
             user.id,
             categoryId,
           )
 
           if (fetchError) {
-            console.error("❌ ResultsPage: Failed to fetch latest assessment:", fetchError)
+            console.error("❌ ResultsPage: ไม่สามารถดึงข้อมูลแบบประเมินล่าสุดได้:", fetchError)
             throw new Error(fetchError)
           }
 
           if (!data) {
-            console.warn("⚠️ ResultsPage: No latest assessment found for user and category")
+            console.warn("⚠️ ResultsPage: ไม่พบแบบประเมินล่าสุดสำหรับผู้ใช้และหมวดหมู่นี้")
             throw new Error("ไม่พบข้อมูลแบบประเมินล่าสุด กรุณาทำแบบประเมินใหม่")
           }
 
           resultData = data
-          console.log("✅ ResultsPage: Successfully loaded latest assessment:", data.id)
+          console.log("✅ ResultsPage: โหลดข้อมูลแบบประเมินล่าสุดสำเร็จ รหัส:", data.id)
         }
 
         // ตรวจสอบว่าข้อมูลที่ได้มาตรงกับ category ที่ต้องการหรือไม่
         if (resultData.category_id !== categoryId) {
-          console.error("❌ ResultsPage: Category mismatch:", {
+          console.error("❌ ResultsPage: หมวดหมู่ไม่ตรงกัน:", {
             expected: categoryId,
             actual: resultData.category_id,
           })
           throw new Error("ข้อมูลแบบประเมินไม่ตรงกับหมวดหมู่ที่ต้องการ")
         }
 
-        console.log("📊 ResultsPage: Assessment data loaded successfully:")
-        console.log("  - ID:", resultData.id)
-        console.log("  - Category:", resultData.category_id)
-        console.log("  - Title:", resultData.category_title)
-        console.log("  - Score:", resultData.percentage + "%")
-        console.log("  - Risk Level:", resultData.risk_level)
-        console.log("  - Answers Count:", resultData.answers?.length || 0)
-        console.log("  - Completed At:", resultData.completed_at)
+        console.log("📊 ResultsPage: โหลดข้อมูลแบบประเมินสำเร็จ:")
+        console.log("  - รหัส:", resultData.id)
+        console.log("  - หมวดหมู่:", resultData.category_id)
+        console.log("  - ชื่อ:", resultData.category_title)
+        console.log("  - คะแนน:", resultData.percentage + "%")
+        console.log("  - ระดับความเสี่ยง:", resultData.risk_level)
+        console.log("  - จำนวนคำตอบ:", resultData.answers?.length || 0)
+        console.log("  - เสร็จสิ้นเมื่อ:", resultData.completed_at)
 
         setAssessmentData(resultData)
       } catch (err: any) {
-        console.error("❌ ResultsPage: Error loading assessment results:", err.message)
+        console.error("❌ ResultsPage: เกิดข้อผิดพลาดในการโหลดผลการประเมิน:", err.message)
         setError(err.message || "เกิดข้อผิดพลาดในการโหลดผลการประเมิน")
       } finally {
         setLoading(false)
-        console.log("📊 ResultsPage: Finished loading assessment results")
+        console.log("📊 ResultsPage: เสร็จสิ้นการโหลดผลการประเมิน")
       }
     }
 
