@@ -115,11 +115,11 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
         console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
 
-        // สำหรับแบบประเมิน basic ให้กลับหน้า home
+        // สำหรับแบบประเมิน basic ให้กลับหน้า home พร้อมเปิด popup ภาพรวมสุขภาพ
         // สำหรับแบบประเมินอื่นๆ ให้ไปหน้าผลลัพธ์
         if (categoryId === "basic") {
-          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลัก")
-          router.push("/")
+          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ภาพรวมสุขภาพ")
+          router.push("/?openHealthOverview=true")
         } else {
           console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
           router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
@@ -149,7 +149,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const getSubmitButtonText = () => {
     if (categoryId === "basic") {
       return {
-        full: "บันทึกข้อมูล",
+        full: "บันทึกข้อมูลและดูภาพรวม",
         short: "บันทึก",
       }
     } else {
