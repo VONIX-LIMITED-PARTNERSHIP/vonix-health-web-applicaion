@@ -30,16 +30,21 @@ export default function ResultsPage() {
       setError(null)
 
       try {
-        // 1. Retrieve answers from localStorage
-        const storedAnswersString = localStorage.getItem(`assessment-${categoryId}`)
+        const localStorageKey = `assessment-${categoryId}`
+        console.log("ResultsPage: Attempting to retrieve answers from localStorage with key:", localStorageKey) // Debug log
+        const storedAnswersString = localStorage.getItem(localStorageKey)
+        console.log("ResultsPage: Retrieved string from localStorage:", storedAnswersString) // Debug log
+
         if (!storedAnswersString) {
-          throw new Error("assessment.no_answers_found")
+          throw new Error("assessment.no_answers_found: ไม่พบคำตอบใน Local Storage (Key: " + localStorageKey + ")")
         }
         const parsedAnswers: AssessmentAnswer[] = JSON.parse(storedAnswersString)
+        console.log("ResultsPage: Parsed answers from localStorage:", parsedAnswers) // Debug log
+
         setAnswers(parsedAnswers) // Store answers in state for AssessmentResults component
 
         if (parsedAnswers.length === 0) {
-          throw new Error("assessment.no_answers_found")
+          throw new Error("assessment.no_answers_found: อาร์เรย์คำตอบที่ดึงมาว่างเปล่า (Key: " + localStorageKey + ")")
         }
 
         // 2. Get category details using the new static method
@@ -53,7 +58,7 @@ export default function ResultsPage() {
         if (categoryId !== "basic") {
           const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, parsedAnswers)
           if (aiError) {
-            console.error("AI Analysis Error:", aiError)
+            console.error("ResultsPage: AI Analysis Error:", aiError)
             // Continue without AI analysis if it fails, or handle specifically
             // For now, we'll let saveAssessment handle the missing AI analysis if needed
           } else {
@@ -82,9 +87,10 @@ export default function ResultsPage() {
         setAssessmentResult(savedData)
 
         // 5. Clear answers from localStorage after successful save
-        localStorage.removeItem(`assessment-${categoryId}`)
+        localStorage.removeItem(localStorageKey)
+        console.log("ResultsPage: Cleared localStorage key:", localStorageKey) // Debug log
       } catch (err: any) {
-        console.error("Error loading or saving assessment:", err)
+        console.error("ResultsPage: Error loading or saving assessment:", err)
         setError(err.message || "เกิดข้อผิดพลาดในการประมวลผลแบบประเมิน")
       } finally {
         setLoading(false)

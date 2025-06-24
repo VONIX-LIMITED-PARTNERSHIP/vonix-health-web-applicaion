@@ -37,62 +37,69 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     score: number,
     isValid: boolean,
   ) => {
-    const newAnswers = answers.filter((a) => a.questionId !== questionId)
-    newAnswers.push({ questionId, answer, score, isValid }) // เก็บ isValid
-    setAnswers(newAnswers)
+    setAnswers((prevAnswers) => {
+      const newAnswers = prevAnswers.filter((a) => a.questionId !== questionId)
+      newAnswers.push({ questionId, answer, score, isValid })
+      console.log(`Answer updated for ${questionId}:`, { answer, score, isValid }) // Debug log
+      return newAnswers
+    })
   }
 
   const getCurrentAnswer = () => {
     return answers.find((a) => a.questionId === currentQuestion.id)
   }
 
-  // ปรับปรุง canProceed ให้ตรวจสอบ isValid ของคำตอบปัจจุบัน
+  // ปรับปรุง canProceed ให้ตรวจสอบ isValid และค่าของคำตอบอย่างละเอียด
   const canProceed = () => {
     const answerEntry = getCurrentAnswer()
-    // ถ้าคำถามจำเป็นต้องตอบ ต้องมีคำตอบและคำตอบนั้นต้องถูกต้อง (isValid === true)
     if (currentQuestion.required) {
-      return answerEntry?.isValid === true
+      // ต้องมีคำตอบและคำตอบนั้นต้องถูกต้อง (isValid === true)
+      // และต้องไม่เป็นค่าว่างเปล่า (null, undefined, empty string, empty array)
+      const hasAnswer = answerEntry?.answer !== null && answerEntry?.answer !== undefined
+      const isAnswerNotEmpty =
+        hasAnswer &&
+        (Array.isArray(answerEntry.answer) ? answerEntry.answer.length > 0 : String(answerEntry.answer).trim() !== "")
+      return answerEntry?.isValid === true && isAnswerNotEmpty
     }
     // ถ้าคำถามไม่จำเป็นต้องตอบ สามารถไปต่อได้เสมอ
     return true
   }
 
   const handleNext = () => {
-    // เมื่อคลิก "ถัดไป" โดยเฉพาะอย่างยิ่งในคำถามสุดท้าย
-    // ตรวจสอบให้แน่ใจว่าอาร์เรย์ `answers` มีคำตอบล่าสุดสำหรับคำถามปัจจุบัน
-    // สถานะ `answers` อาจจะยังไม่อัปเดตเต็มที่หาก `handleAnswer` เพิ่งถูกเรียก
-    const currentAnswerForSubmission = getCurrentAnswer() // ดึงคำตอบสำหรับคำถามปัจจุบันจาก state
+    // ตรวจสอบให้แน่ใจว่าคำตอบของคำถามปัจจุบันถูกรวมอยู่ใน `answers` ก่อนดำเนินการต่อ
+    // แม้ว่า `handleAnswer` จะใช้ functional update แต่การเรียกใช้ `answers` โดยตรง
+    // ใน `handleNext` อาจจะยังไม่เห็นการอัปเดตล่าสุดทันทีในบางกรณี
+    // ดังนั้นเราจะสร้างอาร์เรย์คำตอบสุดท้ายที่แน่นอนที่สุด
+    const currentAnswerForSubmission = getCurrentAnswer()
+    let finalAnswersToSave: AssessmentAnswer[] = []
 
-    // สร้างอาร์เรย์ใหม่สำหรับส่งข้อมูล โดยให้แน่ใจว่าคำตอบของคำถามปัจจุบันถูกรวมอยู่
-    // และเป็นเวอร์ชันล่าสุด
-    let answersToSubmit: AssessmentAnswer[] = []
     if (currentAnswerForSubmission) {
       // กรองคำตอบเก่าของคำถามปัจจุบันออก แล้วเพิ่มคำตอบล่าสุดเข้าไป
-      answersToSubmit = answers.filter((a) => a.questionId !== currentQuestion.id)
-      answersToSubmit.push(currentAnswerForSubmission)
+      finalAnswersToSave = answers.filter((a) => a.questionId !== currentQuestion.id)
+      finalAnswersToSave.push(currentAnswerForSubmission)
     } else {
-      // หาก currentAnswerForSubmission เป็น null/undefined หมายความว่า:
-      // 1. คำถามเป็นทางเลือกและไม่ได้ตอบ
-      // 2. มีข้อผิดพลาดและคำตอบที่จำเป็นไม่อยู่ใน state (ควรถูกดักโดย canProceed)
-      // ในกรณีนี้ ให้ใช้สถานะ `answers` ที่มีอยู่
-      answersToSubmit = [...answers]
+      // ถ้าไม่มีคำตอบสำหรับคำถามปัจจุบัน (อาจเป็นคำถามที่ไม่จำเป็นต้องตอบ)
+      // ให้ใช้อาร์เรย์ answers ที่มีอยู่
+      finalAnswersToSave = [...answers]
     }
 
-    // หากแบบประเมินมีคำถามแต่ `answersToSubmit` ยังว่างเปล่า
-    // แสดงว่าไม่มีคำตอบถูกบันทึกไว้ ซึ่งควรถูกป้องกันโดย `canProceed` สำหรับคำถามที่จำเป็น
-    // สำหรับคำถามทางเลือก อาร์เรย์ว่างเปล่าเป็นที่ยอมรับ
-    if (isLastQuestion && answersToSubmit.length === 0 && category.questions.length > 0) {
-      console.warn(
-        "Attempting to save an empty answers array for a non-empty assessment category. This might indicate missing required answers.",
-      )
-    }
+    console.log("Answers array before saving to localStorage:", finalAnswersToSave) // Debug log
 
     if (isLastQuestion) {
+      if (finalAnswersToSave.length === 0 && category.questions.length > 0) {
+        console.warn(
+          "Attempting to save an empty answers array for a non-empty assessment category. This might indicate missing required answers.",
+        )
+        // เรายังคงดำเนินการต่อไปยังหน้าผลลัพธ์ เพื่อให้หน้าผลลัพธ์จัดการข้อผิดพลาดนี้
+      }
+
       if (categoryId === guestAssessmentCategory.id) {
-        localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(answersToSubmit))
+        localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(finalAnswersToSave))
+        console.log("Saved guest answers to localStorage.") // Debug log
         router.push(`/guest-assessment/results`)
       } else {
-        localStorage.setItem(`assessment-${categoryId}`, JSON.stringify(answersToSubmit))
+        localStorage.setItem(`assessment-${categoryId}`, JSON.stringify(finalAnswersToSave))
+        console.log("Saved assessment answers to localStorage.") // Debug log
         router.push(`/assessment/${categoryId}/results`)
       }
     } else {
