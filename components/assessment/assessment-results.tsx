@@ -21,6 +21,7 @@ import {
   RefreshCw,
 } from "lucide-react"
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
+import { useRiskLevelTranslation } from "@/utils/risk-level"
 
 interface AssessmentResultsProps {
   categoryId: string
@@ -32,9 +33,12 @@ interface AssessmentResultsProps {
 export function AssessmentResults({ categoryId, assessmentResult, answers, aiAnalysis }: AssessmentResultsProps) {
   const router = useRouter()
   const [showDetails, setShowDetails] = useState(false)
+  const { getRiskLevelLabel, getRiskLevelDescription } = useRiskLevelTranslation()
 
-  // กำหนดสีและไอคอนตามระดับความเสี่ยง
   const getRiskLevelInfo = (riskLevel: string) => {
+    const label = getRiskLevelLabel(riskLevel)
+    const description = getRiskLevelDescription(riskLevel)
+
     switch (riskLevel?.toLowerCase()) {
       case "low":
       case "ต่ำ":
@@ -43,8 +47,8 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
           bgColor: "bg-green-50",
           borderColor: "border-green-200",
           icon: CheckCircle,
-          label: "ความเสี่ยงต่ำ",
-          description: "ผลการประเมินของคุณอยู่ในเกณฑ์ดี",
+          label,
+          description,
         }
       case "medium":
       case "ปานกลาง":
@@ -53,8 +57,8 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
           bgColor: "bg-yellow-50",
           borderColor: "border-yellow-200",
           icon: AlertTriangle,
-          label: "ความเสี่ยงปานกลาง",
-          description: "ควรให้ความสำคัญและติดตามอาการ",
+          label,
+          description,
         }
       case "high":
       case "สูง":
@@ -63,8 +67,19 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
           bgColor: "bg-red-50",
           borderColor: "border-red-200",
           icon: XCircle,
-          label: "ความเสี่ยงสูง",
-          description: "แนะนำให้ปรึกษาแพทย์เพื่อการตรวจสอบเพิ่มเติม",
+          label,
+          description,
+        }
+      case "very-high":
+      case "very_high":
+      case "สูงมาก":
+        return {
+          color: "text-red-600",
+          bgColor: "bg-red-50",
+          borderColor: "border-red-200",
+          icon: XCircle,
+          label,
+          description,
         }
       default:
         return {
@@ -72,8 +87,8 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
           bgColor: "bg-gray-50",
           borderColor: "border-gray-200",
           icon: FileText,
-          label: "ไม่ระบุ",
-          description: "ผลการประเมิน",
+          label,
+          description,
         }
     }
   }
