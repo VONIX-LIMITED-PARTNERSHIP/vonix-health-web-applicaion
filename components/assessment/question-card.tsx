@@ -68,9 +68,15 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
         return { valid: true, message: null }
 
       case "checkbox":
-      case "multi-select-combobox-with-other":
-        // ตรวจสอบอักขระพิเศษในแต่ละตัวเลือกที่เลือก/พิมพ์เข้ามา
-        if (Array.isArray(value)) {
+      case "multi-select-combobox-with-other": // ลบการตรวจสอบอักขระพิเศษสำหรับ multi-select-combobox-with-other
+        // ตรวจสอบว่าคำถามที่จำเป็นต้องมีคำตอบหรือไม่ (ยังคงอยู่)
+        if (question.required) {
+          if (Array.isArray(value) && value.length === 0) {
+            return { valid: false, message: "กรุณาตอบคำถามนี้" }
+          }
+        }
+        // สำหรับ checkbox ยังคงตรวจสอบอักขระพิเศษ
+        if (question.type === "checkbox" && Array.isArray(value)) {
           for (const item of value) {
             if (typeof item === "string" && !textRegex.test(item)) {
               return { valid: false, message: "มีอักขระพิเศษที่ไม่ได้รับอนุญาตในตัวเลือก" }
