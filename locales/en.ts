@@ -36,7 +36,7 @@ const en: Dictionary = {
     profile: "My Profile",
     dashboard: "Dashboard",
     health_reports: "Health Reports",
-    settings: "Settings", // Added
+    settings: "Settings",
     loading_profile: "Loading profile",
     no_profile: "(No profile)",
     patient: "General User",
@@ -548,10 +548,10 @@ const en: Dictionary = {
     chatbot_default_response_3_help_2: "• VONIX usage",
     chatbot_default_response_3_help_3: "• Basic advice",
     chatbot_default_response_3_ask: "I can help fully! Available 24/7 😊",
-    language: "Language", // Added
-    theme: "Theme", // Added
-    light: "Light", // Added
-    dark: "Dark", // Added
+    language: "Language",
+    theme: "Theme",
+    light: "Light",
+    dark: "Dark",
   },
   profile: {
     my_profile: "My Profile",
@@ -561,6 +561,10 @@ const en: Dictionary = {
     phone: "Phone",
     date_of_birth: "Date of Birth",
     gender: "Gender",
+    gender_male: "Male", // Added
+    gender_female: "Female", // Added
+    gender_other: "Not specified", // Added
+    select_gender: "Select gender", // Added
     data_management: "Data Management",
     delete_assessment_data: "Delete Health Assessment Data",
     delete_assessment_data_description:
@@ -587,6 +591,7 @@ const en: Dictionary = {
     cancel_edit: "Cancel",
     profile_updated_success: "Profile updated successfully!",
     profile_update_error: "Failed to update profile. Please try again.",
+    pick_a_date: "Pick a date", // Added
   },
   assessment: {
     your_assessment_results: "Your Assessment Results",

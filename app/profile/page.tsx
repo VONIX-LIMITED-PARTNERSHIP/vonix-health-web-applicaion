@@ -21,18 +21,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Separator } from "@/components/ui/separator"
-import { PencilIcon, CheckIcon, XIcon, Loader2 } from "lucide-react" // Import Loader2
+import { PencilIcon, CheckIcon, XIcon, Loader2, CalendarIcon } from "lucide-react" // Import CalendarIcon
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover" // Import Popover components
+import { Calendar } from "@/components/ui/calendar" // Import Calendar component
+import { format } from "date-fns" // Import format from date-fns
+import { cn } from "@/lib/utils" // Import cn for conditional class names
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select" // Import Select components
 
 // Define validation schema for profile fields
 const profileFormSchema = z.object({
   full_name: z.string().min(1, "Full name is required").optional().nullable(),
   phone: z.string().optional().nullable(),
-  date_of_birth: z.string().optional().nullable(),
-  gender: z.string().optional().nullable(),
+  date_of_birth: z.string().optional().nullable(), // Keep as string for API, will format before submission
+  gender: z.string().optional().nullable(), // Keep as string for API
 })
 
 export default function ProfilePage() {
@@ -147,7 +152,7 @@ export default function ProfilePage() {
           userId: user.id,
           fullName: data.full_name,
           phone: data.phone,
-          dateOfBirth: data.date_of_birth,
+          dateOfBirth: data.date_of_birth, // Already formatted as string
           gender: data.gender,
         }),
       })
@@ -244,17 +249,44 @@ export default function ProfilePage() {
                   control={form.control}
                   name="date_of_birth"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="dateOfBirth">{t("profile.date_of_birth")}</FormLabel>
-                      <FormControl>
+                    <FormItem className="flex flex-col">
+                      <FormLabel>{t("profile.date_of_birth")}</FormLabel>
+                      {isEditing ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground",
+                                )}
+                              >
+                                {field.value ? (
+                                  format(new Date(field.value), "PPP")
+                                ) : (
+                                  <span>{t("profile.pick_a_date")}</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value ? new Date(field.value) : undefined}
+                              onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
                         <Input
                           id="dateOfBirth"
-                          readOnly={!isEditing}
-                          placeholder={t("common.not_available")}
-                          value={field.value ?? ""}
-                          {...field}
+                          value={field.value ? format(new Date(field.value), "PPP") : t("common.not_available")}
+                          readOnly
                         />
-                      </FormControl>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -265,15 +297,26 @@ export default function ProfilePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel htmlFor="gender">{t("profile.gender")}</FormLabel>
-                      <FormControl>
+                      {isEditing ? (
+                        <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t("profile.select_gender")} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="male">{t("profile.gender_male")}</SelectItem>
+                            <SelectItem value="female">{t("profile.gender_female")}</SelectItem>
+                            <SelectItem value="other">{t("profile.gender_other")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
                         <Input
                           id="gender"
-                          readOnly={!isEditing}
-                          placeholder={t("common.not_available")}
-                          value={field.value ?? ""}
-                          {...field}
+                          value={field.value ? t(`profile.gender_${field.value}`) : t("common.not_available")}
+                          readOnly
                         />
-                      </FormControl>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
