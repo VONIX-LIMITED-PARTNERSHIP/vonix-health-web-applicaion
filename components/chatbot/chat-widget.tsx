@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge"
 import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, Loader2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
-import { appKnowledgeBase } from "@/data/chatbot-app-knowledge" // Import the new knowledge base
 
 interface Message {
   id: string
@@ -22,20 +21,13 @@ interface Message {
   typing?: boolean
 }
 
-const INITIAL_MESSAGE: Message = {
-  id: "welcome",
-  content: "สวัสดีครับ! 👋 ผม VONIX Assistant ผู้ช่วยด้านสุขภาพส่วนตัวของคุณมีอะไรให้ผมช่วยดูแลสุขภาพของคุณในวันนี้ไหมครับ? 😊",
-  sender: "bot",
-  timestamp: new Date(),
-}
-
 const QUICK_REPLIES = ["วิธีใช้งานแอพ", "ทำแบบประเมินยังไง", "ดูผลลัพธ์ที่ไหน", "อยากคุยเรื่องสุขภาพ"]
 
 export function ChatWidget() {
   const { user, profile } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE])
+  const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [hasNewMessage, setHasNewMessage] = useState(false)
@@ -63,37 +55,22 @@ export function ChatWidget() {
   // Show notification when chat is closed and bot sends message
   useEffect(() => {
     const lastMessage = messages[messages.length - 1]
-    if (!isOpen && lastMessage?.sender === "bot" && lastMessage.id !== "welcome") {
+    if (!isOpen && lastMessage?.sender === "bot") {
       setHasNewMessage(true)
     }
   }, [messages, isOpen])
 
-  const generateBotResponse = async (userMessage: string): Promise<string> => {
-    const message = userMessage.toLowerCase()
+  const generateBotResponse = async (
+    userMessage: string,
+    conversation: { role: "user" | "assistant"; content: string }[],
+  ): Promise<string> => {
     const userName = profile?.full_name || user?.email?.split("@")[0] || "คุณ"
 
-    // === การใช้งานแอพ VONIX (Hardcoded responses from Knowledge Base) ===
-    // These responses are kept client-side for faster immediate replies
-    for (const entry of appKnowledgeBase) {
-      if (entry.keywords.some((keyword) => message.includes(keyword))) {
-        return entry.response.replace("{userName}", userName)
-      }
-    }
-
-    // === Fallback to AI via API Route ===
     try {
-      // Map current messages state to AI SDK format
-      const messagesForAI = messages.map((msg) => ({
-        role: msg.sender === "user" ? "user" : "assistant",
-        content: msg.content,
-      }))
-
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ messages: messagesForAI }), // Send the full message history
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: conversation, userName }),
       })
 
       if (!response.ok) {
@@ -103,7 +80,7 @@ export function ChatWidget() {
 
       const data = await response.json()
       return data.response
-    } catch (error) {
+    } catch {
       return "ขอโทษครับ เกิดข้อผิดพลาดชั่วคราว กรุณาลองใหม่อีกครั้งนะครับ 😅"
     }
   }
@@ -118,12 +95,18 @@ export function ChatWidget() {
       timestamp: new Date(),
     }
 
+    // Optimistically render the user message
     setMessages((prev) => [...prev, userMessage])
     setInputValue("")
     setIsTyping(true)
 
     try {
-      const botResponse = await generateBotResponse(userMessage.content)
+      const conversationForAI = [...messages, userMessage].map((msg) => ({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.content,
+      }))
+
+      const botResponse = await generateBotResponse(userMessage.content, conversationForAI)
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -133,14 +116,16 @@ export function ChatWidget() {
       }
 
       setMessages((prev) => [...prev, botMessage])
-    } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "ขอโทษครับ เกิดข้อผิดพลาดชั่วคราว กรุณาลองใหม่อีกครั้งนะครับ 😅",
-        sender: "bot",
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          content: "ขอโทษครับ เกิดข้อผิดพลาดชั่วคราว กรุณาลองใหม่อีกครั้งนะครับ 😅",
+          sender: "bot",
+          timestamp: new Date(),
+        },
+      ])
     } finally {
       setIsTyping(false)
     }
