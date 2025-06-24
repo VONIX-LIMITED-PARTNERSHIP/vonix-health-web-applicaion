@@ -138,13 +138,14 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
       case "multiple-choice":
       case "rating": // Rating ก็ใช้ RadioGroup เหมือนกัน
       case "yes-no":
+        const yesNoOptions = question.options || ["ใช่", "ไม่ใช่"]
         return (
           <RadioGroup
             value={String(currentAnswer)}
             onValueChange={(value) => handleAnswerChange(value)}
-            className={question.type === "yes-no" ? "flex space-x-6 justify-center" : "space-y-3"}
+            className="flex space-x-6 justify-center"
           >
-            {question.options?.map((option, index) => (
+            {yesNoOptions.map((option, index) => (
               <div
                 key={index}
                 className={`flex items-center space-x-3 p-3 rounded-lg transition-colors dark:hover:bg-gray-800 ${
