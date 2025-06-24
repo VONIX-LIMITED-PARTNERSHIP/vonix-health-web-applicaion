@@ -30,9 +30,15 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const progress = ((currentQuestionIndex + 1) / category.questions.length) * 100
   const isLastQuestion = currentQuestionIndex === category.questions.length - 1
 
-  const handleAnswer = (questionId: string, answer: string | number | string[] | null, score: number) => {
+  // อัปเดต handleAnswer ให้รับ isValid ด้วย
+  const handleAnswer = (
+    questionId: string,
+    answer: string | number | string[] | null,
+    score: number,
+    isValid: boolean,
+  ) => {
     const newAnswers = answers.filter((a) => a.questionId !== questionId)
-    newAnswers.push({ questionId, answer, score })
+    newAnswers.push({ questionId, answer, score, isValid }) // เก็บ isValid
     setAnswers(newAnswers)
   }
 
@@ -40,47 +46,53 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     return answers.find((a) => a.questionId === currentQuestion.id)
   }
 
+  // ปรับปรุง canProceed ให้ตรวจสอบ isValid ของคำตอบปัจจุบัน
   const canProceed = () => {
-    if (!currentQuestion.required) {
-      return true // ถ้าไม่จำเป็น สามารถไปต่อได้เสมอ
-    }
-
     const answerEntry = getCurrentAnswer()
-
-    if (!answerEntry || answerEntry.answer === null) {
-      return false // ไม่มีคำตอบ หรือคำตอบเป็น null
+    // ถ้าคำถามจำเป็นต้องตอบ ต้องมีคำตอบและคำตอบนั้นต้องถูกต้อง (isValid === true)
+    if (currentQuestion.required) {
+      return answerEntry?.isValid === true
     }
-
-    // ตรวจสอบตามประเภทคำถาม
-    switch (currentQuestion.type) {
-      case "text":
-      case "number":
-        // สำหรับ text/number, ตรวจสอบว่าไม่ใช่ string ว่างเปล่า หรือ 0 ที่มาจาก string ว่างเปล่า
-        return typeof answerEntry.answer === "string" ? answerEntry.answer.trim() !== "" : true
-      case "checkbox":
-      case "multi-select-combobox-with-other":
-        // สำหรับ checkbox/multi-select, ตรวจสอบว่า array ไม่ว่างเปล่า
-        return Array.isArray(answerEntry.answer) && answerEntry.answer.length > 0
-      case "multiple-choice":
-      case "yes-no":
-      case "rating":
-        // สำหรับประเภทอื่นๆ, ตรวจสอบว่ามีค่าที่ไม่ใช่ null/undefined/empty string
-        return String(answerEntry.answer).trim() !== ""
-      default:
-        return true // สำหรับประเภทที่ไม่รู้จัก ให้ถือว่าผ่าน
-    }
+    // ถ้าคำถามไม่จำเป็นต้องตอบ สามารถไปต่อได้เสมอ
+    return true
   }
 
   const handleNext = () => {
+    // เมื่อคลิก "ถัดไป" โดยเฉพาะอย่างยิ่งในคำถามสุดท้าย
+    // ตรวจสอบให้แน่ใจว่าอาร์เรย์ `answers` มีคำตอบล่าสุดสำหรับคำถามปัจจุบัน
+    // สถานะ `answers` อาจจะยังไม่อัปเดตเต็มที่หาก `handleAnswer` เพิ่งถูกเรียก
+    const currentAnswerForSubmission = getCurrentAnswer() // ดึงคำตอบสำหรับคำถามปัจจุบันจาก state
+
+    // สร้างอาร์เรย์ใหม่สำหรับส่งข้อมูล โดยให้แน่ใจว่าคำตอบของคำถามปัจจุบันถูกรวมอยู่
+    // และเป็นเวอร์ชันล่าสุด
+    let answersToSubmit: AssessmentAnswer[] = []
+    if (currentAnswerForSubmission) {
+      // กรองคำตอบเก่าของคำถามปัจจุบันออก แล้วเพิ่มคำตอบล่าสุดเข้าไป
+      answersToSubmit = answers.filter((a) => a.questionId !== currentQuestion.id)
+      answersToSubmit.push(currentAnswerForSubmission)
+    } else {
+      // หาก currentAnswerForSubmission เป็น null/undefined หมายความว่า:
+      // 1. คำถามเป็นทางเลือกและไม่ได้ตอบ
+      // 2. มีข้อผิดพลาดและคำตอบที่จำเป็นไม่อยู่ใน state (ควรถูกดักโดย canProceed)
+      // ในกรณีนี้ ให้ใช้สถานะ `answers` ที่มีอยู่
+      answersToSubmit = [...answers]
+    }
+
+    // หากแบบประเมินมีคำถามแต่ `answersToSubmit` ยังว่างเปล่า
+    // แสดงว่าไม่มีคำตอบถูกบันทึกไว้ ซึ่งควรถูกป้องกันโดย `canProceed` สำหรับคำถามที่จำเป็น
+    // สำหรับคำถามทางเลือก อาร์เรย์ว่างเปล่าเป็นที่ยอมรับ
+    if (isLastQuestion && answersToSubmit.length === 0 && category.questions.length > 0) {
+      console.warn(
+        "Attempting to save an empty answers array for a non-empty assessment category. This might indicate missing required answers.",
+      )
+    }
+
     if (isLastQuestion) {
       if (categoryId === guestAssessmentCategory.id) {
-        // สำหรับ guest assessment: บันทึกคำตอบชั่วคราวใน localStorage และไปที่หน้าผลลัพธ์ guest
-        localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(answers))
+        localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(answersToSubmit))
         router.push(`/guest-assessment/results`)
       } else {
-        // สำหรับ assessment ปกติ: บันทึกคำตอบใน localStorage และไปที่หน้าผลลัพธ์ปกติ
-        // AssessmentResults จะเป็นผู้รับผิดชอบในการบันทึกลง DB และลบ localStorage
-        localStorage.setItem(`assessment-${categoryId}`, JSON.stringify(answers))
+        localStorage.setItem(`assessment-${categoryId}`, JSON.stringify(answersToSubmit))
         router.push(`/assessment/${categoryId}/results`)
       }
     } else {
@@ -167,7 +179,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
               <Button
                 onClick={handleNext}
-                disabled={!canProceed()}
+                disabled={!canProceed()} // ปุ่มจะถูกปิดใช้งานหากคำตอบปัจจุบันไม่ถูกต้อง
                 className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm sm:text-base"
               >
                 {isLastQuestion ? (

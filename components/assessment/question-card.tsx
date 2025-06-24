@@ -2,24 +2,22 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import type { Question, AssessmentAnswer } from "@/types/assessment"
+import type { AssessmentQuestion, AssessmentAnswer } from "@/types/assessment" // ใช้ AssessmentQuestion
 import { AlertCircle } from "lucide-react"
 import { MultiSelectComboboxWithOther } from "@/components/ui/multi-select-combobox-with-other"
 
 interface QuestionCardProps {
-  question: Question
+  question: AssessmentQuestion // ใช้ AssessmentQuestion type
   answer?: AssessmentAnswer
-  onAnswer: (questionId: string, answer: string | number | string[] | null, score: number) => void // Allow null
+  onAnswer: (questionId: string, answer: string | number | string[] | null, score: number, isValid: boolean) => void // เพิ่ม isValid
 }
 
 export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) {
-  // Initialize currentAnswer with null for text/number if no answer is provided
   const [currentAnswer, setCurrentAnswer] = useState<string | number | string[] | null>(() => {
     if (answer?.answer !== undefined) {
       return answer.answer
@@ -28,27 +26,94 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
       return []
     }
     if (question.type === "number" || question.type === "text") {
-      return null // Explicitly set to null for empty number/text inputs
+      return null
     }
-    return "" // Default for other types
+    return ""
   })
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (answer) {
-      setCurrentAnswer(answer.answer)
+  // Regex สำหรับอักขระที่อนุญาต: ตัวอักษร (ทุกภาษา), ตัวเลข, ช่องว่าง, จุด, คอมม่า, ไฮเฟน, อัญประกาศเดี่ยว
+  const textRegex = /^[\p{L}\p{N}\s.,'-]*$/u
+
+  // ฟังก์ชันสำหรับตรวจสอบความถูกต้องของ input
+  const validateInput = (value: string | number | string[] | null): { valid: boolean; message: string | null } => {
+    // ตรวจสอบว่าคำถามที่จำเป็นต้องมีคำตอบหรือไม่
+    if (question.required) {
+      if (
+        value === null ||
+        (typeof value === "string" && value.trim() === "") ||
+        (Array.isArray(value) && value.length === 0)
+      ) {
+        return { valid: false, message: "กรุณาตอบคำถามนี้" }
+      }
     }
-  }, [answer])
+
+    switch (question.type) {
+      case "number":
+        // ตรวจสอบค่าลบสำหรับ input ประเภท number
+        if (typeof value === "number" && value < 0) {
+          return { valid: false, message: "กรุณาใส่ตัวเลขที่ไม่เป็นค่าลบ" }
+        }
+        // ตรวจสอบว่าเป็นตัวเลขที่ถูกต้องหรือไม่ หากมีค่า
+        if (value !== null && value !== undefined && typeof value !== "number") {
+          return { valid: false, message: "กรุณาใส่ตัวเลขที่ถูกต้อง" }
+        }
+        return { valid: true, message: null }
+
+      case "text":
+        // ตรวจสอบอักขระพิเศษสำหรับ input ประเภท text
+        if (typeof value === "string" && value.trim() !== "" && !textRegex.test(value)) {
+          return { valid: false, message: "มีอักขระพิเศษที่ไม่ได้รับอนุญาต" }
+        }
+        return { valid: true, message: null }
+
+      case "checkbox":
+      case "multi-select-combobox-with-other": // ลบการตรวจสอบอักขระพิเศษสำหรับ multi-select-combobox-with-other
+        // ตรวจสอบว่าคำถามที่จำเป็นต้องมีคำตอบหรือไม่ (ยังคงอยู่)
+        if (question.required) {
+          if (Array.isArray(value) && value.length === 0) {
+            return { valid: false, message: "กรุณาตอบคำถามนี้" }
+          }
+        }
+        // สำหรับ checkbox ยังคงตรวจสอบอักขระพิเศษ
+        if (question.type === "checkbox" && Array.isArray(value)) {
+          for (const item of value) {
+            if (typeof item === "string" && !textRegex.test(item)) {
+              return { valid: false, message: "มีอักขระพิเศษที่ไม่ได้รับอนุญาตในตัวเลือก" }
+            }
+          }
+        }
+        return { valid: true, message: null }
+
+      default:
+        return { valid: true, message: null }
+    }
+  }
+
+  // ใช้ useEffect เพื่อทำการตรวจสอบค่าเริ่มต้นและเมื่อคำถามหรือคำตอบเริ่มต้นเปลี่ยน
+  useEffect(() => {
+    const initialValue =
+      answer?.answer !== undefined
+        ? answer.answer
+        : question.type === "checkbox" || question.type === "multi-select-combobox-with-other"
+          ? []
+          : question.type === "number" || question.type === "text"
+            ? null
+            : ""
+    setCurrentAnswer(initialValue)
+    const initialValidation = validateInput(initialValue)
+    setError(initialValidation.message)
+    onAnswer(question.id, initialValue, calculateScore(initialValue), initialValidation.valid)
+  }, [question.id, answer?.answer]) // Dependency array เพื่อให้ทำงานเมื่อ question.id หรือ answer.answer เปลี่ยน
 
   const calculateScore = (value: string | number | string[] | null): number => {
-    // Allow null
-    if (value === null) return 0 // No score for null answer
+    if (value === null || (Array.isArray(value) && value.length === 0)) return 0
     switch (question.type) {
       case "rating":
         return Number(value) * question.weight
       case "yes-no":
         return value === "ใช่" ? question.weight * 2 : question.weight
       case "multiple-choice":
-        // Score based on option index (higher index = higher risk)
         const index = question.options?.indexOf(String(value)) || 0
         return (index + 1) * question.weight
       case "checkbox":
@@ -61,25 +126,30 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
   }
 
   const handleAnswerChange = (value: string | number | string[] | null) => {
-    // Allow null
     setCurrentAnswer(value)
+    const validationResult = validateInput(value)
+    setError(validationResult.message)
     const score = calculateScore(value)
-    onAnswer(question.id, value, score)
+    onAnswer(question.id, value, score, validationResult.valid)
   }
 
   const renderQuestionInput = () => {
     switch (question.type) {
       case "multiple-choice":
+      case "rating": // Rating ก็ใช้ RadioGroup เหมือนกัน
+      case "yes-no":
         return (
           <RadioGroup
             value={String(currentAnswer)}
             onValueChange={(value) => handleAnswerChange(value)}
-            className="space-y-3"
+            className={question.type === "yes-no" ? "flex space-x-6 justify-center" : "space-y-3"}
           >
             {question.options?.map((option, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors dark:hover:bg-gray-800"
+                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors dark:hover:bg-gray-800 ${
+                  question.type === "rating" ? "justify-center" : "hover:bg-gray-50"
+                }`}
               >
                 <RadioGroupItem value={option} id={`${question.id}-${index}`} />
                 <Label htmlFor={`${question.id}-${index}`} className="flex-1 cursor-pointer dark:text-gray-100">
@@ -87,54 +157,12 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                 </Label>
               </div>
             ))}
-          </RadioGroup>
-        )
-
-      case "rating":
-        return (
-          <div className="space-y-4">
-            <div className="flex justify-center space-x-2">
-              {question.options?.map((option, index) => (
-                <Button
-                  key={index}
-                  variant={String(currentAnswer) === option ? "default" : "outline"}
-                  onClick={() => handleAnswerChange(option)}
-                  className={`w-12 h-12 rounded-full ${
-                    String(currentAnswer) === option
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                      : "hover:bg-blue-50"
-                  }`}
-                >
-                  {option}
-                </Button>
-              ))}
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 px-2">
-              <span>น้อยที่สุด</span>
-              <span>มากที่สุด</span>
-            </div>
-          </div>
-        )
-
-      case "yes-no":
-        return (
-          <RadioGroup
-            value={String(currentAnswer)}
-            onValueChange={(value) => handleAnswerChange(value)}
-            className="flex space-x-6 justify-center"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="ใช่" id={`${question.id}-yes`} />
-              <Label htmlFor={`${question.id}-yes`} className="cursor-pointer font-medium dark:text-gray-100">
-                ใช่
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="ไม่ใช่" id={`${question.id}-no`} />
-              <Label htmlFor={`${question.id}-no`} className="cursor-pointer font-medium dark:text-gray-100">
-                ไม่ใช่
-              </Label>
-            </div>
+            {question.type === "rating" && (
+              <div className="flex justify-between text-xs text-gray-500 px-2 mt-2">
+                <span>น้อยที่สุด</span>
+                <span>มากที่สุด</span>
+              </div>
+            )}
           </RadioGroup>
         )
 
@@ -176,8 +204,8 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
         return (
           <Input
             type="number"
-            value={currentAnswer === null ? "" : String(currentAnswer)} // Display empty string if null
-            onChange={(e) => handleAnswerChange(e.target.value === "" ? null : Number(e.target.value))} // Pass null if empty
+            value={currentAnswer === null ? "" : String(currentAnswer)}
+            onChange={(e) => handleAnswerChange(e.target.value === "" ? null : Number(e.target.value))}
             placeholder="กรุณาใส่ตัวเลข"
             className="text-center text-lg h-12 rounded-xl border-2 focus:border-blue-400 dark:text-gray-100 dark:placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-700"
           />
@@ -186,8 +214,8 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
       case "text":
         return (
           <Textarea
-            value={currentAnswer === null ? "" : String(currentAnswer)} // Display empty string if null
-            onChange={(e) => handleAnswerChange(e.target.value.trim() === "" ? null : e.target.value)} // Pass null if empty or just whitespace
+            value={currentAnswer === null ? "" : String(currentAnswer)}
+            onChange={(e) => handleAnswerChange(e.target.value.trim() === "" ? null : e.target.value)}
             placeholder="กรุณาใส่คำตอบ"
             className="min-h-[100px] rounded-xl border-2 focus:border-blue-400 dark:text-gray-100 dark:placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-700"
           />
@@ -231,7 +259,15 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
         </div>
       </CardHeader>
 
-      <CardContent className="p-8">{renderQuestionInput()}</CardContent>
+      <CardContent className="p-8">
+        {renderQuestionInput()}
+        {error && (
+          <p className="text-red-500 text-sm mt-2 flex items-center">
+            <AlertCircle className="w-4 h-4 mr-1" />
+            {error}
+          </p>
+        )}
+      </CardContent>
     </Card>
   )
 }
