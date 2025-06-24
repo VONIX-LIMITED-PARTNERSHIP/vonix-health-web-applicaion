@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react" // Import useRef
 import { useParams, useRouter } from "next/navigation"
 import { AssessmentService } from "@/lib/assessment-service"
 import { useAuth } from "@/hooks/use-auth"
@@ -23,12 +23,32 @@ export default function ResultsPage() {
   const [aiAnalysis, setAiAnalysis] = useState<any>(null)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
 
+  // Use a ref to track if the data loading/saving logic has already run
+  const hasRunEffect = useRef(false)
+
   useEffect(() => {
-    if (isUserLoading) return // Wait for user loading to complete
+    console.log(
+      "ResultsPage: useEffect triggered. isUserLoading:",
+      isUserLoading,
+      "hasRunEffect.current:",
+      hasRunEffect.current,
+    )
+
+    // Only run the data loading/saving logic once per component mount
+    // and only after user loading is complete
+    if (hasRunEffect.current || isUserLoading) {
+      if (hasRunEffect.current) {
+        console.log("ResultsPage: Skipping useEffect run as it has already executed.")
+      }
+      return
+    }
+
+    hasRunEffect.current = true // Set the flag to true to prevent future runs
 
     const loadAndSaveAssessment = async () => {
       setLoading(true)
       setError(null)
+      console.log("ResultsPage: Starting loadAndSaveAssessment function.")
 
       try {
         // Determine the correct localStorage key based on categoryId
@@ -37,13 +57,21 @@ export default function ResultsPage() {
 
         console.log("ResultsPage: Attempting to retrieve answers from localStorage with key:", localStorageKey)
         const storedAnswersString = localStorage.getItem(localStorageKey)
-        console.log("ResultsPage: Retrieved string from localStorage:", storedAnswersString)
+        console.log(
+          "ResultsPage: Retrieved string from localStorage:",
+          storedAnswersString ? "Data found" : "No data found",
+        )
 
         if (!storedAnswersString) {
           throw new Error("assessment.no_answers_found: ไม่พบคำตอบใน Local Storage (Key: " + localStorageKey + ")")
         }
         const parsedAnswers: AssessmentAnswer[] = JSON.parse(storedAnswersString)
-        console.log("ResultsPage: Parsed answers from localStorage:", parsedAnswers)
+        console.log(
+          "ResultsPage: Parsed answers from localStorage. Count:",
+          parsedAnswers.length,
+          "Data:",
+          parsedAnswers,
+        )
 
         setAnswers(parsedAnswers) // Store answers in state for AssessmentResults component
 
@@ -56,18 +84,21 @@ export default function ResultsPage() {
         if (!category) {
           throw new Error("Category not found for ID: " + categoryId)
         }
+        console.log("ResultsPage: Category found:", category.title)
 
         // 3. Analyze with AI if not basic category
         let analysisData = null
         if (categoryId !== "basic") {
+          console.log("ResultsPage: Calling analyzeWithAI...")
           const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, parsedAnswers)
           if (aiError) {
             console.error("ResultsPage: AI Analysis Error:", aiError)
-            // Continue without AI analysis if it fails, or handle specifically
-            // For now, we'll let saveAssessment handle the missing AI analysis if needed
+            // Decide if you want to throw error or proceed without AI analysis
+            // For now, we'll log and proceed, letting saveAssessment handle if AI data is critical
           } else {
             analysisData = aiData
             setAiAnalysis(aiData) // Store AI analysis in state
+            console.log("ResultsPage: AI Analysis data received.")
           }
         }
 
@@ -80,7 +111,7 @@ export default function ResultsPage() {
           userId: user.id,
           categoryId,
           categoryTitle: category.title,
-          answers: parsedAnswers,
+          answersCount: parsedAnswers.length,
         })
         const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
           user.id,
@@ -96,15 +127,17 @@ export default function ResultsPage() {
         }
 
         setAssessmentResult(savedData)
+        console.log("ResultsPage: Assessment result set in state.")
 
         // 5. Clear answers from localStorage after successful save
         localStorage.removeItem(localStorageKey)
         console.log("ResultsPage: Cleared localStorage key:", localStorageKey)
       } catch (err: any) {
-        console.error("ResultsPage: Error loading or saving assessment:", err)
+        console.error("ResultsPage: Caught error in loadAndSaveAssessment:", err)
         setError(err.message || "เกิดข้อผิดพลาดในการประมวลผลแบบประเมิน")
       } finally {
         setLoading(false)
+        console.log("ResultsPage: loadAndSaveAssessment finished. Loading set to false.")
       }
     }
 
@@ -112,6 +145,7 @@ export default function ResultsPage() {
 
     // Cleanup function for active requests if component unmounts
     return () => {
+      console.log("ResultsPage: useEffect cleanup function running.")
       AssessmentService.cleanup()
     }
   }, [categoryId, user?.id, isUserLoading]) // Re-run when categoryId or user changes
