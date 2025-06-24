@@ -136,11 +136,11 @@ export default function HomePage() {
 
   // ฟังก์ชันแปลงเปอร์เซ็นต์เป็นระดับคุณภาพ
   const getHealthLevel = (percentage: number): string => {
-    if (percentage >= 81) return "ดีมาก"
-    if (percentage >= 61) return "ดี"
-    if (percentage >= 41) return "ปกติ"
-    if (percentage >= 21) return "แย่"
-    return "แย่มาก"
+    if (percentage >= 81) return t("health_level_excellent")
+    if (percentage >= 61) return t("health_level_good")
+    if (percentage >= 41) return t("health_level_fair")
+    if (percentage >= 21) return t("health_level_poor")
+    return t("health_level_very_poor")
   }
 
   // ฟังก์ชันกำหนดสีตามระดับคุณภาพ
@@ -570,12 +570,12 @@ export default function HomePage() {
                               </Badge>
                             )}
                             {category.progress > 0 && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {t("completed")}
+                              <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                                <div className="font-medium">{t("completed")}</div>
                                 {category.healthLevel && (
-                                  <span className={`ml-2 font-semibold ${category.healthLevelColor}`}>
+                                  <div className={`font-semibold ${category.healthLevelColor} text-sm mt-1`}>
                                     ({category.healthLevel})
-                                  </span>
+                                  </div>
                                 )}
                               </div>
                             )}
