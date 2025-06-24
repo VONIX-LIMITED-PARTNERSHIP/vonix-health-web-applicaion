@@ -42,10 +42,10 @@ export default function ResultsPage() {
           throw new Error("assessment.no_answers_found")
         }
 
-        // 2. Get category details
-        const category = AssessmentService.assessmentCategories.find((cat) => cat.id === categoryId)
+        // 2. Get category details using the new static method
+        const category = AssessmentService.getCategory(categoryId)
         if (!category) {
-          throw new Error("Category not found")
+          throw new Error("Category not found for ID: " + categoryId)
         }
 
         // 3. Analyze with AI if not basic category

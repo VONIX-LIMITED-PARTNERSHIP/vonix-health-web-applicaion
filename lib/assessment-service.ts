@@ -1,14 +1,25 @@
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
 import { createClientComponentClient } from "@/lib/supabase"
-import { assessmentCategories } from "@/data/assessment-questions"
+import { assessmentCategories } from "@/data/assessment-questions" // Import assessmentCategories here
 
 export class AssessmentService {
   private static supabase = createClientComponentClient()
   private static activeRequests = new Map<string, AbortController>()
 
+  // Make assessmentCategories accessible via a static property or method
+  // For simplicity and direct access, we can expose it directly if needed,
+  // but a getter method is cleaner for encapsulation.
+  static get assessmentCategories() {
+    return assessmentCategories
+  }
+
+  static getCategory(categoryId: string) {
+    return assessmentCategories.find((cat) => cat.id === categoryId)
+  }
+
   static async analyzeWithAI(categoryId: string, answers: AssessmentAnswer[]): Promise<{ data: any; error: any }> {
     try {
-      const category = assessmentCategories.find((cat) => cat.id === categoryId)
+      const category = AssessmentService.getCategory(categoryId) // Use the new getter
       if (!category) {
         throw new Error("Category not found")
       }
@@ -295,7 +306,7 @@ export class AssessmentService {
   }
 
   private static calculateBasicAssessmentResult(answers: AssessmentAnswer[]): AssessmentResult {
-    const category = assessmentCategories.find((cat) => cat.id === "basic")
+    const category = AssessmentService.getCategory("basic") // Use the new getter
     if (!category) throw new Error("Basic category not found")
 
     const totalScore = answers.reduce((sum, answer) => sum + answer.score, 0)
