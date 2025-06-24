@@ -35,13 +35,14 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true) // Initial state is true
+  const [loading, setLoading] = useState(true)
   const [initialized, setInitialized] = useState(false)
 
   const supabase = createClientComponentClient()
 
-  // Clear all auth-related data
+  // Clear all auth-related data (only call this on explicit sign out)
   const clearAuthData = () => {
+    console.log("Clearing auth data...")
     setUser(null)
     setProfile(null)
 
@@ -91,18 +92,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error("Error getting session:", error)
-          clearAuthData()
+          // Only clear auth data if there's a real auth error, not just missing session
+          if (error.message?.includes("invalid") || error.message?.includes("expired")) {
+            clearAuthData()
+          }
         } else if (session?.user) {
           console.log("Session found. User ID:", session.user.id)
           setUser(session.user)
           await loadUserProfile(session.user.id)
         } else {
-          console.log("No session found. Clearing auth data.")
-          clearAuthData()
+          console.log("No session found. User not authenticated.")
+          // Don't clear auth data here - just set states to null
+          setUser(null)
+          setProfile(null)
         }
       } catch (err) {
         console.error("Error during auth initialization:", err)
-        clearAuthData()
+        // Only clear on actual errors, not on missing sessions
+        if (err instanceof Error && (err.message?.includes("invalid") || err.message?.includes("expired"))) {
+          clearAuthData()
+        }
       } finally {
         if (mounted) {
           setLoading(false)
@@ -125,26 +134,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       console.log("Auth state change event:", event, "User ID:", session?.user?.id)
 
-      if (event === "SIGNED_OUT" || (event === "TOKEN_REFRESHED" && !session)) {
-        console.log("User signed out or token refreshed without session. Clearing auth data.")
+      if (event === "SIGNED_OUT") {
+        console.log("User explicitly signed out. Clearing auth data.")
         clearAuthData()
-        setUser(null)
-        setProfile(null)
-        setLoading(false) // Ensure loading is false after sign out
+        setLoading(false)
         if (typeof window !== "undefined") {
           console.log("Redirecting to / after SIGNED_OUT event.")
-          window.location.href = "/" // Explicitly redirect on sign out
+          window.location.href = "/"
         }
+      } else if (event === "TOKEN_REFRESHED" && !session) {
+        console.log("Token refresh failed. Clearing auth data.")
+        clearAuthData()
+        setLoading(false)
+      } else if (event === "SIGNED_IN" && session?.user) {
+        console.log("User signed in. Loading profile.")
+        setUser(session.user)
+        await loadUserProfile(session.user.id)
+        setLoading(false)
       } else if (session?.user) {
         console.log("Session user found. Updating user and loading profile.")
         setUser(session.user)
         await loadUserProfile(session.user.id)
-        setLoading(false) // Ensure loading is false after sign in/refresh
-      } else {
-        console.log("No session user. Clearing auth data.")
+        setLoading(false)
+      } else if (event === "INITIAL_SESSION" && !session) {
+        console.log("Initial session check - no session found.")
         setUser(null)
         setProfile(null)
-        setLoading(false) // Fallback to ensure loading is false
+        setLoading(false)
       }
     })
 
@@ -153,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe()
       console.log("Auth state change subscription unsubscribed.")
     }
-  }, [supabase, initialized]) // Keep initialized in dependency array
+  }, [supabase, initialized])
 
   const loadUserProfile = async (userId: string) => {
     if (!supabase) {
@@ -205,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to create profile:", result)
       } else {
         console.log("Profile created successfully:", result)
-        await refreshProfile() // Refresh profile after creation
+        await refreshProfile()
       }
     } catch (profileError) {
       console.error("Error creating missing profile:", profileError)
@@ -228,19 +244,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     try {
       console.log("Signing in user:", email)
-      clearAuthData()
       setLoading(true)
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
         console.error("Sign in error:", error)
-        clearAuthData()
         return { data, error }
       }
       console.log("User signed in successfully.")
       return { data, error: null }
     } catch (error) {
       console.error("Unexpected sign in error:", error)
-      clearAuthData()
       return { error }
     } finally {
       setLoading(false)
@@ -254,7 +267,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     try {
       console.log("Signing up user:", email)
-      clearAuthData()
       setLoading(true)
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -307,14 +319,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log("Sign out initiated...")
       setLoading(true)
-      clearAuthData() // Clear auth data immediately
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error("Supabase sign out error:", error)
       } else {
         console.log("Supabase sign out successful.")
       }
-      // The redirect is now handled by the onAuthStateChange listener
+      // clearAuthData will be called by the onAuthStateChange listener when SIGNED_OUT event is triggered
     } catch (error) {
       console.error("Unexpected sign out error:", error)
     } finally {
@@ -357,9 +368,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Updating user password.")
       setLoading(true)
 
-      const timeoutPromise = new Promise(
-        (_, reject) =>
-          setTimeout(() => reject(new Error("Password update request timed out after 15 seconds.")), 15000), // 15 seconds timeout
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Password update request timed out after 15 seconds.")), 15000),
       )
 
       const { data, error } = await Promise.race([supabase.auth.updateUser({ password: newPassword }), timeoutPromise])

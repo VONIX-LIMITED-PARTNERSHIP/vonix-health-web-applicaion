@@ -4,12 +4,6 @@ import type { Database } from "@/types/database"
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// Debug logging (remove in production)
-// if (typeof window !== "undefined") {
-//   console.log("Supabase URL:", supabaseUrl ? "Set" : "Missing")
-//   console.log("Supabase Anon Key:", supabaseAnonKey ? "Set" : "Missing")
-// }
-
 // Create a single instance for the entire app
 export const supabase =
   supabaseUrl && supabaseAnonKey
@@ -51,6 +45,8 @@ export const createClientComponentClient = () => {
       flowType: "pkce",
       storage: typeof window !== "undefined" ? window.localStorage : undefined,
       storageKey: "sb-hybtdrtuyovowhzinbbu-auth-token",
+      // Add these settings for better session management
+      debug: false, // Set to true only for debugging
     },
   })
 
@@ -66,9 +62,11 @@ export const isSupabaseConfigured = () => {
   return configured
 }
 
-// Helper function to clear all auth data
+// Helper function to clear all auth data (only call on explicit sign out)
 export const clearAuthData = () => {
   if (typeof window !== "undefined") {
+    console.log("Clearing auth data from lib/supabase.ts")
+
     // Clear Supabase auth tokens
     localStorage.removeItem("sb-hybtdrtuyovowhzinbbu-auth-token")
     localStorage.removeItem("supabase.auth.token")
@@ -82,7 +80,5 @@ export const clearAuthData = () => {
 
     // Clear session storage
     sessionStorage.clear()
-
-    console.log("Auth data cleared by lib/supabase.ts") // Uncommented/added for debugging
   }
 }
