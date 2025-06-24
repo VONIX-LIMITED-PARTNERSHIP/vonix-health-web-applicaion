@@ -12,7 +12,6 @@ import { Activity, Eye, EyeOff, ArrowLeft, Mail, Lock, Loader2 } from "lucide-re
 import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
-import { clearAuthData } from "@/lib/supabase"
 import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
 
 export default function LoginPage() {
@@ -23,10 +22,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false) // Local loading state for form submission
   const [formData, setFormData] = useState({ email: "", password: "" })
   const { t } = useTranslation() // Use translation hook
-
-  useEffect(() => {
-    clearAuthData()
-  }, [])
 
   // Redirect if already logged in
   useEffect(() => {
