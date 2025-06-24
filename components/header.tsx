@@ -2,23 +2,24 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/mode-toggle"
-import { Activity, Bell, LogOut, RefreshCw, Loader2 } from "lucide-react"
+import { Activity, Bell, LogOut, RefreshCw, Loader2, Settings, Sun, Moon, Languages } from "lucide-react" // Import Settings, Sun, Moon, Languages
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useLanguage } from "@/contexts/language-context" // Import useLanguage
-import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
+import { useLanguage } from "@/contexts/language-context"
+import { useTranslation } from "@/hooks/use-translation"
+import { useTheme } from "next-themes" // Import useTheme
 
 export function Header() {
   const { user, profile, signOut, loading, refreshProfile } = useAuth()
   const [refreshing, setRefreshing] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const router = useRouter()
-  const { locale, setLocale } = useLanguage() // Use language context
-  const { t } = useTranslation() // Use translation hook
+  const { locale, setLocale } = useLanguage()
+  const { t } = useTranslation(["common", "profile"]) // Ensure common namespace is loaded
+  const { setTheme, theme } = useTheme() // Use theme hook
 
   const getInitials = (name: string | null) => {
     if (!name) return "U"
@@ -49,11 +50,10 @@ export function Header() {
     setSigningOut(true)
     try {
       await signOut()
-      // signOut function in useAuth will now handle the redirect via onAuthStateChange
     } catch (error) {
       console.error("Error during sign out in Header:", error)
     } finally {
-      setSigningOut(false) // Ensure signingOut state is reset
+      setSigningOut(false)
     }
   }
 
@@ -66,6 +66,14 @@ export function Header() {
     } finally {
       setRefreshing(false)
     }
+  }
+
+  const handleLanguageToggle = () => {
+    setLocale(locale === "th" ? "en" : "th")
+  }
+
+  const handleThemeToggle = () => {
+    setTheme(theme === "light" ? "dark" : "light")
   }
 
   return (
@@ -88,17 +96,29 @@ export function Header() {
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-4">
-          {/* Language Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocale(locale === "th" ? "en" : "th")}
-            className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-lg font-semibold"
-          >
-            {locale === "th" ? "EN" : "TH"}
-          </Button>
-
-          <ModeToggle />
+          {/* Settings Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-2">
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="sr-only">{t("settings")}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleLanguageToggle}>
+                <Languages className="mr-2 h-4 w-4" />
+                <span className="flex-1">{t("language")}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{locale === "th" ? "ไทย" : "English"}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleThemeToggle}>
+                {theme === "light" ? <Moon className="mr-2 h-4 w-4" /> : <Sun className="mr-2 h-4 w-4" />}
+                <span className="flex-1">{t("theme")}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {theme === "light" ? t("dark") : t("light")}
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {loading ? (
             <div className="flex items-center space-x-2">

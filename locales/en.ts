@@ -36,7 +36,7 @@ const en: Dictionary = {
     profile: "My Profile",
     dashboard: "Dashboard",
     health_reports: "Health Reports",
-    settings: "Settings",
+    settings: "Settings", // Added
     loading_profile: "Loading profile",
     no_profile: "(No profile)",
     patient: "General User",
@@ -548,6 +548,10 @@ const en: Dictionary = {
     chatbot_default_response_3_help_2: "• VONIX usage",
     chatbot_default_response_3_help_3: "• Basic advice",
     chatbot_default_response_3_ask: "I can help fully! Available 24/7 😊",
+    language: "Language", // Added
+    theme: "Theme", // Added
+    light: "Light", // Added
+    dark: "Dark", // Added
   },
   profile: {
     my_profile: "My Profile",
