@@ -584,6 +584,31 @@ const en: Dictionary = {
     profile_updated_success: "Profile updated successfully!",
     profile_update_error: "Failed to update profile. Please try again.",
   },
+  assessment: {
+    your_assessment_results: "Your Assessment Results",
+    summary: "Summary",
+    risk_level: "Risk Level",
+    risk_levels: {
+      low: "Low Risk",
+      medium: "Medium Risk",
+      high: "High Risk",
+      "very-high": "Very High Risk",
+    },
+    score: "Score",
+    risk_factors: "Risk Factors",
+    recommendations: "Recommendations",
+    basic_health_data_summary: "Basic Health Data Summary",
+    total_score: "Total Score",
+    identified_risk_factors: "Identified Risk Factors",
+    general_recommendations: "General Recommendations",
+    retake_assessment: "Retake Assessment",
+    error_loading_answers: "Could not load assessment answers.",
+    no_answers_found: "No assessment answers found. Please complete the assessment again.",
+    not_logged_in: "You are not logged in. Please log in to save your assessment.",
+    ai_analysis_failed: "AI analysis failed: {{message}}",
+    save_failed: "Failed to save assessment: {{message}}",
+    not_logged_in_redirect: "Not authenticated, redirecting to login.",
+  },
 }
 
 export default en

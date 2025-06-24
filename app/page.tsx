@@ -39,11 +39,11 @@ import { useTranslation } from "@/hooks/use-translation" // Import useTranslatio
 const assessmentCategories = [
   {
     id: "basic",
-    title: "ข้อมูลพื้นฐานสำหรับแพทย์",
+    title: "ข้อมูลส่วนตัว", // Changed from "ข้อมูลพื้นฐานสำหรับแพทย์"
     description: "ข้อมูลสำคัญที่แพทย์ต้องการเพื่อการวินิจฉัยและรักษา",
     icon: User,
     required: true,
-    status: "ครอกข้อมูล",
+    status: "กรอกข้อมูล",
     progress: 0,
     gradient: "from-blue-500 to-cyan-500",
     bgGradient: "from-blue-50 to-cyan-50",
@@ -356,7 +356,7 @@ export default function HomePage() {
 
             {/* Features */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              <div className="flex items-center justify-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
+              <div className="flex items-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                   <Sparkles className="w-5 h-5" />
                 </div>
@@ -365,7 +365,7 @@ export default function HomePage() {
                   <div className="text-sm text-gray-600 dark:text-gray-400">{t("analyze_with_openai")}</div>
                 </div>
               </div>
-              <div className="flex items-center justify-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
+              <div className="flex items-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                   <Shield className="w-5 h-5" />
                 </div>
@@ -374,7 +374,7 @@ export default function HomePage() {
                   <div className="text-sm text-gray-600 dark:text-gray-400">{t("encrypted_data_pdpa")}</div>
                 </div>
               </div>
-              <div className="flex items-center justify-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
+              <div className="flex items-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                   <Zap className="w-5 h-5" />
                 </div>

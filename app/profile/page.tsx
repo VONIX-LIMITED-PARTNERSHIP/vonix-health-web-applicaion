@@ -21,7 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Separator } from "@/components/ui/separator"
-import { PencilIcon, CheckIcon, XIcon } from "lucide-react"
+import { PencilIcon, CheckIcon, XIcon, Loader2 } from "lucide-react" // Import Loader2
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -175,7 +175,8 @@ export default function ProfilePage() {
   if (isLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p>{t("common.loading_profile")}</p>
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        <p className="ml-2 text-lg text-gray-600 dark:text-gray-400">{t("common.loading_profile")}</p>
       </div>
     )
   }
@@ -228,7 +229,6 @@ export default function ProfilePage() {
                       <FormLabel htmlFor="phone">{t("profile.phone")}</FormLabel>
                       <FormControl>
                         <Input
-                          id="phone"
                           id="phone"
                           readOnly={!isEditing}
                           placeholder={t("common.not_available")}
@@ -289,18 +289,23 @@ export default function ProfilePage() {
               </div>
 
               {isEditing && (
-                <div className="flex justify-end gap-2 pt-4">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
                   <Button
                     variant="outline"
                     onClick={() => {
                       setIsEditing(false)
                       form.reset() // Reset form to original profile values
                     }}
+                    className="w-full sm:w-auto" // Make button full width on small screens
                   >
                     <XIcon className="h-4 w-4 mr-2" />
                     {t("profile.cancel_edit")}
                   </Button>
-                  <Button type="submit" disabled={form.formState.isSubmitting || !form.formState.isDirty}>
+                  <Button
+                    type="submit"
+                    disabled={form.formState.isSubmitting || !form.formState.isDirty}
+                    className="w-full sm:w-auto" // Make button full width on small screens
+                  >
                     {form.formState.isSubmitting ? t("common.saving") : <CheckIcon className="h-4 w-4 mr-2" />}
                     {form.formState.isSubmitting ? "" : t("profile.save_changes")}
                   </Button>

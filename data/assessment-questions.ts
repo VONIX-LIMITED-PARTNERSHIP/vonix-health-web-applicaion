@@ -188,7 +188,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
 export const assessmentCategories: AssessmentCategory[] = [
   {
     id: "basic",
-    title: "ข้อมูลพื้นฐานสำหรับแพทย์",
+    title: "ข้อมูลส่วนตัว",
     description: "ข้อมูลสำคัญที่แพทย์ต้องการเพื่อการวินิจฉัยและรักษา",
     icon: "User",
     required: true,
@@ -241,7 +241,7 @@ export const assessmentCategories: AssessmentCategory[] = [
       },
       {
         id: "basic-6",
-        type: "checkbox",
+        type: "multi-select-combobox-with-other", // NEW TYPE
         question: "โรคประจำตัว (เลือกได้หลายข้อ)",
         options: [
           "เบาหวาน",
@@ -261,7 +261,7 @@ export const assessmentCategories: AssessmentCategory[] = [
       },
       {
         id: "basic-7",
-        type: "checkbox",
+        type: "multi-select-combobox-with-other", // NEW TYPE
         question: "การแพ้ยา/อาหาร (เลือกได้หลายข้อ)",
         options: ["แพ้ยาแอสไพริน", "แพ้ยาปฏิชีวนะ", "แพ้อาหารทะเล", "แพ้นม/ผลิตภัณฑ์นม", "แพ้ไข่", "แพ้ถั่ว", "แพ้ผงชูรส", "ไม่มีการแพ้"],
         required: true,

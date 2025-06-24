@@ -30,7 +30,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const progress = ((currentQuestionIndex + 1) / category.questions.length) * 100
   const isLastQuestion = currentQuestionIndex === category.questions.length - 1
 
-  const handleAnswer = (questionId: string, answer: string | number | string[], score: number) => {
+  const handleAnswer = (questionId: string, answer: string | number | string[] | null, score: number) => {
     const newAnswers = answers.filter((a) => a.questionId !== questionId)
     newAnswers.push({ questionId, answer, score })
     setAnswers(newAnswers)
@@ -41,11 +41,34 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   }
 
   const canProceed = () => {
-    const currentAnswer = getCurrentAnswer()
-    if (currentQuestion.required && !currentAnswer) {
-      return false
+    if (!currentQuestion.required) {
+      return true // ถ้าไม่จำเป็น สามารถไปต่อได้เสมอ
     }
-    return true
+
+    const answerEntry = getCurrentAnswer()
+
+    if (!answerEntry || answerEntry.answer === null) {
+      return false // ไม่มีคำตอบ หรือคำตอบเป็น null
+    }
+
+    // ตรวจสอบตามประเภทคำถาม
+    switch (currentQuestion.type) {
+      case "text":
+      case "number":
+        // สำหรับ text/number, ตรวจสอบว่าไม่ใช่ string ว่างเปล่า หรือ 0 ที่มาจาก string ว่างเปล่า
+        return typeof answerEntry.answer === "string" ? answerEntry.answer.trim() !== "" : true
+      case "checkbox":
+      case "multi-select-combobox-with-other":
+        // สำหรับ checkbox/multi-select, ตรวจสอบว่า array ไม่ว่างเปล่า
+        return Array.isArray(answerEntry.answer) && answerEntry.answer.length > 0
+      case "multiple-choice":
+      case "yes-no":
+      case "rating":
+        // สำหรับประเภทอื่นๆ, ตรวจสอบว่ามีค่าที่ไม่ใช่ null/undefined/empty string
+        return String(answerEntry.answer).trim() !== ""
+      default:
+        return true // สำหรับประเภทที่ไม่รู้จัก ให้ถือว่าผ่าน
+    }
   }
 
   const handleNext = () => {

@@ -1,6 +1,7 @@
 "use client"
 
-import { useLanguage } from "@/contexts/language-context"
+import { useContext } from "react"
+import { LanguageContext } from "@/contexts/language-context"
 import th from "@/locales/th"
 import en from "@/locales/en"
 
@@ -10,7 +11,9 @@ import en from "@/locales/en"
  * The hook will look up keys in those namespaces, falling back to the key itself.
  */
 export function useTranslation(namespaces: string[] = ["common"]) {
-  const { locale } = useLanguage()
+  // หากไม่ได้อยู่ภายใต้ <LanguageProvider> ให้ fallback เป็น "th"
+  const context = useContext(LanguageContext)
+  const locale = context?.locale ?? "th"
 
   // Pick the proper dictionary
   const dict = locale === "en" ? en : th

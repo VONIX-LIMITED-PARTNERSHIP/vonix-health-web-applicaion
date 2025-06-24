@@ -10,17 +10,28 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import type { Question, AssessmentAnswer } from "@/types/assessment"
 import { AlertCircle } from "lucide-react"
+import { MultiSelectComboboxWithOther } from "@/components/ui/multi-select-combobox-with-other"
 
 interface QuestionCardProps {
   question: Question
   answer?: AssessmentAnswer
-  onAnswer: (questionId: string, answer: string | number | string[], score: number) => void
+  onAnswer: (questionId: string, answer: string | number | string[] | null, score: number) => void // Allow null
 }
 
 export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) {
-  const [currentAnswer, setCurrentAnswer] = useState<string | number | string[]>(
-    answer?.answer || (question.type === "checkbox" ? [] : ""),
-  )
+  // Initialize currentAnswer with null for text/number if no answer is provided
+  const [currentAnswer, setCurrentAnswer] = useState<string | number | string[] | null>(() => {
+    if (answer?.answer !== undefined) {
+      return answer.answer
+    }
+    if (question.type === "checkbox" || question.type === "multi-select-combobox-with-other") {
+      return []
+    }
+    if (question.type === "number" || question.type === "text") {
+      return null // Explicitly set to null for empty number/text inputs
+    }
+    return "" // Default for other types
+  })
 
   useEffect(() => {
     if (answer) {
@@ -28,7 +39,9 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
     }
   }, [answer])
 
-  const calculateScore = (value: string | number | string[]): number => {
+  const calculateScore = (value: string | number | string[] | null): number => {
+    // Allow null
+    if (value === null) return 0 // No score for null answer
     switch (question.type) {
       case "rating":
         return Number(value) * question.weight
@@ -39,6 +52,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
         const index = question.options?.indexOf(String(value)) || 0
         return (index + 1) * question.weight
       case "checkbox":
+      case "multi-select-combobox-with-other":
         const selectedCount = Array.isArray(value) ? value.length : 0
         return selectedCount * question.weight
       default:
@@ -46,7 +60,8 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
     }
   }
 
-  const handleAnswerChange = (value: string | number | string[]) => {
+  const handleAnswerChange = (value: string | number | string[] | null) => {
+    // Allow null
     setCurrentAnswer(value)
     const score = calculateScore(value)
     onAnswer(question.id, value, score)
@@ -67,7 +82,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <RadioGroupItem value={option} id={`${question.id}-${index}`} />
-                <Label htmlFor={`${question.id}-${index}`} className="flex-1 cursor-pointer">
+                <Label htmlFor={`${question.id}-${index}`} className="flex-1 cursor-pointer dark:text-gray-900">
                   {option}
                 </Label>
               </div>
@@ -110,13 +125,13 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="ใช่" id={`${question.id}-yes`} />
-              <Label htmlFor={`${question.id}-yes`} className="cursor-pointer font-medium">
+              <Label htmlFor={`${question.id}-yes`} className="cursor-pointer font-medium dark:text-gray-900">
                 ใช่
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="ไม่ใช่" id={`${question.id}-no`} />
-              <Label htmlFor={`${question.id}-no`} className="cursor-pointer font-medium">
+              <Label htmlFor={`${question.id}-no`} className="cursor-pointer font-medium dark:text-gray-900">
                 ไม่ใช่
               </Label>
             </div>
@@ -149,7 +164,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                     handleAnswerChange(newAnswer)
                   }}
                 />
-                <Label htmlFor={`${question.id}-${index}`} className="flex-1 cursor-pointer">
+                <Label htmlFor={`${question.id}-${index}`} className="flex-1 cursor-pointer dark:text-gray-900">
                   {option}
                 </Label>
               </div>
@@ -161,20 +176,31 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
         return (
           <Input
             type="number"
-            value={String(currentAnswer)}
-            onChange={(e) => handleAnswerChange(Number(e.target.value))}
+            value={currentAnswer === null ? "" : String(currentAnswer)} // Display empty string if null
+            onChange={(e) => handleAnswerChange(e.target.value === "" ? null : Number(e.target.value))} // Pass null if empty
             placeholder="กรุณาใส่ตัวเลข"
-            className="text-center text-lg h-12 rounded-xl border-2 focus:border-blue-400"
+            className="text-center text-lg h-12 rounded-xl border-2 focus:border-blue-400 dark:text-gray-900 dark:placeholder:text-gray-500"
           />
         )
 
       case "text":
         return (
           <Textarea
-            value={String(currentAnswer)}
-            onChange={(e) => handleAnswerChange(e.target.value)}
+            value={currentAnswer === null ? "" : String(currentAnswer)} // Display empty string if null
+            onChange={(e) => handleAnswerChange(e.target.value.trim() === "" ? null : e.target.value)} // Pass null if empty or just whitespace
             placeholder="กรุณาใส่คำตอบ"
-            className="min-h-[100px] rounded-xl border-2 focus:border-blue-400"
+            className="min-h-[100px] rounded-xl border-2 focus:border-blue-400 dark:text-gray-900 dark:placeholder:text-gray-500"
+          />
+        )
+
+      case "multi-select-combobox-with-other":
+        return (
+          <MultiSelectComboboxWithOther
+            options={question.options || []}
+            value={Array.isArray(currentAnswer) ? currentAnswer : []}
+            onChange={(newValues) => handleAnswerChange(newValues)}
+            placeholder={question.description || "เลือกหรือพิมพ์เพื่อค้นหา"}
+            otherInputPlaceholder="ระบุข้อมูลอื่นๆ ที่นี่"
           />
         )
 

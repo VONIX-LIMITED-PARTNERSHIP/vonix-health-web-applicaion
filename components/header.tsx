@@ -50,9 +50,11 @@ export function Header() {
     setSigningOut(true)
     try {
       await signOut()
-      // signOut function will handle the redirect
+      // signOut function in useAuth will now handle the redirect via onAuthStateChange
     } catch (error) {
-      setSigningOut(false)
+      console.error("Error during sign out in Header:", error)
+    } finally {
+      setSigningOut(false) // Ensure signingOut state is reset
     }
   }
 
@@ -61,6 +63,7 @@ export function Header() {
     try {
       await refreshProfile()
     } catch (error) {
+      console.error("Error refreshing profile:", error)
     } finally {
       setRefreshing(false)
     }
