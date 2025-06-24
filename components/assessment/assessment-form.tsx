@@ -143,7 +143,12 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         </Card>
 
         {/* Question */}
-        <QuestionCard question={currentQuestion} answer={getCurrentAnswer()} onAnswer={handleAnswer} />
+        <QuestionCard
+          key={currentQuestion.id}
+          question={currentQuestion}
+          answer={getCurrentAnswer()}
+          onAnswer={handleAnswer}
+        />
 
         {/* Navigation */}
         <Card className="mt-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-gray-900/80 dark:border-gray-700">
