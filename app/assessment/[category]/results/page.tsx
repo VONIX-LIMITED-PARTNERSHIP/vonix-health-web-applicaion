@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react" // Import useRef
+import { useEffect, useState, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { AssessmentService } from "@/lib/assessment-service"
 import { useAuth } from "@/hooks/use-auth"
@@ -9,7 +9,7 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, Loader2 } from "lucide-react"
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
-import { guestAssessmentCategory } from "@/data/assessment-questions" // Import guestAssessmentCategory
+import { guestAssessmentCategory } from "@/data/assessment-questions"
 
 export default function ResultsPage() {
   const params = useParams()
@@ -23,7 +23,6 @@ export default function ResultsPage() {
   const [aiAnalysis, setAiAnalysis] = useState<any>(null)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
 
-  // Use a ref to track if the data loading/saving logic has already run
   const hasRunEffect = useRef(false)
 
   useEffect(() => {
@@ -34,8 +33,6 @@ export default function ResultsPage() {
       hasRunEffect.current,
     )
 
-    // Only run the data loading/saving logic once per component mount
-    // and only after user loading is complete
     if (hasRunEffect.current || isUserLoading) {
       if (hasRunEffect.current) {
         console.log("ResultsPage: Skipping useEffect run as it has already executed.")
@@ -43,113 +40,147 @@ export default function ResultsPage() {
       return
     }
 
-    hasRunEffect.current = true // Set the flag to true to prevent future runs
+    hasRunEffect.current = true
 
-    const loadAndSaveAssessment = async () => {
+    const loadAndSaveOrFetchAssessment = async () => {
       setLoading(true)
       setError(null)
-      console.log("ResultsPage: Starting loadAndSaveAssessment function.")
+      console.log("ResultsPage: Starting loadAndSaveOrFetchAssessment function.")
 
       try {
-        // Determine the correct localStorage key based on categoryId
-        const localStorageKey =
-          categoryId === guestAssessmentCategory.id ? `guest-assessment-temp-answers` : `assessment-${categoryId}`
-
-        console.log("ResultsPage: Attempting to retrieve answers from localStorage with key:", localStorageKey)
-        const storedAnswersString = localStorage.getItem(localStorageKey)
-        console.log(
-          "ResultsPage: Retrieved string from localStorage:",
-          storedAnswersString ? "Data found" : "No data found",
-        )
-
-        if (!storedAnswersString) {
-          throw new Error("assessment.no_answers_found: ไม่พบคำตอบใน Local Storage (Key: " + localStorageKey + ")")
-        }
-        const parsedAnswers: AssessmentAnswer[] = JSON.parse(storedAnswersString)
-        console.log(
-          "ResultsPage: Parsed answers from localStorage. Count:",
-          parsedAnswers.length,
-          "Data:",
-          parsedAnswers,
-        )
-
-        setAnswers(parsedAnswers) // Store answers in state for AssessmentResults component
-
-        if (parsedAnswers.length === 0) {
-          throw new Error("assessment.no_answers_found: อาร์เรย์คำตอบที่ดึงมาว่างเปล่า (Key: " + localStorageKey + ")")
-        }
-
-        // 2. Get category details using the new static method
-        const category = AssessmentService.getCategory(categoryId)
-        if (!category) {
-          throw new Error("Category not found for ID: " + categoryId)
-        }
-        console.log("ResultsPage: Category found:", category.title)
-
-        // 3. Analyze with AI if not basic category
-        let analysisData = null
-        if (categoryId !== "basic") {
-          console.log("ResultsPage: Calling analyzeWithAI...")
-          const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, parsedAnswers)
-          if (aiError) {
-            console.error("ResultsPage: AI Analysis Error:", aiError)
-            // Decide if you want to throw error or proceed without AI analysis
-            // For now, we'll log and proceed, letting saveAssessment handle if AI data is critical
-          } else {
-            analysisData = aiData
-            setAiAnalysis(aiData) // Store AI analysis in state
-            console.log("ResultsPage: AI Analysis data received.")
+        if (!user?.id) {
+          // If user is not logged in, we cannot save or fetch user-specific assessments.
+          // For guest assessments, we would handle it differently (e.g., only from localStorage)
+          // For now, if it's not a guest assessment and no user, throw error.
+          if (categoryId !== guestAssessmentCategory.id) {
+            throw new Error("User not authenticated. Please log in to view your assessment results.")
           }
         }
 
-        // 4. Save assessment to database
-        if (!user?.id) {
-          throw new Error("User not authenticated. Please log in to save your assessment.")
+        let currentAssessmentData: any = null
+        let currentAnswers: AssessmentAnswer[] = []
+        let currentAiAnalysis: any = null
+
+        // 1. Try to save the assessment if answers are in localStorage (meaning it's a fresh submission)
+        const localStorageKey =
+          categoryId === guestAssessmentCategory.id ? `guest-assessment-temp-answers` : `assessment-${categoryId}`
+        const storedAnswersString = localStorage.getItem(localStorageKey)
+
+        if (storedAnswersString) {
+          console.log("ResultsPage: Found answers in localStorage, attempting to save.")
+          const parsedAnswers: AssessmentAnswer[] = JSON.parse(storedAnswersString)
+
+          if (parsedAnswers.length === 0) {
+            console.warn("ResultsPage: Parsed answers from localStorage are empty. Will attempt to fetch from DB.")
+            localStorage.removeItem(localStorageKey) // Clear empty data
+          } else {
+            currentAnswers = parsedAnswers
+            setAnswers(parsedAnswers) // Set answers state for AssessmentResults component
+
+            const category = AssessmentService.getCategory(categoryId)
+            if (!category) {
+              throw new Error("Category not found for ID: " + categoryId)
+            }
+
+            if (categoryId !== "basic") {
+              console.log("ResultsPage: Calling analyzeWithAI for fresh submission...")
+              const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, parsedAnswers)
+              if (aiError) {
+                console.error("ResultsPage: AI Analysis Error for fresh submission:", aiError)
+              } else {
+                currentAiAnalysis = aiData
+                setAiAnalysis(aiData)
+              }
+            }
+
+            if (user?.id) {
+              // Only save if user is logged in
+              console.log("ResultsPage: Calling saveAssessment for fresh submission...")
+              const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
+                user.id,
+                categoryId,
+                category.title,
+                parsedAnswers,
+                currentAiAnalysis,
+              )
+
+              if (saveError) {
+                throw new Error(saveError)
+              }
+              currentAssessmentData = savedData
+              console.log("ResultsPage: Fresh assessment saved successfully:", currentAssessmentData.id)
+              localStorage.removeItem(localStorageKey) // Clear after successful save
+              console.log("ResultsPage: Cleared localStorage key:", localStorageKey)
+            } else {
+              // For guest assessment, if no user, the data is just in localStorage for now.
+              // We don't save guest data to DB unless explicitly handled.
+              // For this scenario, we'll just use the parsedAnswers and currentAiAnalysis
+              // and skip DB save. The AssessmentResults component will use these.
+              console.log("ResultsPage: Guest assessment, not saving to DB. Using localStorage data.")
+              // We need to simulate a result structure for AssessmentResults component
+              currentAssessmentData = AssessmentService.calculateBasicAssessmentResult(parsedAnswers) // Basic calculation for guest
+              if (currentAiAnalysis) {
+                currentAssessmentData = { ...currentAssessmentData, ...currentAiAnalysis } // Merge AI if available
+              }
+              // Do NOT clear localStorage for guest if not saved to DB, as it's the only source.
+              // However, the prompt implies we should fetch from DB, so guest flow might need adjustment.
+              // For now, if it's a guest and no user, we'll just use the parsed answers.
+            }
+          }
         }
 
-        console.log("ResultsPage: Preparing to call saveAssessment with:", {
-          userId: user.id,
-          categoryId,
-          categoryTitle: category.title,
-          answersCount: parsedAnswers.length,
-        })
-        // Pass parsedAnswers directly to saveAssessment
-        const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
-          user.id,
-          categoryId,
-          category.title,
-          parsedAnswers, // Use parsedAnswers directly
-          analysisData,
-        )
-        console.log("ResultsPage: saveAssessment returned:", { savedData, saveError })
+        // 2. If no fresh submission (or if localStorage was empty/cleared), try to fetch latest from Supabase
+        if (!currentAssessmentData && user?.id) {
+          console.log("ResultsPage: No fresh submission data, attempting to fetch latest from Supabase.")
+          const { data: fetchedData, error: fetchError } =
+            await AssessmentService.getLatestAssessmentForUserAndCategory(user.id, categoryId)
 
-        if (saveError) {
-          throw new Error(saveError)
+          if (fetchError) {
+            throw new Error(fetchError)
+          }
+          if (!fetchedData) {
+            throw new Error("assessment.no_data_found: ไม่พบข้อมูลแบบประเมินล่าสุดในฐานข้อมูล")
+          }
+          currentAssessmentData = fetchedData
+          currentAnswers = fetchedData.answers || [] // Ensure answers are retrieved
+          currentAiAnalysis = {
+            // Reconstruct AI analysis if available
+            score: fetchedData.percentage,
+            riskLevel: fetchedData.risk_level,
+            riskFactors: fetchedData.risk_factors,
+            recommendations: fetchedData.recommendations,
+          }
+          setAnswers(currentAnswers)
+          setAiAnalysis(currentAiAnalysis)
+          console.log("ResultsPage: Fetched latest assessment from Supabase:", currentAssessmentData.id)
+        } else if (!currentAssessmentData && categoryId === guestAssessmentCategory.id && !user?.id) {
+          // This case handles direct navigation/refresh for guest users where localStorage might be gone
+          // For now, we'll throw an error as we don't persist guest data without user.
+          throw new Error("assessment.no_data_found: ไม่พบข้อมูลแบบประเมินสำหรับผู้เยี่ยมชม (อาจถูกล้างไปแล้ว)")
         }
 
-        setAssessmentResult(savedData)
+        if (!currentAssessmentData) {
+          throw new Error("assessment.no_data_found: ไม่สามารถโหลดข้อมูลแบบประเมินได้")
+        }
+
+        setAssessmentResult(currentAssessmentData)
         console.log("ResultsPage: Assessment result set in state.")
-
-        // 5. Clear answers from localStorage after successful save
-        localStorage.removeItem(localStorageKey)
-        console.log("ResultsPage: Cleared localStorage key:", localStorageKey)
       } catch (err: any) {
-        console.error("ResultsPage: Caught error in loadAndSaveAssessment:", err)
+        console.error("ResultsPage: Caught error in loadAndSaveOrFetchAssessment:", err)
         setError(err.message || "เกิดข้อผิดพลาดในการประมวลผลแบบประเมิน")
       } finally {
         setLoading(false)
-        console.log("ResultsPage: loadAndSaveAssessment finished. Loading set to false.")
+        console.log("ResultsPage: loadAndSaveOrFetchAssessment finished. Loading set to false.")
       }
     }
 
-    loadAndSaveAssessment()
+    loadAndSaveOrFetchAssessment()
 
-    // Cleanup function for active requests if component unmounts
     return () => {
       console.log("ResultsPage: useEffect cleanup function running.")
       AssessmentService.cleanup()
     }
-  }, [categoryId, user?.id, isUserLoading]) // Re-run when categoryId or user changes
+  }, [categoryId, user?.id, isUserLoading])
 
   if (loading) {
     return (

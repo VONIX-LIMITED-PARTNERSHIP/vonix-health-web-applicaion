@@ -30,7 +30,6 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const progress = ((currentQuestionIndex + 1) / category.questions.length) * 100
   const isLastQuestion = currentQuestionIndex === category.questions.length - 1
 
-  // อัปเดต handleAnswer ให้รับ isValid ด้วย
   const handleAnswer = (
     questionId: string,
     answer: string | number | string[] | null,
@@ -40,7 +39,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     setAnswers((prevAnswers) => {
       const newAnswers = prevAnswers.filter((a) => a.questionId !== questionId)
       newAnswers.push({ questionId, answer, score, isValid })
-      console.log(`AssessmentForm: Answer updated for ${questionId}:`, { answer, score, isValid }) // Debug log
+      console.log(`AssessmentForm: Answer updated for ${questionId}:`, { answer, score, isValid })
       return newAnswers
     })
   }
@@ -49,12 +48,9 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     return answers.find((a) => a.questionId === currentQuestion.id)
   }
 
-  // ปรับปรุง canProceed ให้ตรวจสอบ isValid และค่าของคำตอบอย่างละเอียด
   const canProceed = () => {
     const answerEntry = getCurrentAnswer()
     if (currentQuestion.required) {
-      // ต้องมีคำตอบและคำตอบนั้นต้องถูกต้อง (isValid === true)
-      // และต้องไม่เป็นค่าว่างเปล่า (null, undefined, empty string, empty array)
       const hasAnswer = answerEntry?.answer !== null && answerEntry?.answer !== undefined
       const isAnswerNotEmpty =
         hasAnswer &&
@@ -66,47 +62,38 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         isAnswerNotEmpty,
         isValid: answerEntry?.isValid,
         result: answerEntry?.isValid === true && isAnswerNotEmpty,
-      }) // Debug log
+      })
 
       return answerEntry?.isValid === true && isAnswerNotEmpty
     }
-    // ถ้าคำถามไม่จำเป็นต้องตอบ สามารถไปต่อได้เสมอ
     return true
   }
 
   const handleNext = () => {
-    // ตรวจสอบให้แน่ใจว่าคำตอบของคำถามปัจจุบันถูกรวมอยู่ใน `answers` ก่อนดำเนินการต่อ
-    // แม้ว่า `handleAnswer` จะใช้ functional update แต่การเรียกใช้ `answers` โดยตรง
-    // ใน `handleNext` อาจจะยังไม่เห็นการอัปเดตล่าสุดทันทีในบางกรณี
-    // ดังนั้นเราจะสร้างอาร์เรย์คำตอบสุดท้ายที่แน่นอนที่สุด
     const currentAnswerForSubmission = getCurrentAnswer()
     let finalAnswersToSave: AssessmentAnswer[] = []
 
     if (currentAnswerForSubmission) {
-      // กรองคำตอบเก่าของคำถามปัจจุบันออก แล้วเพิ่มคำตอบล่าสุดเข้าไป
       finalAnswersToSave = answers.filter((a) => a.questionId !== currentQuestion.id)
       finalAnswersToSave.push(currentAnswerForSubmission)
     } else {
-      // ถ้าไม่มีคำตอบสำหรับคำถามปัจจุบัน (อาจเป็นคำถามที่ไม่จำเป็นต้องตอบ)
-      // ให้ใช้อาร์เรย์ answers ที่มีอยู่
       finalAnswersToSave = [...answers]
     }
 
-    console.log("AssessmentForm: Answers array before saving to localStorage:", finalAnswersToSave) // Debug log
+    console.log("AssessmentForm: Answers array before saving to localStorage:", finalAnswersToSave)
 
     if (isLastQuestion) {
       if (finalAnswersToSave.length === 0 && category.questions.length > 0) {
         console.warn(
           "AssessmentForm: Attempting to save an empty answers array for a non-empty assessment category. This might indicate missing required answers.",
         )
-        // เรายังคงดำเนินการต่อไปยังหน้าผลลัพธ์ เพื่อให้หน้าผลลัพธ์จัดการข้อผิดพลาดนี้
       }
 
       const localStorageKey =
         categoryId === guestAssessmentCategory.id ? `guest-assessment-temp-answers` : `assessment-${categoryId}`
 
       localStorage.setItem(localStorageKey, JSON.stringify(finalAnswersToSave))
-      console.log(`AssessmentForm: Saved answers to localStorage with key: ${localStorageKey}.`) // Debug log
+      console.log(`AssessmentForm: Saved answers to localStorage with key: ${localStorageKey}.`)
 
       if (categoryId === guestAssessmentCategory.id) {
         router.push(`/guest-assessment/results`)
@@ -197,7 +184,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
               <Button
                 onClick={handleNext}
-                disabled={!canProceed()} // ปุ่มจะถูกปิดใช้งานหากคำตอบปัจจุบันไม่ถูกต้อง
+                disabled={!canProceed()}
                 className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm sm:text-base"
               >
                 {isLastQuestion ? (
