@@ -40,7 +40,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     setAnswers((prevAnswers) => {
       const newAnswers = prevAnswers.filter((a) => a.questionId !== questionId)
       newAnswers.push({ questionId, answer, score, isValid })
-      console.log(`Answer updated for ${questionId}:`, { answer, score, isValid }) // Debug log
+      console.log(`AssessmentForm: Answer updated for ${questionId}:`, { answer, score, isValid }) // Debug log
       return newAnswers
     })
   }
@@ -59,6 +59,15 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       const isAnswerNotEmpty =
         hasAnswer &&
         (Array.isArray(answerEntry.answer) ? answerEntry.answer.length > 0 : String(answerEntry.answer).trim() !== "")
+
+      console.log(`AssessmentForm: canProceed check for ${currentQuestion.id}:`, {
+        answerEntry,
+        hasAnswer,
+        isAnswerNotEmpty,
+        isValid: answerEntry?.isValid,
+        result: answerEntry?.isValid === true && isAnswerNotEmpty,
+      }) // Debug log
+
       return answerEntry?.isValid === true && isAnswerNotEmpty
     }
     // ถ้าคำถามไม่จำเป็นต้องตอบ สามารถไปต่อได้เสมอ
@@ -83,23 +92,25 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       finalAnswersToSave = [...answers]
     }
 
-    console.log("Answers array before saving to localStorage:", finalAnswersToSave) // Debug log
+    console.log("AssessmentForm: Answers array before saving to localStorage:", finalAnswersToSave) // Debug log
 
     if (isLastQuestion) {
       if (finalAnswersToSave.length === 0 && category.questions.length > 0) {
         console.warn(
-          "Attempting to save an empty answers array for a non-empty assessment category. This might indicate missing required answers.",
+          "AssessmentForm: Attempting to save an empty answers array for a non-empty assessment category. This might indicate missing required answers.",
         )
         // เรายังคงดำเนินการต่อไปยังหน้าผลลัพธ์ เพื่อให้หน้าผลลัพธ์จัดการข้อผิดพลาดนี้
       }
 
+      const localStorageKey =
+        categoryId === guestAssessmentCategory.id ? `guest-assessment-temp-answers` : `assessment-${categoryId}`
+
+      localStorage.setItem(localStorageKey, JSON.stringify(finalAnswersToSave))
+      console.log(`AssessmentForm: Saved answers to localStorage with key: ${localStorageKey}.`) // Debug log
+
       if (categoryId === guestAssessmentCategory.id) {
-        localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(finalAnswersToSave))
-        console.log("Saved guest answers to localStorage.") // Debug log
         router.push(`/guest-assessment/results`)
       } else {
-        localStorage.setItem(`assessment-${categoryId}`, JSON.stringify(finalAnswersToSave))
-        console.log("Saved assessment answers to localStorage.") // Debug log
         router.push(`/assessment/${categoryId}/results`)
       }
     } else {

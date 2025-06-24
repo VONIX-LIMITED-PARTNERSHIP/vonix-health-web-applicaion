@@ -1,14 +1,11 @@
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
 import { createClientComponentClient } from "@/lib/supabase"
-import { assessmentCategories } from "@/data/assessment-questions" // Import assessmentCategories here
+import { assessmentCategories } from "@/data/assessment-questions" // Import guestAssessmentCategory here
 
 export class AssessmentService {
   private static supabase = createClientComponentClient()
   private static activeRequests = new Map<string, AbortController>()
 
-  // Make assessmentCategories accessible via a static property or method
-  // For simplicity and direct access, we can expose it directly if needed,
-  // but a getter method is cleaner for encapsulation.
   static get assessmentCategories() {
     return assessmentCategories
   }
@@ -19,7 +16,7 @@ export class AssessmentService {
 
   static async analyzeWithAI(categoryId: string, answers: AssessmentAnswer[]): Promise<{ data: any; error: any }> {
     try {
-      const category = AssessmentService.getCategory(categoryId) // Use the new getter
+      const category = AssessmentService.getCategory(categoryId)
       if (!category) {
         throw new Error("Category not found")
       }
@@ -66,14 +63,24 @@ export class AssessmentService {
   ): Promise<{ data: any; error: any }> {
     const requestId = `save-${userId}-${categoryId}-${Date.now()}`
 
+    console.log("AssessmentService.saveAssessment: Received answers (start of function):", answers)
+    console.log("AssessmentService.saveAssessment: Type of answers:", typeof answers)
+    console.log("AssessmentService.saveAssessment: Is answers an Array?", Array.isArray(answers))
+    console.log("AssessmentService.saveAssessment: Answers length property:", answers?.length)
+
     try {
       // Validate inputs first
       if (!userId) {
         throw new Error("User not authenticated")
       }
 
-      if (!answers || answers.length === 0) {
-        throw new Error("No answers provided")
+      // เพิ่มการตรวจสอบที่เข้มงวดขึ้นสำหรับ answers
+      if (!Array.isArray(answers) || answers.length === 0) {
+        console.error(
+          "AssessmentService.saveAssessment: CRITICAL VALIDATION FAILED - answers array is not valid or empty at check point.",
+        )
+        // Throw a distinct error message here to differentiate from other errors
+        throw new Error("Validation Error: Answers array is invalid or empty.")
       }
 
       if (!this.supabase) {
@@ -213,6 +220,8 @@ export class AssessmentService {
       const existingKey = `save-${userId}-${categoryId}`
       this.activeRequests.delete(existingKey)
 
+      console.error("AssessmentService.saveAssessment: Caught error in outer try-catch:", error) // Log the actual error object
+
       if (error instanceof Error && error.name === "AbortError") {
         return { data: null, error: "การบันทึกถูกยกเลิกเนื่องจากใช้เวลานานเกินไป" }
       }
@@ -220,7 +229,10 @@ export class AssessmentService {
       let errorMessage = "เกิดข้อผิดพลาดในการบันทึก"
 
       if (error instanceof Error) {
-        if (error.message.includes("network") || error.message.includes("fetch")) {
+        // ตรวจสอบข้อความ Error ที่เรากำหนดเอง
+        if (error.message.includes("Validation Error: Answers array is invalid or empty.")) {
+          errorMessage = "assessment.no_answers_found" // ยังคงใช้ข้อความนี้สำหรับผู้ใช้
+        } else if (error.message.includes("network") || error.message.includes("fetch")) {
           errorMessage = "ปัญหาการเชื่อมต่อ กรุณาตรวจสอบอินเทอร์เน็ต"
         } else if (error.message.includes("authentication") || error.message.includes("unauthorized")) {
           errorMessage = "กรุณาเข้าสู่ระบบใหม่"
@@ -229,10 +241,123 @@ export class AssessmentService {
         } else {
           errorMessage = error.message
         }
+      } else if (typeof error === "string") {
+        errorMessage = error // กรณี error เป็น string
       }
 
       return { data: null, error: errorMessage }
     }
+  }
+
+  private static calculateBasicAssessmentResult(answers: AssessmentAnswer[]): AssessmentResult {
+    const category = AssessmentService.getCategory("basic")
+    if (!category) throw new Error("Basic category not found")
+
+    const totalScore = answers.reduce((sum, answer) => sum + answer.score, 0)
+    const maxScore = answers.length * 5
+    const percentage = Math.round((totalScore / maxScore) * 100)
+
+    // Determine risk level
+    let riskLevel: "low" | "medium" | "high" | "very-high"
+    if (percentage < 30) riskLevel = "low"
+    else if (percentage < 50) riskLevel = "medium"
+    else if (percentage < 70) riskLevel = "high"
+    else riskLevel = "very-high"
+
+    // Extract risk factors and recommendations based on answers
+    const riskFactors: string[] = []
+    const recommendations: string[] = []
+
+    // Analyze specific answers for basic health data
+    answers.forEach((answer) => {
+      const question = category.questions.find((q) => q.id === answer.questionId)
+      if (!question) return
+
+      // BMI calculation and risk assessment
+      if (question.id === "basic-3" || question.id === "basic-4") {
+        const weightAnswer = answers.find((a) => a.questionId === "basic-3")
+        const heightAnswer = answers.find((a) => a.questionId === "basic-4")
+
+        if (weightAnswer && heightAnswer) {
+          const weight = Number(weightAnswer.answer)
+          const height = Number(heightAnswer.answer) / 100 // convert cm to m
+          const bmi = weight / (height * height)
+
+          if (bmi < 18.5) {
+            riskFactors.push("น้ำหนักต่ำกว่าเกณฑ์")
+            recommendations.push("ควรเพิ่มน้ำหนักให้อยู่ในเกณฑ์ปกติ")
+          } else if (bmi >= 25) {
+            riskFactors.push("น้ำหนักเกินหรือโรคอ้วน")
+            recommendations.push("ควรลดน้ำหนักและออกกำลังกายสม่ำเสมอ")
+          }
+        }
+      }
+
+      // Chronic diseases
+      if (question.id === "basic-6" && Array.isArray(answer.answer)) {
+        const diseases = answer.answer as string[]
+        diseases.forEach((disease) => {
+          if (disease !== "ไม่มีโรคประจำตัว") {
+            riskFactors.push(disease)
+            if (disease === "เบาหวาน") {
+              recommendations.push("ควบคุมระดับน้ำตาลในเลือดอย่างสม่ำเสมอ")
+            } else if (disease === "ความดันโลหิตสูง") {
+              recommendations.push("ตรวจวัดความดันโลหิตเป็นประจำ")
+            }
+          }
+        })
+      }
+
+      // Drug allergies
+      if (question.id === "basic-7" && Array.isArray(answer.answer)) {
+        const allergies = answer.answer as string[]
+        allergies.forEach((allergy) => {
+          if (allergy !== "ไม่มีการแพ้") {
+            riskFactors.push(`แพ้: ${allergy}`)
+          }
+        })
+      }
+    })
+
+    // General recommendations
+    if (riskFactors.length === 0) {
+      recommendations.push("ข้อมูลสุขภาพพื้นฐานของคุณอยู่ในเกณฑ์ปกติ")
+      recommendations.push("ควรตรวจสุขภาพประจำปีเพื่อติดตามสุขภาพ")
+    } else {
+      recommendations.push("ควรปรึกษาแพทย์เพื่อรับคำแนะนำเฉพาะบุคคล")
+      recommendations.push("นำข้อมูลนี้ไปแสดงแพทย์เมื่อไปรับการรักษา")
+    }
+
+    return {
+      categoryId: "basic",
+      totalScore,
+      maxScore,
+      percentage,
+      riskLevel,
+      riskFactors,
+      recommendations,
+    }
+  }
+
+  private static async logAudit(
+    userId: string,
+    action: string,
+    resourceType: string,
+    resourceId: string,
+    details: any,
+  ) {
+    try {
+      if (!this.supabase) return
+
+      await this.supabase.from("audit_logs").insert({
+        user_id: userId,
+        action,
+        resource_type: resourceType,
+        resource_id: resourceId,
+        details,
+        user_agent: typeof window !== "undefined" ? navigator.userAgent : null,
+      })
+    } catch (error) {}
   }
 
   static async getUserAssessments(userId: string): Promise<{ data: any[]; error: any }> {
@@ -306,7 +431,7 @@ export class AssessmentService {
   }
 
   private static calculateBasicAssessmentResult(answers: AssessmentAnswer[]): AssessmentResult {
-    const category = AssessmentService.getCategory("basic") // Use the new getter
+    const category = AssessmentService.getCategory("basic")
     if (!category) throw new Error("Basic category not found")
 
     const totalScore = answers.reduce((sum, answer) => sum + answer.score, 0)
