@@ -113,11 +113,12 @@ export default function ResultsPage() {
           categoryTitle: category.title,
           answersCount: parsedAnswers.length,
         })
+        // Pass parsedAnswers directly to saveAssessment
         const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
           user.id,
           categoryId,
           category.title,
-          parsedAnswers,
+          parsedAnswers, // Use parsedAnswers directly
           analysisData,
         )
         console.log("ResultsPage: saveAssessment returned:", { savedData, saveError })
