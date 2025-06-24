@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, ArrowRight, Clock, CheckCircle } from "lucide-react"
+import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from "lucide-react"
 import { QuestionCard } from "./question-card"
-import { assessmentCategories, guestAssessmentCategory } from "@/data/assessment-questions"
+import { assessmentCategories } from "@/data/assessment-questions"
+import { AssessmentService } from "@/lib/assessment-service"
+import { useAuth } from "@/hooks/use-auth"
 import type { AssessmentAnswer } from "@/types/assessment"
 
 interface AssessmentFormProps {
@@ -17,8 +19,10 @@ interface AssessmentFormProps {
 
 export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const router = useRouter()
+  const { user } = useAuth()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const category = assessmentCategories.find((cat) => cat.id === categoryId)
 
@@ -39,7 +43,6 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     setAnswers((prevAnswers) => {
       const newAnswers = prevAnswers.filter((a) => a.questionId !== questionId)
       newAnswers.push({ questionId, answer, score, isValid })
-      console.log(`AssessmentForm: Answer updated for ${questionId}:`, { answer, score, isValid })
       return newAnswers
     })
   }
@@ -56,20 +59,12 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         hasAnswer &&
         (Array.isArray(answerEntry.answer) ? answerEntry.answer.length > 0 : String(answerEntry.answer).trim() !== "")
 
-      console.log(`AssessmentForm: canProceed check for ${currentQuestion.id}:`, {
-        answerEntry,
-        hasAnswer,
-        isAnswerNotEmpty,
-        isValid: answerEntry?.isValid,
-        result: answerEntry?.isValid === true && isAnswerNotEmpty,
-      })
-
       return answerEntry?.isValid === true && isAnswerNotEmpty
     }
     return true
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const currentAnswerForSubmission = getCurrentAnswer()
     let finalAnswersToSave: AssessmentAnswer[] = []
 
@@ -80,25 +75,53 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       finalAnswersToSave = [...answers]
     }
 
-    console.log("AssessmentForm: Answers array before saving to localStorage:", finalAnswersToSave)
-
     if (isLastQuestion) {
-      if (finalAnswersToSave.length === 0 && category.questions.length > 0) {
-        console.warn(
-          "AssessmentForm: Attempting to save an empty answers array for a non-empty assessment category. This might indicate missing required answers.",
-        )
+      // บันทึกข้อมูลลง Supabase ทันที
+      if (!user?.id) {
+        alert("กรุณาเข้าสู่ระบบก่อนทำแบบประเมิน")
+        return
       }
 
-      const localStorageKey =
-        categoryId === guestAssessmentCategory.id ? `guest-assessment-temp-answers` : `assessment-${categoryId}`
+      setIsSubmitting(true)
+      console.log("🚀 AssessmentForm: Starting assessment submission...")
 
-      localStorage.setItem(localStorageKey, JSON.stringify(finalAnswersToSave))
-      console.log(`AssessmentForm: Saved answers to localStorage with key: ${localStorageKey}.`)
+      try {
+        // วิเคราะห์ด้วย AI หากไม่ใช่ basic category
+        let aiAnalysis = null
+        if (categoryId !== "basic") {
+          console.log("🤖 AssessmentForm: Analyzing with AI...")
+          const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, finalAnswersToSave)
+          if (aiError) {
+            console.error("❌ AssessmentForm: AI Analysis failed:", aiError)
+          } else {
+            aiAnalysis = aiData
+            console.log("✅ AssessmentForm: AI Analysis completed")
+          }
+        }
 
-      if (categoryId === guestAssessmentCategory.id) {
-        router.push(`/guest-assessment/results`)
-      } else {
-        router.push(`/assessment/${categoryId}/results`)
+        // บันทึกลง Supabase
+        console.log("💾 AssessmentForm: Saving to Supabase...")
+        const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
+          user.id,
+          categoryId,
+          category.title,
+          finalAnswersToSave,
+          aiAnalysis,
+        )
+
+        if (saveError) {
+          throw new Error(saveError)
+        }
+
+        console.log("✅ AssessmentForm: Assessment saved successfully with ID:", savedData.id)
+
+        // ไปหน้าผลลัพธ์พร้อม assessmentId
+        router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
+      } catch (error) {
+        console.error("❌ AssessmentForm: Submission failed:", error)
+        alert("เกิดข้อผิดพลาดในการบันทึกแบบประเมิน กรุณาลองใหม่อีกครั้ง")
+      } finally {
+        setIsSubmitting(false)
       }
     } else {
       setCurrentQuestionIndex((prev) => prev + 1)
@@ -174,7 +197,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
               <Button
                 variant="outline"
                 onClick={handlePrevious}
-                disabled={currentQuestionIndex === 0}
+                disabled={currentQuestionIndex === 0 || isSubmitting}
                 className="px-4 sm:px-6 py-2 text-sm sm:text-base"
               >
                 <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
@@ -184,10 +207,16 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
               <Button
                 onClick={handleNext}
-                disabled={!canProceed()}
+                disabled={!canProceed() || isSubmitting}
                 className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm sm:text-base"
               >
-                {isLastQuestion ? (
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span className="hidden sm:inline">กำลังบันทึก...</span>
+                    <span className="sm:hidden">บันทึก...</span>
+                  </>
+                ) : isLastQuestion ? (
                   <>
                     <span className="hidden sm:inline">ดูผลการประเมิน</span>
                     <span className="sm:hidden">ดูผล</span>
