@@ -95,7 +95,6 @@ export default function GuestAssessmentResultsPage() {
       // Clear temporary answers from localStorage after successful analysis
       localStorage.removeItem(`guest-assessment-temp-answers`)
     } catch (err: any) {
-      console.error("Error loading or analyzing guest assessment data:", err)
       setError(err.message || t("error_loading_analysis"))
     } finally {
       setLoading(false)

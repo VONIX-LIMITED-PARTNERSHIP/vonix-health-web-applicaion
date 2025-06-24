@@ -135,7 +135,6 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
       const latestAssessments = getLatestAssessments(allAssessments)
       calculateDashboardStats(latestAssessments)
     } catch (err: any) {
-      console.error("Error loading user assessments:", err)
       setError(err.message ?? t("error_loading_analysis"))
     } finally {
       setLoading(false)
@@ -164,7 +163,6 @@ export function HealthOverviewModal({ isOpen, onOpenChange }: HealthOverviewModa
       setDetailedAssessmentData(data)
       setSelectedAssessmentId(assessmentId)
     } catch (err: any) {
-      console.error("Error loading detailed assessment:", err)
       setDetailedAssessmentError(err.message ?? t("error_loading_details"))
     } finally {
       setLoadingDetailedAssessment(false)

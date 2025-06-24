@@ -357,7 +357,6 @@ export function ChatWidget() {
       const data = await response.json()
       return data.response
     } catch (error) {
-      console.error("Error fetching from API route:", error)
       return "ขอโทษครับ เกิดข้อผิดพลาดชั่วคราว กรุณาลองใหม่อีกครั้งนะครับ 😅"
     }
   }

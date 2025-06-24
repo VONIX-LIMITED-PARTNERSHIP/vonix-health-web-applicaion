@@ -51,7 +51,7 @@ export function Header() {
     try {
       await signOut()
     } catch (error) {
-      console.error("Error during sign out in Header:", error)
+      // Removed console.error
     } finally {
       // เพิ่ม delay เล็กน้อยเพื่อให้การนำทาง (redirect) มีเวลาดำเนินการ
       // ก่อนที่จะรีเซ็ตสถานะการโหลด เพื่อป้องกันปัญหาการอัปเดตสถานะบนคอมโพเนนต์ที่อาจถูก unmount ไปแล้ว
@@ -66,7 +66,7 @@ export function Header() {
     try {
       await refreshProfile()
     } catch (error) {
-      console.error("Error refreshing profile:", error)
+      // Removed console.error
     } finally {
       setRefreshing(false)
     }

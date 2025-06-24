@@ -45,27 +45,22 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
 
       try {
         storedAnswers = localStorage.getItem(`assessment-${categoryId}`)
-        console.log(`[AssessmentResults] Retrieved from localStorage for ${categoryId}:`, storedAnswers)
         if (storedAnswers) {
           answers = JSON.parse(storedAnswers)
-          console.log(`[AssessmentResults] Parsed answers:`, answers)
         }
       } catch (parseError) {
-        console.error("[AssessmentResults] Failed to parse answers from localStorage:", parseError)
         setError(t("assessment.error_loading_answers"))
         setLoading(false)
         return
       }
 
       if (!answers || answers.length === 0) {
-        console.warn(`[AssessmentResults] No answers found for category ${categoryId}.`)
         setError(t("assessment.no_answers_found"))
         setLoading(false)
         return
       }
 
       if (!user) {
-        console.warn("[AssessmentResults] User not logged in, cannot save assessment.")
         setError(t("assessment.not_logged_in"))
         setLoading(false)
         return
@@ -74,7 +69,6 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
       let analysisData = null
       // Only call AI for non-basic categories
       if (categoryId !== "basic") {
-        console.log(`[AssessmentResults] Calling AI analysis for category: ${categoryId}`)
         try {
           const { data, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, answers)
           if (aiError) {
@@ -82,19 +76,14 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
           }
           analysisData = data
           setAiAnalysis(data)
-          console.log("[AssessmentResults] AI analysis successful:", data)
         } catch (aiAnalysisError: any) {
-          console.error("[AssessmentResults] AI analysis failed:", aiAnalysisError)
           setError(t("assessment.ai_analysis_failed", { message: aiAnalysisError.message }))
           setLoading(false)
           return
         }
-      } else {
-        console.log(`[AssessmentResults] Skipping AI analysis for basic category: ${categoryId}`)
       }
 
       setIsSaving(true)
-      console.log(`[AssessmentResults] Attempting to save assessment for user ${user.id}, category ${categoryId}...`)
       try {
         const { data: savedAssessment, error: saveError } = await AssessmentService.saveAssessment(
           user.id,
@@ -110,9 +99,7 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
 
         setAssessmentResult(savedAssessment)
         localStorage.removeItem(`assessment-${categoryId}`) // Clear answers after successful save
-        console.log("[AssessmentResults] Assessment saved successfully and localStorage cleared.")
       } catch (saveError: any) {
-        console.error("[AssessmentResults] Failed to save assessment:", saveError)
         setError(t("assessment.save_failed", { message: saveError.message }))
       } finally {
         setIsSaving(false)
@@ -124,7 +111,6 @@ export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
       loadAndSaveAssessment()
     } else if (!isAuthLoading) {
       // If not loading auth and no user, redirect to login or show message
-      console.warn("[AssessmentResults] Not authenticated, redirecting to login.")
       setError(t("assessment.not_logged_in_redirect"))
       // router.push("/login") // Or handle redirect
       setLoading(false)
