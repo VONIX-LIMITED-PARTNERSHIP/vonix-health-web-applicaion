@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -134,24 +133,19 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
           </CardHeader>
           <CardContent className="space-y-6">
             {/* คะแนนและระดับความเสี่ยง */}
-            <div className="text-center space-y-4">
-              <div className="space-y-2">
-                <div className="text-4xl font-bold text-gray-800">
-                  {assessmentResult.percentage}
-                  <span className="text-2xl text-gray-500">%</span>
-                </div>
-                <div className="text-sm text-gray-500">
-                  คะแนน {assessmentResult.totalScore} จาก {assessmentResult.maxScore} คะแนน
-                </div>
-              </div>
-
-              <div className="max-w-md mx-auto">
-                <Progress value={assessmentResult.percentage} className="h-3" />
-              </div>
-
-              <Badge variant="secondary" className={`${riskInfo.color} ${riskInfo.bgColor} text-lg px-4 py-2`}>
+            <div className="text-center space-y-6">
+              {/* แสดงแค่ระดับความเสี่ยง ไม่แสดงคะแนน */}
+              <Badge variant="secondary" className={`${riskInfo.color} ${riskInfo.bgColor} text-xl px-6 py-3`}>
                 {riskInfo.label}
               </Badge>
+
+              {/* แสดงจำนวนปัจจัยเสี่ยงที่พบ */}
+              {assessmentResult.riskFactors && assessmentResult.riskFactors.length > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600 mb-1">{assessmentResult.riskFactors.length}</div>
+                  <div className="text-sm text-gray-600">ปัจจัยเสี่ยงที่พบ</div>
+                </div>
+              )}
             </div>
 
             <Separator />
@@ -217,6 +211,7 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
                 </span>
                 <span className="font-medium">{answers.length} ข้อ</span>
               </div>
+              {/* เอาการแสดงคะแนนออก */}
             </div>
 
             {/* ปุ่มดำเนินการ */}
