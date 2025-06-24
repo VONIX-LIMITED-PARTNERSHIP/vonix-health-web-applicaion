@@ -118,7 +118,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
       id: "guest_q7",
       type: "multiple-choice",
       question: "ความดันโลหิตของคุณเป็นอย่างไร?",
-      options: ["ปกติ (น้อยกว่า 120/80)", "สูงเล็กน้อย (120-139/80-89)", "สูง (140/90 ขึ้นไป)", "ไม่ทราบ"],
+      options: ["ปกติ (น้อยกว่า 120/80)", "สูงเล็กน���อย (120-139/80-89)", "สูง (140/90 ขึ้นไป)", "ไม่ทราบ"],
       required: true,
       category: "guest",
       weight: 4,
@@ -492,7 +492,7 @@ export const assessmentCategories: AssessmentCategory[] = [
       {
         id: "mental-1",
         type: "rating",
-        question: "ในช่วง 2 สัปดาห์ที่ผ่านมา คุณรู้สึกเศร้า หดหู่ บ่อยแค่ไหน?",
+        question: "ในช่วง 2 สัปดาห์ที่ผ่านมา คุณรู้สึกเศร้า ��ดหู่ บ่อยแค่ไหน?",
         description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกวัน)",
         options: ["1", "2", "3", "4", "5"],
         required: true,
