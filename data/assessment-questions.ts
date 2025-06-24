@@ -23,6 +23,24 @@ export type AssessmentQuestion = {
   riskFactors?: string[] // Add riskFactors if it's used in other parts of the system
 }
 
+// Define the AssessmentAnswer type to allow null for answer
+export type AssessmentAnswer = {
+  questionId: string
+  answer: string | number | string[] | null // Allow null for answer
+  score: number
+  isValid: boolean // เพิ่ม property นี้เพื่อเก็บสถานะความถูกต้อง
+}
+
+export interface AssessmentResult {
+  categoryId: string
+  totalScore: number
+  maxScore: number
+  percentage: number
+  riskLevel: "low" | "medium" | "high" | "very-high"
+  recommendations: string[]
+  riskFactors: string[]
+}
+
 // Guest assessment (for non-logged-in users)
 export const guestAssessmentCategory: AssessmentCategory = {
   id: "guest-assessment",
@@ -270,9 +288,21 @@ export const assessmentCategories: AssessmentCategory[] = [
       },
       {
         id: "basic-8",
-        type: "text",
+        type: "multi-select-combobox-with-other", // เปลี่ยนเป็น multi-select-combobox-with-other
         question: "ยาที่ใช้ประจำ",
-        description: 'ระบุชื่อยาและความถี่ในการใช้ (หากไม่มีให้ใส่ "ไม่มี")',
+        description: "เลือกประเภทของยาที่ใช้ประจำ หรือระบุอื่นๆ",
+        options: [
+          // เพิ่ม options สำหรับประเภทของยา
+          "ยาแก้ปวด",
+          "ยาปฏิชีวนะ",
+          "ยาลดความดันโลหิต",
+          "ยาเบาหวาน",
+          "ยาลดไขมันในเลือด",
+          "ยาแก้แพ้",
+          "ยาโรคกระเพาะ",
+          "ยาบำรุง",
+          "ไม่มี",
+        ],
         required: true,
         category: "basic",
         weight: 2,
@@ -475,7 +505,7 @@ export const assessmentCategories: AssessmentCategory[] = [
       {
         id: "mental-1",
         type: "rating",
-        question: "ในช่วง 2 สัปดาห์ที่ผ่านมา คุณรู้สึกเศร้า หดหู่ บ่อยแค่ไหน?",
+        question: "ในช่วง 2 สัปดาห์ที่ผ่านมา คุณรู้สึกเศร้า ��ดหู่ บ่อยแค่ไหน?",
         description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกวัน)",
         options: ["1", "2", "3", "4", "5"],
         required: true,
