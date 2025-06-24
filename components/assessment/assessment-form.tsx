@@ -108,16 +108,16 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
             กลับหน้าหลัก
           </Button>
 
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-gray-900/80 dark:border-gray-700">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-2xl mb-2">{category.title}</CardTitle>
-                  <p className="text-gray-600">{category.description}</p>
+                  <CardTitle className="text-2xl mb-2 dark:text-gray-100">{category.title}</CardTitle>
+                  <p className="text-gray-600 dark:text-gray-300">{category.description}</p>
                 </div>
                 <div className="flex items-center space-x-4">
                   {category.required && <Badge className="bg-red-500 text-white">จำเป็น</Badge>}
-                  <div className="flex items-center text-gray-500">
+                  <div className="flex items-center text-gray-500 dark:text-gray-400">
                     <Clock className="w-4 h-4 mr-1" />
                     <span className="text-sm">{category.estimatedTime} นาที</span>
                   </div>
@@ -128,15 +128,17 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         </div>
 
         {/* Progress */}
-        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl">
+        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-gray-900/80 dark:border-gray-700">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-medium text-gray-600">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                 คำถามที่ {currentQuestionIndex + 1} จาก {category.questions.length}
               </span>
-              <span className="text-sm font-medium text-blue-600">{Math.round(progress)}% เสร็จสิ้น</span>
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                {Math.round(progress)}% เสร็จสิ้น
+              </span>
             </div>
-            <Progress value={progress} className="h-3 bg-gray-200" />
+            <Progress value={progress} className="h-3 bg-gray-200 dark:bg-gray-700" />
           </CardContent>
         </Card>
 
@@ -144,7 +146,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         <QuestionCard question={currentQuestion} answer={getCurrentAnswer()} onAnswer={handleAnswer} />
 
         {/* Navigation */}
-        <Card className="mt-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl">
+        <Card className="mt-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-gray-900/80 dark:border-gray-700">
           <CardContent className="p-6">
             <div className="flex justify-between items-center gap-4">
               <Button
