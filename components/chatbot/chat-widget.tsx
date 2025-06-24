@@ -89,7 +89,7 @@ export function ChatWidget() {
 
 🔍 แบบประเมินที่มี:
 • ข้อมูลพื้นฐาน - ข้อมูลทั่วไปของคุณ
-• สุขภาพกาย - การออกกำลังกาย ��าหาร
+• สุขภาพกาย - การออกกำลังกาย าหาร
 • สุขภาพจิต - ความเครียด อารมณ์
 • การนอนหลับ - คุณภาพการพักผ่อน
 
@@ -448,14 +448,14 @@ export function ChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-40 w-96 h-[600px] max-w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-3rem)] flex flex-col rounded-3xl overflow-hidden">
+        <div className="fixed bottom-24 right-6 z-[99] w-96 h-[600px] max-w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-3rem)] flex flex-col rounded-3xl overflow-hidden">
           <Card className="h-full bg-card dark:bg-card-foreground backdrop-blur-xl border border-border shadow-2xl flex flex-col">
             {/* Header */}
             <CardHeader className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white p-6 shadow-lg flex flex-row items-center justify-between flex-shrink-0">
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <Avatar className="h-12 w-12 border-3 border-white/30 shadow-lg">
-                    <AvatarImage src="/placeholder.svg?height=48&width=48&text=🤖" />
+                    <AvatarImage src="/chatbot-avatar-v2.png" />
                     <AvatarFallback className="bg-white/20 text-white text-lg font-bold backdrop-blur-sm">
                       <Bot className="h-6 w-6" />
                     </AvatarFallback>

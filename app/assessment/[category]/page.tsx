@@ -8,7 +8,8 @@ interface AssessmentPageProps {
 
 export default function AssessmentPage({ params }: AssessmentPageProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800">
+    // เปลี่ยนจาก bg-gradient-to-br... เป็น bg-background เพื่อใช้สีธีมหลัก
+    <div className="min-h-screen bg-background">
       <AssessmentForm categoryId={params.category} />
     </div>
   )
