@@ -1,6 +1,6 @@
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
 import { createClientComponentClient } from "@/lib/supabase"
-import { assessmentCategories } from "@/data/assessment-questions" // Import guestAssessmentCategory here
+import { assessmentCategories } from "@/data/assessment-questions" // Import assessmentCategories here
 
 export class AssessmentService {
   private static supabase = createClientComponentClient()
@@ -63,7 +63,7 @@ export class AssessmentService {
   ): Promise<{ data: any; error: any }> {
     const requestId = `save-${userId}-${categoryId}-${Date.now()}`
 
-    console.log("AssessmentService.saveAssessment: Received answers (start of function):", answers)
+    console.log("AssessmentService.saveAssessment: START - Received answers:", answers)
     console.log("AssessmentService.saveAssessment: Type of answers:", typeof answers)
     console.log("AssessmentService.saveAssessment: Is answers an Array?", Array.isArray(answers))
     console.log("AssessmentService.saveAssessment: Answers length property:", answers?.length)
@@ -78,9 +78,10 @@ export class AssessmentService {
       if (!Array.isArray(answers) || answers.length === 0) {
         console.error(
           "AssessmentService.saveAssessment: CRITICAL VALIDATION FAILED - answers array is not valid or empty at check point.",
+          { answers },
         )
         // Throw a distinct error message here to differentiate from other errors
-        throw new Error("Validation Error: Answers array is invalid or empty.")
+        throw new Error("AssessmentServiceError: Answers array is invalid or empty.")
       }
 
       if (!this.supabase) {
@@ -91,6 +92,7 @@ export class AssessmentService {
       const existingKey = `save-${userId}-${categoryId}`
       const existingController = this.activeRequests.get(existingKey)
       if (existingController) {
+        console.warn(`AssessmentService.saveAssessment: Aborting existing request for ${existingKey}`)
         existingController.abort()
         this.activeRequests.delete(existingKey)
       }
@@ -101,6 +103,7 @@ export class AssessmentService {
 
       // Set timeout for the entire operation (15 seconds)
       const timeoutId = setTimeout(() => {
+        console.warn(`AssessmentService.saveAssessment: Request for ${existingKey} timed out. Aborting.`)
         abortController.abort()
         this.activeRequests.delete(existingKey)
       }, 15000)
@@ -136,6 +139,7 @@ export class AssessmentService {
           .limit(1)
 
         if (recentAssessments && recentAssessments.length > 0) {
+          console.log("AssessmentService.saveAssessment: Found recent duplicate, returning existing assessment.")
           clearTimeout(timeoutId)
           this.activeRequests.delete(existingKey)
           return { data: recentAssessments[0], error: null }
@@ -156,6 +160,7 @@ export class AssessmentService {
           completed_at: new Date().toISOString(),
         }
 
+        console.log("AssessmentService.saveAssessment: Inserting data to Supabase:", assessmentData)
         // Insert with proper error handling
         const { data: insertedData, error } = await this.supabase
           .from("assessments")
@@ -168,6 +173,7 @@ export class AssessmentService {
         this.activeRequests.delete(existingKey)
 
         if (error) {
+          console.error("AssessmentService.saveAssessment: Supabase insert error:", error)
           // Handle specific error cases
           if (error.code === "23505") {
             // Unique constraint violation
@@ -175,6 +181,9 @@ export class AssessmentService {
           }
 
           if (error.message.includes("JSON")) {
+            console.warn(
+              "AssessmentService.saveAssessment: JSON error detected, attempting retry with stringified answers.",
+            )
             const retryData = {
               ...assessmentData,
               answers: JSON.stringify(answers),
@@ -187,9 +196,10 @@ export class AssessmentService {
               .single()
 
             if (retryError) {
+              console.error("AssessmentService.saveAssessment: Database retry failed:", retryError)
               throw new Error(`Database retry failed: ${retryError.message}`)
             }
-
+            console.log("AssessmentService.saveAssessment: Database retry successful.")
             return { data: retryResult, error: null }
           }
 
@@ -197,8 +207,11 @@ export class AssessmentService {
         }
 
         if (!insertedData) {
+          console.error("AssessmentService.saveAssessment: No data returned from insert operation.")
           throw new Error("No data returned from insert operation")
         }
+
+        console.log("AssessmentService.saveAssessment: Insert successful, insertedData:", insertedData)
 
         // Log audit (non-blocking)
         this.logAudit(userId, "assessment_completed", "assessments", insertedData.id, {
@@ -206,10 +219,13 @@ export class AssessmentService {
           score: result.percentage,
           risk_level: result.riskLevel,
           ai_analysis: categoryId !== "basic",
-        }).catch((err) => {})
+        }).catch((err) => {
+          console.error("AssessmentService.saveAssessment: Audit log failed:", err)
+        })
 
         return { data: insertedData, error: null }
       } catch (operationError) {
+        console.error("AssessmentService.saveAssessment: Caught operation error:", operationError)
         // Clear timeout and cleanup
         clearTimeout(timeoutId)
         this.activeRequests.delete(existingKey)
@@ -230,7 +246,7 @@ export class AssessmentService {
 
       if (error instanceof Error) {
         // ตรวจสอบข้อความ Error ที่เรากำหนดเอง
-        if (error.message.includes("Validation Error: Answers array is invalid or empty.")) {
+        if (error.message.includes("AssessmentServiceError: Answers array is invalid or empty.")) {
           errorMessage = "assessment.no_answers_found" // ยังคงใช้ข้อความนี้สำหรับผู้ใช้
         } else if (error.message.includes("network") || error.message.includes("fetch")) {
           errorMessage = "ปัญหาการเชื่อมต่อ กรุณาตรวจสอบอินเทอร์เน็ต"
@@ -247,117 +263,6 @@ export class AssessmentService {
 
       return { data: null, error: errorMessage }
     }
-  }
-
-  private static calculateBasicAssessmentResult(answers: AssessmentAnswer[]): AssessmentResult {
-    const category = AssessmentService.getCategory("basic")
-    if (!category) throw new Error("Basic category not found")
-
-    const totalScore = answers.reduce((sum, answer) => sum + answer.score, 0)
-    const maxScore = answers.length * 5
-    const percentage = Math.round((totalScore / maxScore) * 100)
-
-    // Determine risk level
-    let riskLevel: "low" | "medium" | "high" | "very-high"
-    if (percentage < 30) riskLevel = "low"
-    else if (percentage < 50) riskLevel = "medium"
-    else if (percentage < 70) riskLevel = "high"
-    else riskLevel = "very-high"
-
-    // Extract risk factors and recommendations based on answers
-    const riskFactors: string[] = []
-    const recommendations: string[] = []
-
-    // Analyze specific answers for basic health data
-    answers.forEach((answer) => {
-      const question = category.questions.find((q) => q.id === answer.questionId)
-      if (!question) return
-
-      // BMI calculation and risk assessment
-      if (question.id === "basic-3" || question.id === "basic-4") {
-        const weightAnswer = answers.find((a) => a.questionId === "basic-3")
-        const heightAnswer = answers.find((a) => a.questionId === "basic-4")
-
-        if (weightAnswer && heightAnswer) {
-          const weight = Number(weightAnswer.answer)
-          const height = Number(heightAnswer.answer) / 100 // convert cm to m
-          const bmi = weight / (height * height)
-
-          if (bmi < 18.5) {
-            riskFactors.push("น้ำหนักต่ำกว่าเกณฑ์")
-            recommendations.push("ควรเพิ่มน้ำหนักให้อยู่ในเกณฑ์ปกติ")
-          } else if (bmi >= 25) {
-            riskFactors.push("น้ำหนักเกินหรือโรคอ้วน")
-            recommendations.push("ควรลดน้ำหนักและออกกำลังกายสม่ำเสมอ")
-          }
-        }
-      }
-
-      // Chronic diseases
-      if (question.id === "basic-6" && Array.isArray(answer.answer)) {
-        const diseases = answer.answer as string[]
-        diseases.forEach((disease) => {
-          if (disease !== "ไม่มีโรคประจำตัว") {
-            riskFactors.push(disease)
-            if (disease === "เบาหวาน") {
-              recommendations.push("ควบคุมระดับน้ำตาลในเลือดอย่างสม่ำเสมอ")
-            } else if (disease === "ความดันโลหิตสูง") {
-              recommendations.push("ตรวจวัดความดันโลหิตเป็นประจำ")
-            }
-          }
-        })
-      }
-
-      // Drug allergies
-      if (question.id === "basic-7" && Array.isArray(answer.answer)) {
-        const allergies = answer.answer as string[]
-        allergies.forEach((allergy) => {
-          if (allergy !== "ไม่มีการแพ้") {
-            riskFactors.push(`แพ้: ${allergy}`)
-          }
-        })
-      }
-    })
-
-    // General recommendations
-    if (riskFactors.length === 0) {
-      recommendations.push("ข้อมูลสุขภาพพื้นฐานของคุณอยู่ในเกณฑ์ปกติ")
-      recommendations.push("ควรตรวจสุขภาพประจำปีเพื่อติดตามสุขภาพ")
-    } else {
-      recommendations.push("ควรปรึกษาแพทย์เพื่อรับคำแนะนำเฉพาะบุคคล")
-      recommendations.push("นำข้อมูลนี้ไปแสดงแพทย์เมื่อไปรับการรักษา")
-    }
-
-    return {
-      categoryId: "basic",
-      totalScore,
-      maxScore,
-      percentage,
-      riskLevel,
-      riskFactors,
-      recommendations,
-    }
-  }
-
-  private static async logAudit(
-    userId: string,
-    action: string,
-    resourceType: string,
-    resourceId: string,
-    details: any,
-  ) {
-    try {
-      if (!this.supabase) return
-
-      await this.supabase.from("audit_logs").insert({
-        user_id: userId,
-        action,
-        resource_type: resourceType,
-        resource_id: resourceId,
-        details,
-        user_agent: typeof window !== "undefined" ? navigator.userAgent : null,
-      })
-    } catch (error) {}
   }
 
   static async getUserAssessments(userId: string): Promise<{ data: any[]; error: any }> {
@@ -538,7 +443,9 @@ export class AssessmentService {
         details,
         user_agent: typeof window !== "undefined" ? navigator.userAgent : null,
       })
-    } catch (error) {}
+    } catch (error) {
+      console.error("AssessmentService.logAudit: Failed to log audit:", error)
+    }
   }
 
   static async testConnection(): Promise<boolean> {
@@ -548,12 +455,14 @@ export class AssessmentService {
       const { data, error } = await this.supabase.from("profiles").select("id").limit(1)
       return !error
     } catch (error) {
+      console.error("AssessmentService.testConnection: Failed to test connection:", error)
       return false
     }
   }
 
   // Clean up method to cancel all pending requests
   static cleanup() {
+    console.log("AssessmentService.cleanup: Aborting all active requests.")
     this.activeRequests.forEach((controller, key) => {
       controller.abort()
     })
