@@ -262,7 +262,7 @@ export default function ProfilePage() {
                                   !field.value && "text-muted-foreground",
                                 )}
                               >
-                                {field.value ? (
+                                {field.value && !isNaN(new Date(field.value).getTime()) ? (
                                   format(new Date(field.value), "PPP")
                                 ) : (
                                   <span>{t("profile.pick_a_date")}</span>
@@ -274,7 +274,11 @@ export default function ProfilePage() {
                           <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
                               mode="single"
-                              selected={field.value ? new Date(field.value) : undefined}
+                              selected={
+                                field.value && !isNaN(new Date(field.value).getTime())
+                                  ? new Date(field.value)
+                                  : undefined
+                              }
                               onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
                               initialFocus
                             />
