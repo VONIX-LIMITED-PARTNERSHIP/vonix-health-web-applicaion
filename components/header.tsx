@@ -53,7 +53,11 @@ export function Header() {
     } catch (error) {
       console.error("Error during sign out in Header:", error)
     } finally {
-      setSigningOut(false)
+      // เพิ่ม delay เล็กน้อยเพื่อให้การนำทาง (redirect) มีเวลาดำเนินการ
+      // ก่อนที่จะรีเซ็ตสถานะการโหลด เพื่อป้องกันปัญหาการอัปเดตสถานะบนคอมโพเนนต์ที่อาจถูก unmount ไปแล้ว
+      setTimeout(() => {
+        setSigningOut(false)
+      }, 100) // หน่วงเวลา 100 มิลลิวินาที
     }
   }
 
