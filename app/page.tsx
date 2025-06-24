@@ -10,7 +10,27 @@ import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { AssessmentService } from "@/lib/assessment-service"
 import { isSupabaseConfigured } from "@/lib/supabase"
-import { Play, Stethoscope, User, Heart, Apple, Brain, MoonIcon, ChevronRight, FileText, Activity, Sparkles, Shield, Zap, TrendingUp, Clock, Award, FlaskConical, BarChart2, Dumbbell } from 'lucide-react'
+import {
+  Play,
+  Stethoscope,
+  User,
+  Heart,
+  Apple,
+  Brain,
+  MoonIcon,
+  ChevronRight,
+  FileText,
+  Activity,
+  Sparkles,
+  Shield,
+  Zap,
+  TrendingUp,
+  Clock,
+  Award,
+  FlaskConical,
+  BarChart2,
+  Dumbbell,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
@@ -114,6 +134,24 @@ export default function HomePage() {
 
   const isLoggedIn = !loading && user && profile
 
+  // ฟังก์ชันแปลงเปอร์เซ็นต์เป็นระดับคุณภาพ
+  const getHealthLevel = (percentage: number): string => {
+    if (percentage >= 81) return "ดีมาก"
+    if (percentage >= 61) return "ดี"
+    if (percentage >= 41) return "ปกติ"
+    if (percentage >= 21) return "แย่"
+    return "แย่มาก"
+  }
+
+  // ฟังก์ชันกำหนดสีตามระดับคุณภาพ
+  const getHealthLevelColor = (percentage: number): string => {
+    if (percentage >= 81) return "text-green-600"
+    if (percentage >= 61) return "text-blue-600"
+    if (percentage >= 41) return "text-yellow-600"
+    if (percentage >= 21) return "text-orange-600"
+    return "text-red-600"
+  }
+
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -129,12 +167,12 @@ export default function HomePage() {
     if (mounted && searchParams.get("openHealthOverview")) {
       const categoryToOpen = searchParams.get("openHealthOverview")
       const assessmentId = searchParams.get("assessmentId")
-      
+
       console.log("🎯 HomePage: เปิด Health Overview Modal จาก URL parameter")
       console.log("📋 HomePage: Category:", categoryToOpen, "Assessment ID:", assessmentId)
-      
+
       setIsHealthOverviewModalOpen(true)
-      
+
       // ถ้ามี assessmentId ให้เก็บไว้เพื่อใช้ใน modal
       if (assessmentId) {
         setTargetAssessmentId(assessmentId)
@@ -231,10 +269,12 @@ export default function HomePage() {
       if (userAssessment) {
         return {
           ...category,
-          status: t("finished"),
+          status: "เสร็จสิ้น",
           progress: 100,
           lastCompleted: new Date(userAssessment.completed_at).toLocaleDateString("th-TH"),
           score: userAssessment.percentage,
+          healthLevel: getHealthLevel(userAssessment.percentage),
+          healthLevelColor: getHealthLevelColor(userAssessment.percentage),
         }
       }
 
@@ -532,7 +572,11 @@ export default function HomePage() {
                             {category.progress > 0 && (
                               <div className="text-xs text-gray-500 dark:text-gray-400">
                                 {category.progress}% {t("completed")}
-                                {category.score && <span className="ml-1">({category.score}%)</span>}
+                                {category.healthLevel && (
+                                  <span className={`ml-2 font-semibold ${category.healthLevelColor}`}>
+                                    ({category.healthLevel})
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>
@@ -571,8 +615,8 @@ export default function HomePage() {
         </div>
       </main>
       <ConsultDoctorIntroModal isOpen={isConsultModalOpen} onOpenChange={setIsConsultModalOpen} />
-      <HealthOverviewModal 
-        isOpen={isHealthOverviewModalOpen} 
+      <HealthOverviewModal
+        isOpen={isHealthOverviewModalOpen}
         onOpenChange={setIsHealthOverviewModalOpen}
         targetAssessmentId={targetAssessmentId}
         onTargetAssessmentIdChange={setTargetAssessmentId}
