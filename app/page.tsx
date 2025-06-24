@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -33,13 +34,13 @@ import {
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
-import { HealthOverviewModal } from "@/components/health-overview-modal" // Import the new health overview modal
-import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
+import { HealthOverviewModal } from "@/components/health-overview-modal"
+import { useTranslation } from "@/hooks/use-translation"
 
 const assessmentCategories = [
   {
     id: "basic",
-    title: "ข้อมูลส่วนตัว", // Changed from "ข้อมูลพื้นฐานสำหรับแพทย์"
+    title: "ข้อมูลส่วนตัว",
     description: "ข้อมูลสำคัญที่แพทย์ต้องการเพื่อการวินิจฉัยและรักษา",
     icon: User,
     required: true,
@@ -47,7 +48,7 @@ const assessmentCategories = [
     progress: 0,
     gradient: "from-blue-500 to-cyan-500",
     bgGradient: "from-blue-50 to-cyan-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
   },
   {
     id: "heart",
@@ -59,7 +60,7 @@ const assessmentCategories = [
     progress: 0,
     gradient: "from-red-500 to-pink-500",
     bgGradient: "from-red-50 to-pink-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
   },
   {
     id: "nutrition",
@@ -71,7 +72,7 @@ const assessmentCategories = [
     progress: 0,
     gradient: "from-green-500 to-emerald-500",
     bgGradient: "from-green-50 to-green-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
   },
   {
     id: "mental",
@@ -83,7 +84,7 @@ const assessmentCategories = [
     progress: 0,
     gradient: "from-purple-500 to-violet-500",
     bgGradient: "from-purple-50 to-purple-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
   },
   {
     id: "physical",
@@ -95,7 +96,7 @@ const assessmentCategories = [
     progress: 0,
     gradient: "from-orange-500 to-amber-500",
     bgGradient: "from-orange-50 to-orange-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
   },
   {
     id: "sleep",
@@ -107,30 +108,13 @@ const assessmentCategories = [
     progress: 0,
     gradient: "from-indigo-500 to-blue-500",
     bgGradient: "from-indigo-50 to-indigo-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700", // Added for dark mode
-  },
-]
-
-const features = [
-  {
-    icon: Sparkles,
-    title: "AI ที่ฉลาด",
-    description: "วิเคราะห์ด้วย OpenAI",
-  },
-  {
-    icon: Shield,
-    title: "ปลอดภัย 100%",
-    description: "เข้ารหัสข้อมูลและปฏิบัติตาม PDPA",
-  },
-  {
-    icon: Zap,
-    title: "รวดเร็วทันใจ",
-    description: "ผลลัพธ์ภายใน 2-3 นาที",
+    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
   },
 ]
 
 export default function HomePage() {
   const { user, profile, loading } = useAuth()
+  const searchParams = useSearchParams()
   const [mounted, setMounted] = useState(false)
   const [assessments, setAssessments] = useState<any[]>([])
   const [dashboardStats, setDashboardStats] = useState({
@@ -141,8 +125,8 @@ export default function HomePage() {
   })
   const [loadingStats, setLoadingStats] = useState(false)
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false)
-  const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false) // New state for health overview modal
-  const { t } = useTranslation() // Use translation hook
+  const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false)
+  const { t } = useTranslation()
 
   const router = useRouter()
   const { toast } = useToast()
@@ -158,6 +142,19 @@ export default function HomePage() {
       loadUserAssessments()
     }
   }, [isLoggedIn, user?.id])
+
+  // ตรวจสอบ URL parameter เพื่อเปิด Health Overview Modal
+  useEffect(() => {
+    if (mounted && searchParams.get("openHealthOverview") === "true") {
+      console.log("🎯 HomePage: เปิด Health Overview Modal จาก URL parameter")
+      setIsHealthOverviewModalOpen(true)
+
+      // ลบ parameter ออกจาก URL หลังจากเปิด modal แล้ว
+      const url = new URL(window.location.href)
+      url.searchParams.delete("openHealthOverview")
+      window.history.replaceState({}, "", url.toString())
+    }
+  }, [mounted, searchParams])
 
   const loadUserAssessments = async () => {
     if (!user?.id || !isSupabaseConfigured()) return
@@ -176,7 +173,7 @@ export default function HomePage() {
       const latestAssessments = getLatestAssessments(allAssessments)
       calculateDashboardStats(latestAssessments)
     } catch (error) {
-      // console.error("Error loading user assessments:", error) // Removed sensitive log
+      // console.error("Error loading user assessments:", error)
     } finally {
       setLoadingStats(false)
     }
@@ -421,8 +418,8 @@ export default function HomePage() {
                           <Button
                             variant="outline"
                             className="border-2 border-gray-300 hover:border-blue-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base
-                            dark:border-gray-700 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200" // Added dark mode classes
-                            onClick={handleViewHealthOverview} // New button for health overview
+                            dark:border-gray-700 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200"
+                            onClick={handleViewHealthOverview}
                           >
                             <BarChart2 className="mr-2 h-4 w-4" />
                             <span className="hidden sm:inline">{t("health_overview")}</span>
@@ -535,7 +532,7 @@ export default function HomePage() {
                               <Badge
                                 variant="secondary"
                                 className="bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full
-                                dark:bg-blue-900 dark:text-blue-200" // Added dark mode classes
+                                dark:bg-blue-900 dark:text-blue-200"
                               >
                                 {t("optional")}
                               </Badge>
@@ -563,7 +560,7 @@ export default function HomePage() {
                           className={`w-full font-semibold py-3 rounded-xl transition-all duration-300 ${
                             category.required
                               ? `bg-gradient-to-r ${category.gradient} hover:shadow-lg text-white`
-                              : "bg-white/80 hover:bg-white text-gray-700 border border-gray-200 hover:border-gray-300 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-700 dark:hover:border-gray-600" // Added dark mode classes
+                              : "bg-white/80 hover:bg-white text-gray-700 border border-gray-200 hover:border-gray-300 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-700 dark:hover:border-gray-600"
                           }`}
                           asChild
                         >
