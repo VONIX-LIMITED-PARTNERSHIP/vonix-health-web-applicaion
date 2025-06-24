@@ -35,6 +35,7 @@ import { useTranslation } from "@/hooks/use-translation"
 import { AssessmentService } from "@/lib/assessment-service"
 import { isSupabaseConfigured } from "@/lib/supabase"
 import { assessmentCategories as allAssessmentCategories } from "@/data/assessment-questions"
+import { useRiskLevelTranslation } from "@/utils/risk-level"
 
 interface HealthOverviewModalProps {
   isOpen: boolean
@@ -79,6 +80,8 @@ export function HealthOverviewModal({
   const [detailedAssessmentData, setDetailedAssessmentData] = useState<any | null>(null)
   const [loadingDetailedAssessment, setLoadingDetailedAssessment] = useState(false)
   const [detailedAssessmentError, setDetailedAssessmentError] = useState<string | null>(null)
+
+  const { getRiskLevelLabel, getRiskLevelBadgeClass } = useRiskLevelTranslation()
 
   /* ────────────────────────────────────────────────────────────────────
      Lifecycle
@@ -257,14 +260,9 @@ export function HealthOverviewModal({
     allAssessmentCategories.find((c) => c.id === categoryId)?.title ?? "ไม่พบข้อมูล"
 
   const getRiskLevelBadge = (level: string) => {
-    const badgeMap: Record<string, { color: string; label: string }> = {
-      low: { color: "bg-green-500 dark:bg-green-700", label: "ความเสี่ยงต่ำ" },
-      medium: { color: "bg-yellow-500 dark:bg-yellow-700", label: "ความเสี่ยงปานกลาง" },
-      high: { color: "bg-orange-500 dark:bg-orange-700", label: "ความเสี่ยงสูง" },
-      "very-high": { color: "bg-red-500 dark:bg-red-700", label: "ความเสี่ยงสูงมาก" },
-    }
-    const { color, label } = badgeMap[level] ?? { color: "bg-gray-200", label: "ไม่ระบุระดับความเสี่ยง" }
-    return <Badge className={`${color} text-white`}>{label}</Badge>
+    const label = getRiskLevelLabel(level)
+    const badgeClass = getRiskLevelBadgeClass(level)
+    return <Badge className={badgeClass}>{label}</Badge>
   }
 
   /* ────────────────────────────────────────────────────────────────────
@@ -584,31 +582,13 @@ export function HealthOverviewModal({
         </div>
         <div className="flex items-center gap-2">
           {assessment.category_id !== "basic" ? (
-            <Badge
-              className={`${
-                assessment.risk_level === "low"
-                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
-                  : assessment.risk_level === "medium"
-                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200"
-                    : assessment.risk_level === "high"
-                      ? "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200"
-                      : assessment.risk_level === "very-high"
-                        ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200"
-                        : "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-200"
-              }`}
-            >
-              {assessment.risk_level === "low"
-                ? "ความเสี่ยงต่ำ"
-                : assessment.risk_level === "medium"
-                  ? "ความเสี่ยงปานกลาง"
-                  : assessment.risk_level === "high"
-                    ? "ความเสี่ยงสูง"
-                    : assessment.risk_level === "very-high"
-                      ? "ความเสี่ยงสูงมาก"
-                      : "ไม่ระบุ"}
+            <Badge className={getRiskLevelBadgeClass(assessment.risk_level)}>
+              {getRiskLevelLabel(assessment.risk_level)}
             </Badge>
           ) : (
-            <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">ข้อมูลส่วนตัว</Badge>
+            <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+              {t("personal_information")}
+            </Badge>
           )}
           <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         </div>
