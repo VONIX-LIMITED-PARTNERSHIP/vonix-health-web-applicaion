@@ -296,6 +296,7 @@ const th = {
     phone_number: "หมายเลขโทรศัพท์",
     last_updated_date: "นโยบายนี้แก้ไขล่าสุดและมีผลใช้บังคับตั้งแต่วันที่ 18 มิถุนายน 2568",
     // New translations for health overview modal
+    personal_information: "ข้อมูลส่วนตัว",
     health_overview_modal_title: "ภาพรวมสุขภาพของคุณ",
     health_overview_modal_description: "ข้อมูลการประเมินสุขภาพทั้งหมดของคุณ (ล่าสุด)",
     detailed_assessment_description: "รายละเอียดการประเมิน",

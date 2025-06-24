@@ -300,6 +300,7 @@ const en: Dictionary = {
     website: "Website",
     phone_number: "Phone Number",
     last_updated_date: "This policy was last amended and became effective on June 18, 2025.",
+    personal_information: "Personal Information",
     // New translations for health overview modal
     health_overview_modal_title: "Your Health Overview",
     health_overview_modal_description: "All your health assessment data (latest)",
