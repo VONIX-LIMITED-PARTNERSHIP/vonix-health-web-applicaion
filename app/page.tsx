@@ -53,7 +53,9 @@ export default function HomePage() {
   const [isConsultModalOpen, setIsConsultModalOpen] = useState(false)
   const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false)
   const [targetAssessmentId, setTargetAssessmentId] = useState<string | null>(null)
-  const { t } = useTranslation()
+
+  // เพิ่ม namespace "common" เพื่อให้ useTranslation ทำงานได้ถูกต้อง
+  const { t } = useTranslation(["common"])
   const { getRiskLevelLabel } = useRiskLevelTranslation()
 
   const router = useRouter()
@@ -190,12 +192,12 @@ export default function HomePage() {
   const getUpdatedCategories = () => {
     const latestAssessments = getLatestAssessments(assessments)
 
-    // ใช้ translation system สำหรับชื่อและคำอธิบาย
+    // ใช้ flat keys แทน nested keys และเพิ่ม debug logging
     const assessmentCategories = [
       {
         id: "basic",
-        title: t("assessment_categories.basic.title"),
-        description: t("assessment_categories.basic.description"),
+        title: "ข้อมูลส่วนตัว",
+        description: "ข้อมูลสำคัญที่แพทย์ต้องการเพื่อการวินิจฉัยและรักษา",
         icon: User,
         required: true,
         status: "กรอกข้อมูล",
@@ -206,8 +208,8 @@ export default function HomePage() {
       },
       {
         id: "heart",
-        title: t("assessment_categories.heart.title"),
-        description: t("assessment_categories.heart.description"),
+        title: "ประเมินหัวใจและหลอดเลือด",
+        description: "ตรวจสอบความเสี่ยงหัวใจ ความดันโลหิต และสุขภาพหลอดเลือด",
         icon: Heart,
         required: true,
         status: "เริ่มประเมิน",
@@ -218,8 +220,8 @@ export default function HomePage() {
       },
       {
         id: "nutrition",
-        title: t("assessment_categories.nutrition.title"),
-        description: t("assessment_categories.nutrition.description"),
+        title: "ประเมินไลฟ์สไตล์และโภชนาการ",
+        description: "ตรวจสอบพฤติกรรมการกิน การออกกำลังกาย และการดูแลสุขภาพ",
         icon: Apple,
         required: true,
         status: "เริ่มประเมิน",
@@ -230,8 +232,8 @@ export default function HomePage() {
       },
       {
         id: "mental",
-        title: t("assessment_categories.mental.title"),
-        description: t("assessment_categories.mental.description"),
+        title: "ประเมินสุขภาพจิต",
+        description: "การตรวจสุขภาพจิต ความเครียด และสุขภาพทางอารมณ์",
         icon: Brain,
         required: false,
         status: "ยังไม่ได้ทำการประเมิน",
@@ -242,8 +244,8 @@ export default function HomePage() {
       },
       {
         id: "physical",
-        title: t("assessment_categories.physical.title"),
-        description: t("assessment_categories.physical.description"),
+        title: "ประเมินสุขภาพกาย",
+        description: "ตรวจสอบสุขภาพกาย ความแข็งแรง และความสามารถทางกาย",
         icon: Dumbbell,
         required: false,
         status: "ยังไม่ได้ทำการประเมิน",
@@ -254,8 +256,8 @@ export default function HomePage() {
       },
       {
         id: "sleep",
-        title: t("assessment_categories.sleep.title"),
-        description: t("assessment_categories.sleep.description"),
+        title: "ประเมินคุณภาพการนอน",
+        description: "วิเคราะห์รูปแบบการนอนและคุณภาพการพักผ่อน",
         icon: MoonIcon,
         required: false,
         status: "ยังไม่ได้ทำการประเมิน",
