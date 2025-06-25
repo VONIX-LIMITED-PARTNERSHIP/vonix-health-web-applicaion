@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast"
 import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
 import { HealthOverviewModal } from "@/components/health-overview-modal"
 import { useTranslation } from "@/hooks/use-translation"
+import { useRiskLevelTranslation } from "@/utils/risk-level"
 
 const assessmentCategories = [
   {
@@ -128,6 +129,7 @@ export default function HomePage() {
   const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false)
   const [targetAssessmentId, setTargetAssessmentId] = useState<string | null>(null)
   const { t } = useTranslation()
+  const { getRiskLevelLabel } = useRiskLevelTranslation()
 
   const router = useRouter()
   const { toast } = useToast()
@@ -586,17 +588,7 @@ export default function HomePage() {
                                               : "text-gray-600"
                                     }`}
                                   >
-                                    (
-                                    {category.riskLevel === "low"
-                                      ? "ความเสี่ยงต่ำ"
-                                      : category.riskLevel === "medium"
-                                        ? "ความเสี่ยงปานกลาง"
-                                        : category.riskLevel === "high"
-                                          ? "ความเสี่ยงสูง"
-                                          : category.riskLevel === "very-high"
-                                            ? "ความเสี่ยงสูงมาก"
-                                            : "ไม่ระบุ"}
-                                    )
+                                    ({getRiskLevelLabel(category.riskLevel)})
                                   </div>
                                 )}
                               </div>
