@@ -63,21 +63,21 @@ export default function HomePage() {
 
   const isLoggedIn = !loading && user && profile
 
-  // ฟังก์ชันแปลงเปอร์เซ็นต์เป็นระดับคุณภาพ
+  // แก้ไขฟังก์ชันแปลงเปอร์เซ็นต์เป็นระดับคุณภาพ (คะแนนน้อย = ดี, คะแนนเยอะ = แย่)
   const getHealthLevel = (percentage: number): string => {
-    if (percentage >= 81) return t("health_level_excellent")
-    if (percentage >= 61) return t("health_level_good")
-    if (percentage >= 41) return t("health_level_fair")
-    if (percentage >= 21) return t("health_level_poor")
+    if (percentage <= 20) return t("health_level_excellent")
+    if (percentage <= 40) return t("health_level_good")
+    if (percentage <= 60) return t("health_level_fair")
+    if (percentage <= 80) return t("health_level_poor")
     return t("health_level_very_poor")
   }
 
-  // ฟังก์ชันกำหนดสีตามระดับคุณภาพ
+  // แก้ไขฟังก์ชันกำหนดสีตามระดับคุณภาพ (คะแนนน้อย = เขียว, คะแนนเยอะ = แดง)
   const getHealthLevelColor = (percentage: number): string => {
-    if (percentage >= 81) return "text-green-600"
-    if (percentage >= 61) return "text-blue-600"
-    if (percentage >= 41) return "text-yellow-600"
-    if (percentage >= 21) return "text-orange-600"
+    if (percentage <= 20) return "text-green-600"
+    if (percentage <= 40) return "text-blue-600"
+    if (percentage <= 60) return "text-yellow-600"
+    if (percentage <= 80) return "text-orange-600"
     return "text-red-600"
   }
 
@@ -474,8 +474,10 @@ export default function HomePage() {
                         <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 overflow-hidden">
                           <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
                           <div className="relative">
-                            <div className="text-3xl font-bold text-blue-600 mb-1">
-                              {loadingStats ? "..." : `${dashboardStats.overallScore}%`}
+                            <div
+                              className={`text-3xl font-bold mb-1 ${getHealthLevelColor(dashboardStats.overallScore)}`}
+                            >
+                              {loadingStats ? "..." : getHealthLevel(dashboardStats.overallScore)}
                             </div>
                             <div className="text-sm font-medium text-gray-700 mb-1">{t("overall_health_score")}</div>
                             <div className="text-xs text-gray-500 flex items-center">
