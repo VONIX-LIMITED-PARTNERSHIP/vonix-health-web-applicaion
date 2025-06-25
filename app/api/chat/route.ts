@@ -4,6 +4,7 @@ import { z } from "zod"
 import { NextResponse } from "next/server"
 import { appKnowledgeBase } from "@/data/chatbot-app-knowledge"
 import { AssessmentService } from "@/lib/assessment-service"
+import { createClient } from "@supabase/supabase-js"
 
 // Define the message structure expected by the AI SDK
 interface AIMessage {
@@ -289,11 +290,18 @@ export async function POST(req: Request) {
     let healthDataSummary = ""
     let hasPersonalizedHealthData = false
 
+    // Create a server-side Supabase client for this request
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
     // --- Fetch personalized health data if user is logged in ---
     if (userId) {
       console.log("👤 Chat API: User is logged in, fetching health data...")
       try {
-        const { data: latestAssessments, error: fetchError } = await AssessmentService.getLatestUserAssessments(userId)
+        // Pass the supabase client to the service method
+        const { data: latestAssessments, error: fetchError } = await AssessmentService.getLatestUserAssessments(
+          supabase,
+          userId,
+        )
 
         console.log("📊 Chat API: Assessment fetch result:", {
           error: fetchError,
