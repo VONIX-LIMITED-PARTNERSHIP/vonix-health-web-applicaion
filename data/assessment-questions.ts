@@ -475,7 +475,7 @@ export const assessmentCategories: AssessmentCategory[] = [
       },
       {
         id: "nutrition-8",
-        type: "multi-select-combobox-with-other",
+        type: "checkbox",
         question: "ประเภทการออกกำลังกายที่คุณทำ (เลือกได้หลายข้อ)",
         options: ["เดิน/วิ่ง", "ปั่นจักรยาน", "ว่ายน้ำ", "ยิมนาสติก/ฟิตเนส", "โยคะ", "กีฬาประเภททีม", "ไม่ออกกำลังกาย"],
         required: true,
@@ -505,7 +505,7 @@ export const assessmentCategories: AssessmentCategory[] = [
       {
         id: "mental-1",
         type: "rating",
-        question: "ในช่วง 2 สัปดาห์ที่ผ่านมา คุณรู้สึกเศร้า ดหู่ บ่อยแค่ไหน?",
+        question: "ในช่วง 2 สัปดาห์ที่ผ่านมา คุณรู้สึกเศร้า ��ดหู่ บ่อยแค่ไหน?",
         description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกวัน)",
         options: ["1", "2", "3", "4", "5"],
         required: true,

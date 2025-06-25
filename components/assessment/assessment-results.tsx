@@ -33,11 +33,12 @@ interface AssessmentResultsProps {
 export function AssessmentResults({ categoryId, assessmentResult, answers, aiAnalysis }: AssessmentResultsProps) {
   const router = useRouter()
   const [showDetails, setShowDetails] = useState(false)
-  const { getRiskLevelLabel, getRiskLevelDescription } = useRiskLevelTranslation()
 
+  const { getRiskLevelLabel } = useRiskLevelTranslation()
+
+  // กำหนดสีและไอคอนตามระดับความเสี่ยง
   const getRiskLevelInfo = (riskLevel: string) => {
     const label = getRiskLevelLabel(riskLevel)
-    const description = getRiskLevelDescription(riskLevel)
 
     switch (riskLevel?.toLowerCase()) {
       case "low":
@@ -48,7 +49,7 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
           borderColor: "border-green-200",
           icon: CheckCircle,
           label,
-          description,
+          description: "ผลการประเมินของคุณอยู่ในเกณฑ์ดี",
         }
       case "medium":
       case "ปานกลาง":
@@ -58,7 +59,7 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
           borderColor: "border-yellow-200",
           icon: AlertTriangle,
           label,
-          description,
+          description: "ควรให้ความสำคัญและติดตามอาการ",
         }
       case "high":
       case "สูง":
@@ -68,7 +69,7 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
           borderColor: "border-red-200",
           icon: XCircle,
           label,
-          description,
+          description: "แนะนำให้ปรึกษาแพทย์เพื่อการตรวจสอบเพิ่มเติม",
         }
       case "very-high":
       case "very_high":
@@ -79,7 +80,7 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
           borderColor: "border-red-200",
           icon: XCircle,
           label,
-          description,
+          description: "แนะนำให้ปรึกษาแพทย์โดยด่วน",
         }
       default:
         return {
@@ -88,7 +89,7 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
           borderColor: "border-gray-200",
           icon: FileText,
           label,
-          description,
+          description: "ผลการประเมิน",
         }
     }
   }
