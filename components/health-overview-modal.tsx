@@ -33,7 +33,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAuth } from "@/hooks/use-auth"
 import { useTranslation } from "@/hooks/use-translation"
 import { AssessmentService } from "@/lib/assessment-service"
-import { isSupabaseConfigured } from "@/lib/supabase"
+import { isSupabaseConfigured, createClientComponentClient } from "@/lib/supabase"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
 
 interface HealthOverviewModalProps {
@@ -143,8 +143,16 @@ export function HealthOverviewModal({
         setTimeout(() => reject(new Error("หมดเวลาการโหลดข้อมูล")), 15_000),
       )
 
+      // NEW ➜ client instance
+      const supabaseClient = createClientComponentClient()
+      if (!supabaseClient) {
+        setError(t("login_to_view_health_overview"))
+        setLoading(false)
+        return
+      }
+
       const result = await Promise.race([
-        AssessmentService.getUserAssessments(user.id).then((res) => ({ type: "success", data: res })),
+        AssessmentService.getUserAssessments(supabaseClient, user.id).then((res) => ({ type: "success", data: res })),
         timeoutPromise.then((res) => ({ type: "timeout", data: res })),
       ])
 
@@ -178,8 +186,18 @@ export function HealthOverviewModal({
         setTimeout(() => reject(new Error("หมดเวลาการโหลดรายละเอียด")), 15_000),
       )
 
+      const supabaseClient = createClientComponentClient()
+      if (!supabaseClient) {
+        setDetailedAssessmentError(t("error"))
+        setLoadingDetailedAssessment(false)
+        return
+      }
+
       const result = await Promise.race([
-        AssessmentService.getAssessmentById(assessmentId).then((res) => ({ type: "success", data: res })),
+        AssessmentService.getAssessmentById(supabaseClient, assessmentId).then((res) => ({
+          type: "success",
+          data: res,
+        })),
         timeoutPromise.then((res) => ({ type: "timeout", data: res })),
       ])
 

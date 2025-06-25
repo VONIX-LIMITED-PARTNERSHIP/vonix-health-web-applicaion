@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { AssessmentService } from "@/lib/assessment-service"
-import { isSupabaseConfigured } from "@/lib/supabase"
+import { isSupabaseConfigured, createClientComponentClient } from "@/lib/supabase"
 import {
   Play,
   Stethoscope,
@@ -118,9 +118,14 @@ export default function HomePage() {
   const loadUserAssessments = async () => {
     if (!user?.id || !isSupabaseConfigured()) return
 
+    // NEW ➜ get a client for the browser
+    const supabaseClient = createClientComponentClient()
+    if (!supabaseClient) return
+
     setLoadingStats(true)
     try {
-      const { data, error } = await AssessmentService.getUserAssessments(user.id)
+      // Pass the client as first arg
+      const { data, error } = await AssessmentService.getUserAssessments(supabaseClient, user.id)
 
       if (error) {
         return

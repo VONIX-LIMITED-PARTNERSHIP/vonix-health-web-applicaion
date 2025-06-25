@@ -12,6 +12,7 @@ import { assessmentCategories } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
 import { useAuth } from "@/hooks/use-auth"
 import type { AssessmentAnswer } from "@/types/assessment"
+import { createClientComponentClient } from "@/lib/supabase"
 
 interface AssessmentFormProps {
   categoryId: string
@@ -20,6 +21,7 @@ interface AssessmentFormProps {
 export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const router = useRouter()
   const { user } = useAuth()
+  const supabase = createClientComponentClient()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -102,6 +104,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         // บันทึกลง Supabase
         console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
         const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
+          supabase, // NEW first argument
           user.id,
           categoryId,
           category.title,

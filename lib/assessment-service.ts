@@ -1,9 +1,8 @@
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
-import { createClientComponentClient } from "@/lib/supabase"
 import { assessmentCategories } from "@/data/assessment-questions"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 export class AssessmentService {
-  private static supabase = createClientComponentClient()
   private static activeRequests = new Map<string, AbortController>()
 
   static get assessmentCategories() {
@@ -54,6 +53,7 @@ export class AssessmentService {
   }
 
   static async saveAssessment(
+    supabaseClient: SupabaseClient,
     userId: string,
     categoryId: string,
     categoryTitle: string,
@@ -71,7 +71,7 @@ export class AssessmentService {
         throw new Error("Invalid answers array")
       }
 
-      if (!this.supabase) {
+      if (!supabaseClient) {
         throw new Error("Database connection not available")
       }
 
@@ -109,7 +109,7 @@ export class AssessmentService {
       }
 
       console.log("💾 AssessmentService: Inserting assessment data to Supabase...")
-      const { data: insertedData, error } = await this.supabase
+      const { data: insertedData, error } = await supabaseClient
         .from("assessments")
         .insert(assessmentData)
         .select()
@@ -146,17 +146,18 @@ export class AssessmentService {
   }
 
   static async getLatestAssessmentForUserAndCategory(
+    supabaseClient: SupabaseClient,
     userId: string,
     categoryId: string,
   ): Promise<{ data: any; error: any }> {
     try {
-      if (!this.supabase) {
+      if (!supabaseClient) {
         throw new Error("Database connection not available")
       }
 
       console.log("🔍 AssessmentService: Fetching latest assessment for user:", userId, "category:", categoryId)
 
-      const { data, error } = await this.supabase
+      const { data, error } = await supabaseClient
         .from("assessments")
         .select("*")
         .eq("user_id", userId)
@@ -183,15 +184,18 @@ export class AssessmentService {
     }
   }
 
-  static async getAssessmentById(assessmentId: string): Promise<{ data: any; error: any }> {
+  static async getAssessmentById(
+    supabaseClient: SupabaseClient,
+    assessmentId: string,
+  ): Promise<{ data: any; error: any }> {
     try {
-      if (!this.supabase) {
+      if (!supabaseClient) {
         throw new Error("Database connection not available")
       }
 
       console.log("🔍 AssessmentService: Fetching assessment by ID:", assessmentId)
 
-      const { data, error } = await this.supabase.from("assessments").select("*").eq("id", assessmentId).single()
+      const { data, error } = await supabaseClient.from("assessments").select("*").eq("id", assessmentId).single()
 
       if (error) {
         console.error("❌ AssessmentService: Supabase fetch by ID error:", error)
@@ -206,13 +210,16 @@ export class AssessmentService {
     }
   }
 
-  static async getUserAssessments(userId: string): Promise<{ data: any[]; error: any }> {
+  static async getUserAssessments(
+    supabaseClient: SupabaseClient,
+    userId: string,
+  ): Promise<{ data: any[]; error: any }> {
     try {
-      if (!this.supabase) {
+      if (!supabaseClient) {
         throw new Error("Database connection not available")
       }
 
-      const { data, error } = await this.supabase
+      const { data, error } = await supabaseClient
         .from("assessments")
         .select("*")
         .eq("user_id", userId)
@@ -226,13 +233,16 @@ export class AssessmentService {
     }
   }
 
-  static async getLatestUserAssessments(userId: string): Promise<{ data: any[]; error: any }> {
+  static async getLatestUserAssessments(
+    supabaseClient: SupabaseClient,
+    userId: string,
+  ): Promise<{ data: any[]; error: any }> {
     try {
-      if (!this.supabase) {
+      if (!supabaseClient) {
         throw new Error("Database connection not available")
       }
 
-      const { data, error } = await this.supabase
+      const { data, error } = await supabaseClient
         .from("assessments")
         .select("*")
         .eq("user_id", userId)
@@ -342,11 +352,11 @@ export class AssessmentService {
     }
   }
 
-  static async testConnection(): Promise<boolean> {
+  static async testConnection(supabaseClient: SupabaseClient): Promise<boolean> {
     try {
-      if (!this.supabase) return false
+      if (!supabaseClient) return false
 
-      const { data, error } = await this.supabase.from("profiles").select("id").limit(1)
+      const { data, error } = await supabaseClient.from("profiles").select("id").limit(1)
       return !error
     } catch (error) {
       console.error("AssessmentService.testConnection: Failed to test connection:", error)
