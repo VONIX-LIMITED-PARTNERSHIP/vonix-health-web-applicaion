@@ -33,7 +33,6 @@ const th = {
     main_menu: "เมนูหลัก",
     thailand: "ประเทศไทย",
     sign_out: "ออกจากระบบ",
-    profile: "โปรไฟล์",
     dashboard: "แดชบอร์ด",
     health_reports: "รายงานสุขภาพ",
     settings: "การตั้งค่า",
@@ -546,6 +545,7 @@ const th = {
     email_already_registered: "อีเมลนี้ลงทะเบียนแล้ว กรุณาเข้าสู่ระบบหรือใช้อีเมลอื่น",
     email_not_verified: "อีเมลยังไม่ได้รับการยืนยัน กรุณาตรวจสอบอีเมลของคุณสำหรับลิงก์ยืนยัน",
     something_went_wrong: "เกิดข้อผิดพลาดบางอย่าง กรุณาลองอีกครั้ง",
+    profile_link_text: "โปรไฟล์",
   },
   profile: {
     // Add any profile-specific translations here if needed

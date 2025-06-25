@@ -183,7 +183,7 @@ export function Header() {
                   )}
                   {profile && (
                     <DropdownMenuItem asChild>
-                      <Link href="/profile">👤 {t("profile")}</Link>
+                      <Link href="/profile">👤 {t("common.profile_link_text")}</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-600" disabled={signingOut}>

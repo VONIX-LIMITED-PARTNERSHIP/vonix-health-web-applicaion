@@ -33,7 +33,7 @@ const en: Dictionary = {
     main_menu: "Main Menu",
     thailand: "Thailand",
     sign_out: "Sign out",
-    profile: "Profile",
+    profile_link_text: "Profile",
     dashboard: "Dashboard",
     health_reports: "Health Reports",
     settings: "Settings",
