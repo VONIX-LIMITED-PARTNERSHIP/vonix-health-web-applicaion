@@ -240,6 +240,9 @@ const CRITICAL_HEALTH_KEYWORDS = [
   "สุขภาพเป็นยังไง",
   "ข้อมูลสุขภาพ",
   "ประเมินสุขภาพ",
+  "สรุปสุขภาพ",
+  "สุขภาพฉัน",
+  "สุขภาพเป็นอย่างไร",
 ]
 
 // Helper function to get risk level label
@@ -271,6 +274,8 @@ export async function POST(req: Request) {
       userId?: string
     }
 
+    console.log("🔍 Chat API: Received request with userId:", userId)
+
     // The last message is the current user's query
     const userMessageContent = clientMessages[clientMessages.length - 1].content.toLowerCase()
 
@@ -287,14 +292,23 @@ export async function POST(req: Request) {
 
     // --- Fetch personalized health data if user is logged in ---
     if (userId) {
+      console.log("👤 Chat API: User is logged in, fetching health data...")
       try {
         const { data: latestAssessments, error: fetchError } = await AssessmentService.getLatestUserAssessments(userId)
 
+        console.log("📊 Chat API: Assessment fetch result:", {
+          error: fetchError,
+          dataLength: latestAssessments?.length || 0,
+          assessments: latestAssessments?.map((a) => ({ id: a.id, category: a.category_title, risk: a.risk_level })),
+        })
+
         if (fetchError) {
-          console.error("Error fetching user assessments:", fetchError)
+          console.error("❌ Chat API: Error fetching user assessments:", fetchError)
           // Continue without personalized data if there's an error
         } else if (latestAssessments && latestAssessments.length > 0) {
           hasPersonalizedHealthData = true
+          console.log("✅ Chat API: Found health data, creating summary...")
+
           healthDataSummary = latestAssessments
             .map((assessment) => {
               const riskLabel = getRiskLevelLabel(assessment.risk_level)
@@ -318,14 +332,17 @@ export async function POST(req: Request) {
             .join("\n\n")
 
           healthDataSummary = `นี่คือข้อมูลสรุปผลการประเมินสุขภาพล่าสุดของคุณ:\n\n${healthDataSummary}\n\nโปรดใช้ข้อมูลนี้เพื่อตอบคำถามเกี่ยวกับสุขภาพของผู้ใช้`
+          console.log("📝 Chat API: Health data summary created, length:", healthDataSummary.length)
         } else {
+          console.log("⚠️ Chat API: No assessment data found for user")
           healthDataSummary = "ผู้ใช้ยังไม่มีข้อมูลการประเมินสุขภาพล่าสุดในระบบ"
         }
       } catch (error) {
-        console.error("Error in health data fetching:", error)
+        console.error("❌ Chat API: Error in health data fetching:", error)
         healthDataSummary = "เกิดข้อผิดพลาดในการดึงข้อมูลสุขภาพ"
       }
     } else {
+      console.log("🚫 Chat API: User not logged in")
       healthDataSummary = "ผู้ใช้ไม่ได้ล็อกอิน จึงไม่สามารถเข้าถึงข้อมูลสุขภาพส่วนตัวได้"
     }
 
@@ -334,6 +351,7 @@ export async function POST(req: Request) {
     for (const keyword of CRITICAL_HEALTH_KEYWORDS) {
       if (userMessageContent.includes(keyword)) {
         isCriticalHealthQuery = true
+        console.log("🎯 Chat API: Critical health keyword detected:", keyword)
         break
       }
     }
@@ -351,6 +369,8 @@ export async function POST(req: Request) {
       intentCategory = intentClassification.category
     }
 
+    console.log("🏷️ Chat API: Intent category:", intentCategory)
+
     if (intentCategory === "สุขภาพ") {
       // If it's a health-related question, generate a health advice
       let systemPromptToUse = HEALTH_SYSTEM_PROMPT
@@ -361,23 +381,33 @@ export async function POST(req: Request) {
         userMessageContent.includes("ผลประเมินของฉัน") ||
         userMessageContent.includes("สุขภาพเป็นยังไง") ||
         userMessageContent.includes("ข้อมูลสุขภาพ") ||
-        userMessageContent.includes("สุขภาพเป็นอย่างไร")
+        userMessageContent.includes("สุขภาพเป็นอย่างไร") ||
+        userMessageContent.includes("สรุปสุขภาพ") ||
+        userMessageContent.includes("สุขภาพฉัน")
+
+      console.log("🤔 Chat API: User asking about own health:", userAskingAboutOwnHealth)
+      console.log("📊 Chat API: Has personalized health data:", hasPersonalizedHealthData)
 
       if (hasPersonalizedHealthData && userAskingAboutOwnHealth) {
+        console.log("✅ Chat API: Using personalized health prompt")
         systemPromptToUse = PERSONALIZED_HEALTH_SYSTEM_PROMPT(userName || "คุณ", healthDataSummary)
       } else if (userAskingAboutOwnHealth && !hasPersonalizedHealthData && userId) {
         // If user asks about their health but no data, inform them
+        console.log("⚠️ Chat API: User asking about health but no data found")
         botResponse = `ขออภัยครับ ${userName || "คุณ"} ผมไม่พบข้อมูลการประเมินสุขภาพล่าสุดของคุณในระบบ คุณสามารถทำแบบประเมินสุขภาพเพื่อรับคำแนะนำส่วนบุคคลได้นะครับ 😊`
       } else if (userAskingAboutOwnHealth && !userId) {
         // If user asks about their health but not logged in
+        console.log("🚫 Chat API: User asking about health but not logged in")
         botResponse = `ขออภัยครับ คุณต้องเข้าสู่ระบบก่อนเพื่อให้ผมสามารถเข้าถึงข้อมูลสุขภาพของคุณได้ กรุณาเข้าสู่ระบบแล้วลองถามใหม่นะครับ 😊`
       } else {
         // Fallback to general health prompt if not asking about own health or no data
+        console.log("📋 Chat API: Using general health prompt")
         systemPromptToUse = HEALTH_SYSTEM_PROMPT
       }
 
       if (!botResponse) {
         // Only generate if botResponse hasn't been set by the "no data" case
+        console.log("🤖 Chat API: Generating AI response...")
         const { text: healthResponse } = await generateText({
           model: openai("gpt-4o"),
           system: systemPromptToUse,
@@ -415,9 +445,10 @@ export async function POST(req: Request) {
       botResponse = otherResponse
     }
 
+    console.log("✅ Chat API: Response generated successfully")
     return NextResponse.json({ response: botResponse })
   } catch (error) {
-    console.error("Error in /api/chat:", error)
+    console.error("❌ Chat API: Error in /api/chat:", error)
     return NextResponse.json(
       { error: "ขอโทษครับ เกิดข้อผิดพลาดในการประมวลผลคำถามของคุณ กรุณาลองใหม่อีกครั้งนะครับ 😅" },
       { status: 500 },

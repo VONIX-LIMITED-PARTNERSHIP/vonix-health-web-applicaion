@@ -410,7 +410,7 @@ const en: Dictionary = {
     chatbot_data_save_security_title: "🔒 Security:",
     chatbot_data_save_security_1: "• Data encrypted",
     chatbot_data_save_security_2: "• Stored in secure system",
-    chatbot_data_save_security_3: "• Only you can access",
+    chatbot_data_save_security_3: "Only you can access",
     chatbot_data_edit_title: "✏️ Data Editing",
     chatbot_data_edit_personal_title: "👤 Personal Data:",
     chatbot_data_edit_personal_1: "• Click profile icon top right",
@@ -600,6 +600,32 @@ const en: Dictionary = {
     email_already_registered: "Email already registered. Please login or use a different email.",
     email_not_verified: "Email not verified. Please check your email for a verification link.",
     something_went_wrong: "Something went wrong. Please try again.",
+    assessment_categories: {
+      basic: {
+        title: "Personal Information",
+        description: "Important information that doctors need for diagnosis and treatment",
+      },
+      heart: {
+        title: "Heart and Cardiovascular Assessment",
+        description: "Check heart risk, blood pressure, and cardiovascular health",
+      },
+      nutrition: {
+        title: "Lifestyle and Nutrition Assessment",
+        description: "Check eating habits, exercise, and health care behaviors",
+      },
+      mental: {
+        title: "Mental Health Assessment",
+        description: "Mental health screening, stress, and emotional health",
+      },
+      physical: {
+        title: "Physical Health Assessment",
+        description: "Check physical health, strength, and physical capabilities",
+      },
+      sleep: {
+        title: "Sleep Quality Assessment",
+        description: "Analyze sleep patterns and rest quality",
+      },
+    },
   },
   profile: {
     my_profile: "My Profile",
