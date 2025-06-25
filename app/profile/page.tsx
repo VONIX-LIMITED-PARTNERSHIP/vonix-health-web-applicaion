@@ -125,10 +125,10 @@ export default function ProfilePage() {
       if (response.ok) {
         toast({
           title: t("common.success"),
-          description: t("profile.delete_assessment_data_success"),
+          description: t("delete_assessment_data_success"),
         })
       } else {
-        throw new Error(result.error || t("profile.delete_assessment_data_error"))
+        throw new Error(result.error || t("delete_assessment_data_error"))
       }
     } catch (error: any) {
       toast({
@@ -161,12 +161,12 @@ export default function ProfilePage() {
       if (response.ok) {
         toast({
           title: t("common.success"),
-          description: t("profile.profile_updated_success"),
+          description: t("profile_updated_success"),
         })
         await refreshProfile() // Refresh profile to show updated data
         setIsEditing(false)
       } else {
-        throw new Error(result.error || t("profile.profile_update_error"))
+        throw new Error(result.error || t("profile_update_error"))
       }
     } catch (error: any) {
       toast({
@@ -190,11 +190,11 @@ export default function ProfilePage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4 dark:bg-gray-950">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-2xl font-bold">{t("profile.my_profile")}</CardTitle>
+          <CardTitle className="text-2xl font-bold">{t("my_profile")}</CardTitle>
           {!isEditing && (
             <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}>
               <PencilIcon className="h-5 w-5" />
-              <span className="sr-only">{t("profile.edit_profile")}</span>
+              <span className="sr-only">{t("edit_profile")}</span>
             </Button>
           )}
         </CardHeader>
@@ -202,7 +202,7 @@ export default function ProfilePage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">{t("profile.personal_information")}</h2>
+                <h2 className="text-lg font-semibold">{t("personal_information")}</h2>
                 <FormField
                   control={form.control}
                   name="full_name"
@@ -231,7 +231,7 @@ export default function ProfilePage() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="phone">{t("profile.phone")}</FormLabel>
+                      <FormLabel htmlFor="phone">{t("phone")}</FormLabel>
                       <FormControl>
                         <Input
                           id="phone"
@@ -250,7 +250,7 @@ export default function ProfilePage() {
                   name="date_of_birth"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>{t("profile.date_of_birth")}</FormLabel>
+                      <FormLabel>{t("date_of_birth")}</FormLabel>
                       {isEditing ? (
                         <Popover>
                           <PopoverTrigger asChild>
@@ -262,11 +262,7 @@ export default function ProfilePage() {
                                   !field.value && "text-muted-foreground",
                                 )}
                               >
-                                {field.value ? (
-                                  format(new Date(field.value), "PPP")
-                                ) : (
-                                  <span>{t("profile.pick_a_date")}</span>
-                                )}
+                                {field.value ? format(new Date(field.value), "PPP") : <span>{t("pick_a_date")}</span>}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
@@ -296,18 +292,18 @@ export default function ProfilePage() {
                   name="gender"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="gender">{t("profile.gender")}</FormLabel>
+                      <FormLabel htmlFor="gender">{t("gender")}</FormLabel>
                       {isEditing ? (
                         <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={t("profile.select_gender")} />
+                              <SelectValue placeholder={t("select_gender")} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="male">{t("profile.gender_male")}</SelectItem>
-                            <SelectItem value="female">{t("profile.gender_female")}</SelectItem>
-                            <SelectItem value="other">{t("profile.gender_other")}</SelectItem>
+                            <SelectItem value="male">{t("gender_male")}</SelectItem>
+                            <SelectItem value="female">{t("gender_female")}</SelectItem>
+                            <SelectItem value="other">{t("gender_other")}</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
@@ -322,10 +318,10 @@ export default function ProfilePage() {
                   )}
                 />
                 <div className="space-y-2">
-                  <Label htmlFor="consentStatus">{t("profile.consent_status")}</Label>
+                  <Label htmlFor="consentStatus">{t("consent_status")}</Label>
                   <Input
                     id="consentStatus"
-                    value={profile?.pdpa_consent ? t("profile.consent_given") : t("profile.consent_not_given")}
+                    value={profile?.pdpa_consent ? t("consent_given") : t("consent_not_given")}
                     readOnly
                   />
                 </div>
@@ -342,7 +338,7 @@ export default function ProfilePage() {
                     className="w-full sm:w-auto" // Make button full width on small screens
                   >
                     <XIcon className="h-4 w-4 mr-2" />
-                    {t("profile.cancel_edit")}
+                    {t("cancel_edit")}
                   </Button>
                   <Button
                     type="submit"
@@ -350,7 +346,7 @@ export default function ProfilePage() {
                     className="w-full sm:w-auto" // Make button full width on small screens
                   >
                     {form.formState.isSubmitting ? t("common.saving") : <CheckIcon className="h-4 w-4 mr-2" />}
-                    {form.formState.isSubmitting ? "" : t("profile.save_changes")}
+                    {form.formState.isSubmitting ? "" : t("save_changes")}
                   </Button>
                 </div>
               )}
@@ -360,14 +356,14 @@ export default function ProfilePage() {
           <Separator />
 
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold">{t("profile.data_management")}</h2>
+            <h2 className="text-lg font-semibold">{t("data_management")}</h2>
             <div className="space-y-2">
-              <Label>{t("profile.withdraw_consent")}</Label>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t("profile.withdraw_consent_description")}</p>
+              <Label>{t("withdraw_consent")}</Label>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t("withdraw_consent_description")}</p>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" disabled={isWithdrawingConsent || !profile?.pdpa_consent || isEditing}>
-                    {isWithdrawingConsent ? t("common.loading") : t("profile.withdraw_consent_button")}
+                    {isWithdrawingConsent ? t("common.loading") : t("withdraw_consent_button")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -384,22 +380,18 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <Label>{t("profile.delete_assessment_data")}</Label>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {t("profile.delete_assessment_data_description")}
-              </p>
+              <Label>{t("delete_assessment_data")}</Label>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t("delete_assessment_data_description")}</p>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" disabled={isDeletingAssessments || isEditing}>
-                    {isDeletingAssessments ? t("common.loading") : t("profile.delete_assessment_data")}
+                    {isDeletingAssessments ? t("common.loading") : t("delete_assessment_data")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>{t("profile.delete_assessment_data_confirm_title")}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t("profile.delete_assessment_data_confirm_content")}
-                    </AlertDialogDescription>
+                    <AlertDialogTitle>{t("delete_assessment_data_confirm_title")}</AlertDialogTitle>
+                    <AlertDialogDescription>{t("delete_assessment_data_confirm_content")}</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>

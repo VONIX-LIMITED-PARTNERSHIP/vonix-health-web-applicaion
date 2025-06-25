@@ -33,7 +33,6 @@ const th = {
     main_menu: "เมนูหลัก",
     thailand: "ประเทศไทย",
     sign_out: "ออกจากระบบ",
-    profile: "โปรไฟล์",
     dashboard: "แดชบอร์ด",
     health_reports: "รายงานสุขภาพ",
     settings: "การตั้งค่า",
@@ -296,6 +295,7 @@ const th = {
     phone_number: "หมายเลขโทรศัพท์",
     last_updated_date: "นโยบายนี้แก้ไขล่าสุดและมีผลใช้บังคับตั้งแต่วันที่ 18 มิถุนายน 2568",
     // New translations for health overview modal
+    personal_information: "ข้อมูลส่วนตัว",
     health_overview_modal_title: "ภาพรวมสุขภาพของคุณ",
     health_overview_modal_description: "ข้อมูลการประเมินสุขภาพทั้งหมดของคุณ (ล่าสุด)",
     detailed_assessment_description: "รายละเอียดการประเมิน",
@@ -545,6 +545,7 @@ const th = {
     email_already_registered: "อีเมลนี้ลงทะเบียนแล้ว กรุณาเข้าสู่ระบบหรือใช้อีเมลอื่น",
     email_not_verified: "อีเมลยังไม่ได้รับการยืนยัน กรุณาตรวจสอบอีเมลของคุณสำหรับลิงก์ยืนยัน",
     something_went_wrong: "เกิดข้อผิดพลาดบางอย่าง กรุณาลองอีกครั้ง",
+    profile_link_text: "โปรไฟล์",
   },
   profile: {
     // Add any profile-specific translations here if needed
