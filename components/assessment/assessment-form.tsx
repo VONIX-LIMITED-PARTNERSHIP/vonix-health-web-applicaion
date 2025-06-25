@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from "lucide-react"
 import { QuestionCard } from "./question-card"
 import { assessmentCategories } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
@@ -163,7 +163,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const submitButtonText = getSubmitButtonText()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen">
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -172,12 +172,12 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
             กลับหน้าหลัก
           </Button>
 
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-gray-900/80 dark:border-gray-700">
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80 dark:border-border">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-2xl mb-2 dark:text-gray-100">{category.title}</CardTitle>
-                  <p className="text-gray-600 dark:text-gray-300">{category.description}</p>
+                  <CardTitle className="text-2xl mb-2 dark:text-foreground">{category.title}</CardTitle>
+                  <p className="text-gray-600 dark:text-muted-foreground">{category.description}</p>
                 </div>
                 <div className="flex items-center space-x-4">
                   {category.required && <Badge className="bg-red-500 text-white">จำเป็น</Badge>}
@@ -192,7 +192,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         </div>
 
         {/* Progress */}
-        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-gray-900/80 dark:border-gray-700">
+        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
@@ -215,7 +215,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         />
 
         {/* Navigation */}
-        <Card className="mt-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-gray-900/80 dark:border-gray-700">
+        <Card className="mt-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
           <CardContent className="p-6">
             <div className="flex justify-between items-center gap-4">
               <Button
