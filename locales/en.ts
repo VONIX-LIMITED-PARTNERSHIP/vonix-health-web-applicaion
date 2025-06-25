@@ -609,10 +609,10 @@ const en: Dictionary = {
     phone: "Phone",
     date_of_birth: "Date of Birth",
     gender: "Gender",
-    gender_male: "Male", // Added
-    gender_female: "Female", // Added
-    gender_other: "Not specified", // Added
-    select_gender: "Select gender", // Added
+    gender_male: "Male",
+    gender_female: "Female",
+    gender_other: "Other",
+    select_gender: "Select gender",
     data_management: "Data Management",
     delete_assessment_data: "Delete Health Assessment Data",
     delete_assessment_data_description:
@@ -639,7 +639,7 @@ const en: Dictionary = {
     cancel_edit: "Cancel",
     profile_updated_success: "Profile updated successfully!",
     profile_update_error: "Failed to update profile. Please try again.",
-    pick_a_date: "Pick a date", // Added
+    pick_a_date: "Pick a date",
   },
   assessment: {
     your_assessment_results: "Your Assessment Results",
