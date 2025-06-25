@@ -151,8 +151,8 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                 key={index}
                 className={cn(
                   "flex items-center space-x-3 p-4 rounded-lg border border-gray-200 cursor-pointer transition-colors",
-                  "hover:bg-gray-50 dark:hover:bg-gray-800",
-                  "data-[state=checked]:bg-blue-50 data-[state=checked]:border-blue-500 dark:data-[state=checked]:bg-blue-950 dark:data-[state=checked]:border-blue-700",
+                  "hover:bg-gray-50 dark:hover:bg-secondary",
+                  "data-[state=checked]:bg-blue-50 data-[state=checked]:border-blue-500 dark:data-[state=checked]:bg-primary/20 dark:data-[state=checked]:border-primary",
                   question.type === "rating" && "justify-center",
                 )}
                 data-state={String(currentAnswer) === option ? "checked" : "unchecked"} // เพิ่ม data-state เพื่อให้ Tailwind รู้สถานะ
@@ -181,10 +181,10 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                 key={index}
                 className={cn(
                   "flex items-center space-x-3 p-4 rounded-lg border border-gray-200 cursor-pointer transition-colors",
-                  "hover:bg-gray-50 dark:hover:bg-gray-800",
+                  "hover:bg-gray-50 dark:hover:bg-secondary",
                   Array.isArray(currentAnswer) &&
                     currentAnswer.includes(option) &&
-                    "bg-blue-50 border-blue-500 dark:bg-blue-950 dark:border-blue-700", // เพิ่มเงื่อนไขสำหรับสถานะ checked
+                    "bg-blue-50 border-blue-500 dark:bg-primary/20 dark:border-primary", // เพิ่มเงื่อนไขสำหรับสถานะ checked
                 )}
                 onClick={() => {
                   // ทำให้ div ทั้งหมดคลิกได้
@@ -234,7 +234,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
             value={currentAnswer === null ? "" : String(currentAnswer)}
             onChange={(e) => handleAnswerChange(e.target.value === "" ? null : Number(e.target.value))}
             placeholder="กรุณาใส่ตัวเลข"
-            className="text-center text-lg h-12 rounded-xl border-2 focus:border-blue-400 dark:text-gray-100 dark:placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-700"
+            className="text-center text-lg h-12 rounded-xl border-2 focus:border-blue-400 dark:text-foreground dark:placeholder:text-muted-foreground dark:bg-input dark:border-border"
           />
         )
 
@@ -244,7 +244,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
             value={currentAnswer === null ? "" : String(currentAnswer)}
             onChange={(e) => handleAnswerChange(e.target.value.trim() === "" ? null : e.target.value)}
             placeholder="กรุณาใส่คำตอบ"
-            className="min-h-[100px] rounded-xl border-2 focus:border-blue-400 dark:text-gray-100 dark:placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-700"
+            className="min-h-[100px] rounded-xl border-2 focus:border-blue-400 dark:text-foreground dark:placeholder:text-muted-foreground dark:bg-input dark:border-border"
           />
         )
 
@@ -265,8 +265,8 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
   }
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-3xl overflow-hidden dark:bg-gray-900/90 dark:border-gray-700">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 pb-6 dark:from-gray-800 dark:to-gray-700">
+    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-3xl overflow-hidden dark:bg-card/90 dark:border-border">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 pb-6 dark:from-secondary dark:to-card">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-xl mb-3 text-gray-800 dark:text-gray-100">
