@@ -10,12 +10,7 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  console.log("POST /api/auth/withdraw-consent:")
-  console.log("  User from Supabase session:", user ? user.id : "No user found")
-  console.log("  UserId from request body:", userId)
-
   if (!user || user.id !== userId) {
-    console.log("  Unauthorized: User mismatch or no user.")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -28,11 +23,9 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      console.error("  Error withdrawing consent:", error.message)
       throw error
     }
 
-    console.log("  Consent withdrawn successfully for user:", userId)
     return NextResponse.json({ success: true, data }, { status: 200 })
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to withdraw consent" }, { status: 500 })
