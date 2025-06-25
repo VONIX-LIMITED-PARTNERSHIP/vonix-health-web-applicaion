@@ -10,15 +10,12 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Separator } from "@/components/ui/separator"
-import { PencilIcon, CheckIcon, XIcon, Loader2, CalendarIcon, ArrowLeft } from "lucide-react" // Import CalendarIcon
+import { PencilIcon, CheckIcon, XIcon, Loader2, ArrowLeft } from "lucide-react" // Import CalendarIcon
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover" // Import Popover components
-import { Calendar } from "@/components/ui/calendar" // Import Calendar component
 import { format } from "date-fns" // Import format from date-fns
-import { cn } from "@/lib/utils" // Import cn for conditional class names
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select" // Import Select components
 
 // Define validation schema for profile fields
@@ -249,46 +246,30 @@ export default function ProfilePage() {
                   control={form.control}
                   name="date_of_birth"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>{t("date_of_birth")}</FormLabel>
-                      {isEditing ? (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground",
-                                )}
-                              >
-                                {field.value ? (
-                                  format(new Date(field.value), "dd/MM/yyyy")
-                                ) : (
-                                  <span>{t("pick_a_date")}</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value ? new Date(field.value) : undefined}
-                              onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
-                              disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                              initialFocus
-                              defaultMonth={field.value ? new Date(field.value) : new Date(1990, 0)}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      ) : (
+                    <FormItem>
+                      <FormLabel htmlFor="dateOfBirth">{t("date_of_birth")}</FormLabel>
+                      <FormControl>
                         <Input
                           id="dateOfBirth"
-                          value={field.value ? format(new Date(field.value), "dd/MM/yyyy") : t("common.not_available")}
-                          readOnly
+                          readOnly={!isEditing}
+                          placeholder="DD/MM/YYYY"
+                          value={field.value ? format(new Date(field.value), "dd/MM/yyyy") : ""}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            // Allow typing in DD/MM/YYYY format
+                            if (value.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                              // Convert DD/MM/YYYY to YYYY-MM-DD for storage
+                              const [day, month, year] = value.split("/")
+                              field.onChange(`${year}-${month}-${day}`)
+                            } else if (value === "") {
+                              field.onChange("")
+                            } else {
+                              // Allow partial typing
+                              field.onChange(value)
+                            }
+                          }}
                         />
-                      )}
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
