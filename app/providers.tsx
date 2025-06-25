@@ -12,10 +12,14 @@ import { Footer } from "@/components/footer"
 /**
  * Groups every client-side context / widget so the server layout
  * doesn’t have to pass non-serialisable values through RSC.
+ *
+ * Defaults:
+ *   – Language  : Thai (“th”)        (already default in LanguageProvider)
+ *   – Theme     : Light mode only    (enableSystem = false)
  */
 export default function Providers({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
       <LanguageProvider>
         <AuthProvider>
           {children}
