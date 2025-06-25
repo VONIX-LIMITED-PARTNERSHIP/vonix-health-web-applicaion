@@ -253,19 +253,60 @@ export default function ProfilePage() {
                           id="dateOfBirth"
                           readOnly={!isEditing}
                           placeholder="DD/MM/YYYY"
-                          value={field.value ? format(new Date(field.value), "dd/MM/yyyy") : ""}
+                          value={(() => {
+                            if (!field.value) return ""
+
+                            try {
+                              // If it's in YYYY-MM-DD format, convert to DD/MM/YYYY
+                              if (field.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                                return format(new Date(field.value), "dd/MM/yyyy")
+                              } else {
+                                // Return raw value if it's not a valid date format
+                                return field.value
+                              }
+                            } catch (error) {
+                              // If date parsing fails, return the raw value
+                              return field.value || ""
+                            }
+                          })()}
                           onChange={(e) => {
                             const value = e.target.value
-                            // Allow typing in DD/MM/YYYY format
-                            if (value.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-                              // Convert DD/MM/YYYY to YYYY-MM-DD for storage
-                              const [day, month, year] = value.split("/")
-                              field.onChange(`${year}-${month}-${day}`)
-                            } else if (value === "") {
-                              field.onChange("")
-                            } else {
-                              // Allow partial typing
-                              field.onChange(value)
+
+                            // Store the raw input value for display
+                            if (isEditing) {
+                              // Allow typing but validate format
+                              if (value === "") {
+                                field.onChange("")
+                              } else if (value.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+                                // Only convert when format is complete and valid
+                                try {
+                                  const [day, month, year] = value.split("/")
+                                  const dayNum = Number.parseInt(day, 10)
+                                  const monthNum = Number.parseInt(month, 10)
+                                  const yearNum = Number.parseInt(year, 10)
+
+                                  // Basic validation
+                                  if (
+                                    dayNum >= 1 &&
+                                    dayNum <= 31 &&
+                                    monthNum >= 1 &&
+                                    monthNum <= 12 &&
+                                    yearNum >= 1900 &&
+                                    yearNum <= new Date().getFullYear()
+                                  ) {
+                                    field.onChange(`${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`)
+                                  } else {
+                                    // Invalid date, keep as is for user to see their input
+                                    field.onChange(value)
+                                  }
+                                } catch (error) {
+                                  // If parsing fails, keep the raw value
+                                  field.onChange(value)
+                                }
+                              } else {
+                                // Allow partial typing (incomplete format)
+                                field.onChange(value)
+                              }
                             }
                           }}
                         />
