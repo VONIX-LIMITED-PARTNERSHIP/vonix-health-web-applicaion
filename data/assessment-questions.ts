@@ -89,7 +89,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     },
     {
       id: "guest_q5",
-      type: "checkbox",
+      type: "multi-select-combobox-with-other",
       question: "โรคประจำตัว (เลือกได้หลายข้อ)",
       options: [
         "เบาหวาน",
@@ -105,15 +105,18 @@ export const guestAssessmentCategory: AssessmentCategory = {
       required: true,
       category: "guest",
       weight: 3,
+      riskFactors: ["เบาหวาน", "ความดันโลหิตสูง", "โรคหัวใจ"],
     },
     {
       id: "guest_q6",
-      type: "yes-no",
+      type: "multiple-choice",
       question: "คุณมีประวัติโรคหัวใจในครอบครัวหรือไม่?",
       description: "เช่น พ่อ แม่ พี่น้อง ที่เป็นโรคหัวใจ",
+      options: ["ใช่", "ไม่ใช่"],
       required: true,
       category: "guest",
       weight: 3,
+      riskFactors: ["ประวัติครอบครัว"],
     },
     {
       id: "guest_q7",
@@ -123,14 +126,17 @@ export const guestAssessmentCategory: AssessmentCategory = {
       required: true,
       category: "guest",
       weight: 4,
+      riskFactors: ["ความดันสูง"],
     },
     {
       id: "guest_q8",
-      type: "yes-no",
+      type: "multiple-choice",
       question: "คุณสูบบุหรี่หรือไม่?",
+      options: ["ใช่", "ไม่ใช่"],
       required: true,
       category: "guest",
       weight: 4,
+      riskFactors: ["สูบบุหรี่"],
     },
     {
       id: "guest_q9",
@@ -170,6 +176,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
       required: true,
       category: "guest",
       weight: 3,
+      riskFactors: ["ความเครียดสูง"],
     },
     {
       id: "guest_q13",
@@ -180,6 +187,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
       required: true,
       category: "guest",
       weight: 3,
+      riskFactors: ["นอนไม่หลับ"],
     },
     {
       id: "guest_q14",
@@ -189,6 +197,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
       required: true,
       category: "guest",
       weight: 4,
+      riskFactors: ["นอนไม่เพียงพอ"],
     },
     {
       id: "guest_q15",
