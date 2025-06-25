@@ -368,7 +368,8 @@ export default function ProfilePage() {
 
           <Separator />
 
-          <div className="space-y-4">
+         
+          {/* <div className="space-y-4">
             <h2 className="text-lg font-semibold">{t("data_management")}</h2>
             <div className="space-y-2">
               <Label>{t("withdraw_consent")}</Label>
@@ -413,6 +414,8 @@ export default function ProfilePage() {
                 </AlertDialogContent>
               </AlertDialog>
             </div>
+          </div> */}
+            
           </div>
         </CardContent>
       </Card>

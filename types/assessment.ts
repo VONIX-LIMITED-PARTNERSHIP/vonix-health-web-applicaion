@@ -663,7 +663,7 @@ export const assessmentCategories: AssessmentCategory[] = [
       {
         id: "sleep-3",
         type: "rating",
-        question: "คุณตื่นกลางคืนบ่อยแค่ไหน?",
+        question: "คุณตื่นกลางคืนบ่อยแค่ไ��น?",
         description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกคืน)",
         options: ["1", "2", "3", "4", "5"],
         required: true,

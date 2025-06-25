@@ -159,7 +159,7 @@
 - experience_years (INTEGER) - ประสบการณ์
 - hospital_affiliation (TEXT) - โรงพยาบาลที่สังกัด
 - consultation_fee (DECIMAL) - ค่าปรึกษา
-- available_hours (JSONB) - เวลาที่ว่าง
+- available_hours (JSONB) - เวล���ที่ว่าง
 - bio (TEXT) - ประวัติ
 - verified (BOOLEAN) - ยืนยันตัวตน
 \`\`\`

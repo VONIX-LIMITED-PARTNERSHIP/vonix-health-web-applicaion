@@ -141,7 +141,7 @@ export default function PrivacyPolicyPage() {
             </li>
             <li>
               <strong>สิทธิในการเข้าถึงและขอรับสำเนาข้อมูล (Right to Access):</strong> ผู้ใช้สามารถขอเข้าดูหรือขอสำเนาข้อมูลส่วนบุคคลที่
-              VONIX เก็บไว้เกี่ยวกับตนเองได้ตามมาตรา 30 ของ PDPA
+              VONIX เก็บไว้เกี่ยวกับตนเองได้ตามมาตร��� 30 ของ PDPA
             </li>
             <li>
               <strong>สิทธิแก้ไขข้อมูล (Right to Rectification):</strong> หากผู้ใช้พบว่าข้อมูลส่วนบุคคลของตนผิดพลาดหรือไม่สมบูรณ์
