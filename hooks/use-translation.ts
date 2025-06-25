@@ -27,18 +27,13 @@ export function useTranslation(namespaces: string[] = ["common"]) {
         // @ts-ignore – dynamic index access
         return dict[ns][subKey]
       }
-    } else {
-      // 2. If the key does NOT include a namespace, iterate through provided namespaces
-      for (const ns of namespaces) {
-        // @ts-ignore – dynamic index access
-        if (dict[ns]?.[key] !== undefined) {
-          // @ts-ignore – dynamic index access
-          return dict[ns][key]
-        }
-      }
     }
 
-    // 3. Fallback to raw key if not found in any specified namespace
+    // 2. Try `common` namespace by default
+    // @ts-ignore – dynamic index access
+    if (dict.common?.[key] !== undefined) return dict.common[key]
+
+    // 3. Fallback to raw key
     return key
   }
 
