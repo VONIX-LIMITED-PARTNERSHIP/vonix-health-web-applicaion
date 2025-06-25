@@ -93,11 +93,11 @@ export default function ProfilePage() {
       if (response.ok) {
         toast({
           title: t("common.success"),
-          description: t("profile.withdraw_consent_success"),
+          description: t("withdraw_consent_success"),
         })
         await refreshProfile() // Refresh profile to show updated consent status
       } else {
-        throw new Error(result.error || t("profile.withdraw_consent_error"))
+        throw new Error(result.error || t("withdraw_consent_error"))
       }
     } catch (error: any) {
       toast({
@@ -309,7 +309,9 @@ export default function ProfilePage() {
                       ) : (
                         <Input
                           id="gender"
-                          value={field.value ? t(`profile.gender_${field.value}`) : t("common.not_available")}
+                          value={
+                            field.value ? t(field.value as "male" | "female" | "other") : t("common.not_available")
+                          }
                           readOnly
                         />
                       )}
@@ -368,8 +370,8 @@ export default function ProfilePage() {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>{t("profile.withdraw_consent_confirm_title")}</AlertDialogTitle>
-                    <AlertDialogDescription>{t("profile.withdraw_consent_confirm_content")}</AlertDialogDescription>
+                    <AlertDialogTitle>{t("withdraw_consent_confirm_title")}</AlertDialogTitle>
+                    <AlertDialogDescription>{t("withdraw_consent_confirm_content")}</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
