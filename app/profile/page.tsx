@@ -262,7 +262,11 @@ export default function ProfilePage() {
                                   !field.value && "text-muted-foreground",
                                 )}
                               >
-                                {field.value ? format(new Date(field.value), "PPP") : <span>{t("pick_a_date")}</span>}
+                                {field.value ? (
+                                  format(new Date(field.value), "dd/MM/yyyy")
+                                ) : (
+                                  <span>{t("pick_a_date")}</span>
+                                )}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
@@ -272,14 +276,16 @@ export default function ProfilePage() {
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
                               onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                              disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                               initialFocus
+                              defaultMonth={field.value ? new Date(field.value) : new Date(1990, 0)}
                             />
                           </PopoverContent>
                         </Popover>
                       ) : (
                         <Input
                           id="dateOfBirth"
-                          value={field.value ? format(new Date(field.value), "PPP") : t("common.not_available")}
+                          value={field.value ? format(new Date(field.value), "dd/MM/yyyy") : t("common.not_available")}
                           readOnly
                         />
                       )}
