@@ -3,6 +3,7 @@ import { openai } from "@ai-sdk/openai"
 import { z } from "zod"
 import { NextResponse } from "next/server"
 import { appKnowledgeBase } from "@/data/chatbot-app-knowledge"
+import { AssessmentService } from "@/lib/assessment-service"
 
 // Define the message structure expected by the AI SDK
 interface AIMessage {
@@ -61,6 +62,29 @@ const INTENT_CLASSIFICATION_PROMPT = `คุณคือผู้ช่วยท
 
 // System prompt for "อื่นๆ" intent
 const OTHER_SYSTEM_PROMPT = `คุณคือ VONIX Assistant ผู้ช่วยด้านสุขภาพและการใช้งานแอปพลิเคชันเท่านั้น หากผู้ใช้ถามคำถามที่ไม่เกี่ยวข้องกับสุขภาพหรือการใช้งานแอป ให้ตอบกลับอย่างสุภาพว่าคุณเชี่ยวชาญเฉพาะสองเรื่องนี้ และแนะนำให้ผู้ใช้ถามคำถามที่เกี่ยวข้องกับสุขภาพหรือการใช้งานแอปแทน ห้ามตอบคำถามที่ไม่เกี่ยวข้องโดยตรง ห้ามทักทายซ้ำ`
+
+// System prompt for personalized health advice
+const PERSONALIZED_HEALTH_SYSTEM_PROMPT = (
+  userName: string,
+  healthData: string,
+) => `คุณคือ VONIX Assistant ผู้ช่วยด้านสุขภาพส่วนตัวที่เชี่ยวชาญด้านสุขภาพทั่วไป โภชนาการ การออกกำลังกาย สุขภาพจิต และการนอนหลับ
+
+**ข้อมูลสุขภาพล่าสุดของ ${userName} (อ้างอิงจากแบบประเมินที่ทำล่าสุด):**
+${healthData}
+
+**กฎสำคัญที่สุด:**
+- **เมื่อตอบ ให้พิจารณาเฉพาะข้อความล่าสุดของผู้ใช้ในประวัติการสนทนาเท่านั้น และใช้ข้อมูลสุขภาพที่ให้มาข้างต้นเพื่อตอบคำถามเกี่ยวกับสุขภาพของ ${userName} โดยเฉพาะ**
+- **ห้ามทักทายซ้ำ หรือถามคำถามทั่วไปซ้ำ (เช่น "มีอะไรให้ช่วยไหมคะ/ครับ?") หากผู้ใช้ได้ระบุคำถามเฉพาะเจาะจงมาแล้ว**
+- **หากผู้ใช้แจ้งอาการป่วยหรือความไม่สบาย ให้ถามอาการเฉพาะเจาะจงเพิ่มเติม**
+
+หน้าที่ของคุณ:
+- ให้ข้อมูลและคำแนะนำด้านสุขภาพเบื้องต้นที่เข้าใจง่ายและเป็นประโยชน์ โดยอ้างอิงจากข้อมูลสุขภาพของ ${userName} ที่ให้มา
+- ตอบคำถามเกี่ยวกับอาการทั่วไป, การดูแลตัวเอง, การป้องกันโรค, และการส่งเสริมสุขภาพ
+- เน้นย้ำเสมอว่าคำแนะนำของคุณไม่ใช่การวินิจฉัยทางการแพทย์ และควรปรึกษาแพทย์หรือผู้เชี่ยวชาญหากมีอาการรุนแรงหรือเรื้อรัง
+- ใช้ภาษาไทยที่เป็นกันเอง สุภาพ และให้กำลังใจ
+- ห้ามใช้เครื่องหมายตัวหนา (เช่น **) หรือการจัดรูปแบบ Markdown อื่นๆ ในข้อความตอบกลับของคุณ
+- หากคำถามซับซ้อนเกินกว่าความสามารถของคุณ หรือเป็นเรื่องที่ต้องวินิจฉัยโดยแพทย์ ให้แนะนำให้ผู้ใช้ปรึกษาแพทย์
+`
 
 // Define critical health keywords for direct classification
 const CRITICAL_HEALTH_KEYWORDS = [
@@ -211,14 +235,40 @@ const CRITICAL_HEALTH_KEYWORDS = [
   "ปวดท้อง",
   "เวียนหัว",
   "แปลก",
+  "สุขภาพของฉัน",
+  "ผลประเมินของฉัน",
+  "สุขภาพเป็นยังไง",
+  "ข้อมูลสุขภาพ",
+  "ประเมินสุขภาพ",
 ]
+
+// Helper function to get risk level label
+const getRiskLevelLabel = (riskLevel: string): string => {
+  switch (riskLevel) {
+    case "low":
+      return "ต่ำ"
+    case "medium":
+      return "ปานกลาง"
+    case "high":
+      return "สูง"
+    case "very-high":
+      return "สูงมาก"
+    default:
+      return "ไม่ระบุ"
+  }
+}
 
 export async function POST(req: Request) {
   try {
-    // Expect an array of messages and userName from the client
-    const { messages: clientMessages, userName } = (await req.json()) as {
+    // Expect an array of messages, userName, and userId from the client
+    const {
+      messages: clientMessages,
+      userName,
+      userId,
+    } = (await req.json()) as {
       messages: AIMessage[]
       userName?: string
+      userId?: string
     }
 
     // The last message is the current user's query
@@ -232,6 +282,52 @@ export async function POST(req: Request) {
 
     let botResponse: string
     let intentCategory: z.infer<typeof IntentSchema>["category"]
+    let healthDataSummary = ""
+    let hasPersonalizedHealthData = false
+
+    // --- Fetch personalized health data if user is logged in ---
+    if (userId) {
+      try {
+        const { data: latestAssessments, error: fetchError } = await AssessmentService.getLatestUserAssessments(userId)
+
+        if (fetchError) {
+          console.error("Error fetching user assessments:", fetchError)
+          // Continue without personalized data if there's an error
+        } else if (latestAssessments && latestAssessments.length > 0) {
+          hasPersonalizedHealthData = true
+          healthDataSummary = latestAssessments
+            .map((assessment) => {
+              const riskLabel = getRiskLevelLabel(assessment.risk_level)
+              const factors =
+                assessment.risk_factors && assessment.risk_factors.length > 0
+                  ? `ปัจจัยเสี่ยง: ${assessment.risk_factors.join(", ")}`
+                  : "ไม่มีปัจจัยเสี่ยงที่ระบุ"
+              const recommendations =
+                assessment.recommendations && assessment.recommendations.length > 0
+                  ? `คำแนะนำ: ${assessment.recommendations.join(", ")}`
+                  : "ไม่มีคำแนะนำเฉพาะ"
+
+              return `
+- หมวดหมู่: ${assessment.category_title} (ID: ${assessment.category_id})
+  - ระดับความเสี่ยง: ${riskLabel} (${assessment.percentage}%)
+  - ${factors}
+  - ${recommendations}
+  - ทำเมื่อ: ${new Date(assessment.completed_at).toLocaleDateString("th-TH")}
+          `.trim()
+            })
+            .join("\n\n")
+
+          healthDataSummary = `นี่คือข้อมูลสรุปผลการประเมินสุขภาพล่าสุดของคุณ:\n\n${healthDataSummary}\n\nโปรดใช้ข้อมูลนี้เพื่อตอบคำถามเกี่ยวกับสุขภาพของผู้ใช้`
+        } else {
+          healthDataSummary = "ผู้ใช้ยังไม่มีข้อมูลการประเมินสุขภาพล่าสุดในระบบ"
+        }
+      } catch (error) {
+        console.error("Error in health data fetching:", error)
+        healthDataSummary = "เกิดข้อผิดพลาดในการดึงข้อมูลสุขภาพ"
+      }
+    } else {
+      healthDataSummary = "ผู้ใช้ไม่ได้ล็อกอิน จึงไม่สามารถเข้าถึงข้อมูลสุขภาพส่วนตัวได้"
+    }
 
     // --- Direct classification for critical health keywords (Priority 1) ---
     let isCriticalHealthQuery = false
@@ -257,12 +353,38 @@ export async function POST(req: Request) {
 
     if (intentCategory === "สุขภาพ") {
       // If it's a health-related question, generate a health advice
-      const { text: healthResponse } = await generateText({
-        model: openai("gpt-4o"),
-        system: HEALTH_SYSTEM_PROMPT,
-        messages: conversationHistoryForAI, // Pass full history for context
-      })
-      botResponse = healthResponse
+      let systemPromptToUse = HEALTH_SYSTEM_PROMPT
+
+      // Check if the user is asking about their own health and personalized data is available
+      const userAskingAboutOwnHealth =
+        userMessageContent.includes("สุขภาพของฉัน") ||
+        userMessageContent.includes("ผลประเมินของฉัน") ||
+        userMessageContent.includes("สุขภาพเป็นยังไง") ||
+        userMessageContent.includes("ข้อมูลสุขภาพ") ||
+        userMessageContent.includes("สุขภาพเป็นอย่างไร")
+
+      if (hasPersonalizedHealthData && userAskingAboutOwnHealth) {
+        systemPromptToUse = PERSONALIZED_HEALTH_SYSTEM_PROMPT(userName || "คุณ", healthDataSummary)
+      } else if (userAskingAboutOwnHealth && !hasPersonalizedHealthData && userId) {
+        // If user asks about their health but no data, inform them
+        botResponse = `ขออภัยครับ ${userName || "คุณ"} ผมไม่พบข้อมูลการประเมินสุขภาพล่าสุดของคุณในระบบ คุณสามารถทำแบบประเมินสุขภาพเพื่อรับคำแนะนำส่วนบุคคลได้นะครับ 😊`
+      } else if (userAskingAboutOwnHealth && !userId) {
+        // If user asks about their health but not logged in
+        botResponse = `ขออภัยครับ คุณต้องเข้าสู่ระบบก่อนเพื่อให้ผมสามารถเข้าถึงข้อมูลสุขภาพของคุณได้ กรุณาเข้าสู่ระบบแล้วลองถามใหม่นะครับ 😊`
+      } else {
+        // Fallback to general health prompt if not asking about own health or no data
+        systemPromptToUse = HEALTH_SYSTEM_PROMPT
+      }
+
+      if (!botResponse) {
+        // Only generate if botResponse hasn't been set by the "no data" case
+        const { text: healthResponse } = await generateText({
+          model: openai("gpt-4o"),
+          system: systemPromptToUse,
+          messages: conversationHistoryForAI, // Pass full history for context
+        })
+        botResponse = healthResponse
+      }
     } else if (intentCategory === "แอป VONIX") {
       // Implement simple RAG for app-related questions
       let foundAppResponse = false
