@@ -21,7 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Separator } from "@/components/ui/separator"
-import { PencilIcon, CheckIcon, XIcon, Loader2, CalendarIcon } from "lucide-react" // Import CalendarIcon
+import { PencilIcon, CheckIcon, XIcon, Loader2, CalendarIcon, ArrowLeft } from "lucide-react" // Import CalendarIcon
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -195,7 +195,13 @@ export default function ProfilePage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4 dark:bg-gray-950">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-2xl font-bold">{t("my_profile")}</CardTitle>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">{t("common.back")}</span>
+            </Button>
+            <CardTitle className="text-2xl font-bold">{t("my_profile")}</CardTitle>
+          </div>
           {!isEditing && (
             <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}>
               <PencilIcon className="h-5 w-5" />
