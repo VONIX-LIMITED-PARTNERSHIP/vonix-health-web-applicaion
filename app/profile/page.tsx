@@ -165,6 +165,11 @@ export default function ProfilePage() {
         })
         await refreshProfile() // Refresh profile to show updated data
         setIsEditing(false)
+
+        // Show success message for 5 seconds then redirect to home
+        setTimeout(() => {
+          router.push("/")
+        }, 5000)
       } else {
         throw new Error(result.error || t("profile_update_error"))
       }
