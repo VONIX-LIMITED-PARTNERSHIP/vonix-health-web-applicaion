@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import type { AssessmentQuestion, AssessmentAnswer } from "@/types/assessment" // ใช้ AssessmentQuestion
 import { AlertCircle } from "lucide-react"
 import { MultiSelectComboboxWithOther } from "@/components/ui/multi-select-combobox-with-other"
+import { cn } from "@/lib/utils"
 
 interface QuestionCardProps {
   question: AssessmentQuestion // ใช้ AssessmentQuestion type
@@ -148,9 +149,14 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
             {yesNoOptions.map((option, index) => (
               <div
                 key={index}
-                className={`flex items-center space-x-3 p-3 rounded-lg transition-colors dark:hover:bg-gray-800 ${
-                  question.type === "rating" ? "justify-center" : "hover:bg-gray-50"
-                }`}
+                className={cn(
+                  "flex items-center space-x-3 p-4 rounded-lg border border-gray-200 cursor-pointer transition-colors",
+                  "hover:bg-gray-50 dark:hover:bg-gray-800",
+                  "data-[state=checked]:bg-blue-50 data-[state=checked]:border-blue-500 dark:data-[state=checked]:bg-blue-950 dark:data-[state=checked]:border-blue-700",
+                  question.type === "rating" && "justify-center",
+                )}
+                data-state={String(currentAnswer) === option ? "checked" : "unchecked"} // เพิ่ม data-state เพื่อให้ Tailwind รู้สถานะ
+                onClick={() => handleAnswerChange(option)} // ทำให้ div ทั้งหมดคลิกได้
               >
                 <RadioGroupItem value={option} id={`${question.id}-${index}`} />
                 <Label htmlFor={`${question.id}-${index}`} className="flex-1 cursor-pointer dark:text-gray-100">
@@ -173,7 +179,27 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
             {question.options?.map((option, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors dark:hover:bg-gray-800"
+                className={cn(
+                  "flex items-center space-x-3 p-4 rounded-lg border border-gray-200 cursor-pointer transition-colors",
+                  "hover:bg-gray-50 dark:hover:bg-gray-800",
+                  Array.isArray(currentAnswer) &&
+                    currentAnswer.includes(option) &&
+                    "bg-blue-50 border-blue-500 dark:bg-blue-950 dark:border-blue-700", // เพิ่มเงื่อนไขสำหรับสถานะ checked
+                )}
+                onClick={() => {
+                  // ทำให้ div ทั้งหมดคลิกได้
+                  const newAnswer = Array.isArray(currentAnswer) ? [...currentAnswer] : []
+                  const isChecked = newAnswer.includes(option)
+                  if (isChecked) {
+                    const index = newAnswer.indexOf(option)
+                    if (index > -1) {
+                      newAnswer.splice(index, 1)
+                    }
+                  } else {
+                    newAnswer.push(option)
+                  }
+                  handleAnswerChange(newAnswer)
+                }}
               >
                 <Checkbox
                   id={`${question.id}-${index}`}

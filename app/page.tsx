@@ -36,7 +36,6 @@ import { useToast } from "@/hooks/use-toast"
 import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
 import { HealthOverviewModal } from "@/components/health-overview-modal"
 import { useTranslation } from "@/hooks/use-translation"
-import { useRiskLevelTranslation } from "@/utils/risk-level"
 
 const assessmentCategories = [
   {
@@ -129,7 +128,6 @@ export default function HomePage() {
   const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false)
   const [targetAssessmentId, setTargetAssessmentId] = useState<string | null>(null)
   const { t } = useTranslation()
-  const { getRiskLevelLabel, getRiskLevelColor } = useRiskLevelTranslation()
 
   const router = useRouter()
   const { toast } = useToast()
@@ -275,9 +273,8 @@ export default function HomePage() {
           progress: 100,
           lastCompleted: new Date(userAssessment.completed_at).toLocaleDateString("th-TH"),
           riskLevel: userAssessment.risk_level,
-          riskLevelLabel: getRiskLevelLabel(userAssessment.risk_level),
-          riskLevelColor: getRiskLevelColor(userAssessment.risk_level),
           riskFactorsCount: userAssessment.risk_factors ? userAssessment.risk_factors.length : 0,
+          // เอา score และ healthLevel ออก
         }
       }
 
@@ -576,8 +573,30 @@ export default function HomePage() {
                               <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
                                 <div className="font-medium">{t("completed")}</div>
                                 {category.id !== "basic" && category.riskLevel && (
-                                  <div className={`font-semibold text-sm mt-1 ${category.riskLevelColor}`}>
-                                    ({category.riskLevelLabel})
+                                  <div
+                                    className={`font-semibold text-sm mt-1 ${
+                                      category.riskLevel === "low"
+                                        ? "text-green-600"
+                                        : category.riskLevel === "medium"
+                                          ? "text-yellow-600"
+                                          : category.riskLevel === "high"
+                                            ? "text-orange-600"
+                                            : category.riskLevel === "very-high"
+                                              ? "text-red-600"
+                                              : "text-gray-600"
+                                    }`}
+                                  >
+                                    (
+                                    {category.riskLevel === "low"
+                                      ? "ความเสี่ยงต่ำ"
+                                      : category.riskLevel === "medium"
+                                        ? "ความเสี่ยงปานกลาง"
+                                        : category.riskLevel === "high"
+                                          ? "ความเสี่ยงสูง"
+                                          : category.riskLevel === "very-high"
+                                            ? "ความเสี่ยงสูงมาก"
+                                            : "ไม่ระบุ"}
+                                    )
                                   </div>
                                 )}
                               </div>

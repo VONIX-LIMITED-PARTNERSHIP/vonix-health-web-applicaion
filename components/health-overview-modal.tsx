@@ -63,7 +63,6 @@ export function HealthOverviewModal({
 }: HealthOverviewModalProps) {
   const { t } = useTranslation()
   const { user, loading: authLoading } = useAuth()
-  const { getRiskLevelLabel, getRiskLevelBadgeClass } = useRiskLevelTranslation()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -81,6 +80,8 @@ export function HealthOverviewModal({
   const [detailedAssessmentData, setDetailedAssessmentData] = useState<any | null>(null)
   const [loadingDetailedAssessment, setLoadingDetailedAssessment] = useState(false)
   const [detailedAssessmentError, setDetailedAssessmentError] = useState<string | null>(null)
+
+  const { getRiskLevelLabel, getRiskLevelBadgeClass } = useRiskLevelTranslation()
 
   /* ────────────────────────────────────────────────────────────────────
      Lifecycle

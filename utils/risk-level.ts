@@ -1,46 +1,28 @@
+"use client"
+
 import { useTranslation } from "@/hooks/use-translation"
 
-// ฟังก์ชัน helper สำหรับแปลระดับความเสี่ยง
+// Risk level translation utility
 export function useRiskLevelTranslation() {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
 
   const getRiskLevelLabel = (riskLevel: string): string => {
     switch (riskLevel?.toLowerCase()) {
       case "low":
       case "ต่ำ":
-        return t("risk_level_low")
+        return locale === "en" ? "Low Risk" : "ความเสี่ยงต่ำ"
       case "medium":
       case "ปานกลาง":
-        return t("risk_level_medium")
+        return locale === "en" ? "Medium Risk" : "ความเสี่ยงปานกลาง"
       case "high":
       case "สูง":
-        return t("risk_level_high")
+        return locale === "en" ? "High Risk" : "ความเสี่ยงสูง"
       case "very-high":
       case "very_high":
       case "สูงมาก":
-        return t("risk_level_very_high")
+        return locale === "en" ? "Very High Risk" : "ความเสี่ยงสูงมาก"
       default:
-        return t("risk_level_unknown")
-    }
-  }
-
-  const getRiskLevelColor = (riskLevel: string): string => {
-    switch (riskLevel?.toLowerCase()) {
-      case "low":
-      case "ต่ำ":
-        return "text-green-600"
-      case "medium":
-      case "ปานกลาง":
-        return "text-yellow-600"
-      case "high":
-      case "สูง":
-        return "text-orange-600"
-      case "very-high":
-      case "very_high":
-      case "สูงมาก":
-        return "text-red-600"
-      default:
-        return "text-gray-600"
+        return locale === "en" ? "Unknown" : "ไม่ระบุ"
     }
   }
 
@@ -64,9 +46,32 @@ export function useRiskLevelTranslation() {
     }
   }
 
+  const getRiskLevelDescription = (riskLevel: string): string => {
+    switch (riskLevel?.toLowerCase()) {
+      case "low":
+      case "ต่ำ":
+        return locale === "en" ? "Your assessment results are in good range" : "ผลการประเมินของคุณอยู่ในเกณฑ์ดี"
+      case "medium":
+      case "ปานกลาง":
+        return locale === "en" ? "Should pay attention and monitor symptoms" : "ควรให้ความสำคัญและติดตามอาการ"
+      case "high":
+      case "สูง":
+        return locale === "en"
+          ? "Recommend consulting a doctor for further examination"
+          : "แนะนำให้ปรึกษาแพทย์เพื่อการตรวจสอบเพิ่มเติม"
+      case "very-high":
+      case "very_high":
+      case "สูงมาก":
+        return locale === "en" ? "Recommend consulting a doctor urgently" : "แนะนำให้ปรึกษาแพทย์โดยด่วน"
+      default:
+        return locale === "en" ? "Assessment results" : "ผลการประเมิน"
+    }
+  }
+
   return {
     getRiskLevelLabel,
-    getRiskLevelColor,
     getRiskLevelBadgeClass,
+    getRiskLevelDescription,
+    locale,
   }
 }
