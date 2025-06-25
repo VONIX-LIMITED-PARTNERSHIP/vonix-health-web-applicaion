@@ -8,6 +8,7 @@ import { AssessmentResults } from "@/components/assessment/assessment-results"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, Loader2 } from "lucide-react"
+import { createClientComponentClient } from "@/lib/supabase"
 
 export default function ResultsPage() {
   const params = useParams()
@@ -20,6 +21,8 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [assessmentData, setAssessmentData] = useState<any>(null)
+
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
     if (isUserLoading) return
@@ -43,7 +46,7 @@ export default function ResultsPage() {
         if (assessmentId) {
           // ดึงข้อมูลจาก assessmentId ที่ระบุ
           console.log("🔍 ResultsPage: กำลังดึงข้อมูลแบบประเมินตามรหัสที่ระบุ...")
-          const { data, error: fetchError } = await AssessmentService.getAssessmentById(assessmentId)
+          const { data, error: fetchError } = await AssessmentService.getAssessmentById(supabase, assessmentId)
 
           if (fetchError) {
             console.error("❌ ResultsPage: ไม่สามารถดึงข้อมูลแบบประเมินได้:", fetchError)
@@ -61,6 +64,7 @@ export default function ResultsPage() {
           // ดึงข้อมูลแบบประเมินล่าสุดของ user และ category นี้
           console.log("🔍 ResultsPage: กำลังดึงข้อมูลแบบประเมินล่าสุด...")
           const { data, error: fetchError } = await AssessmentService.getLatestAssessmentForUserAndCategory(
+            supabase,
             user.id,
             categoryId,
           )
@@ -108,7 +112,7 @@ export default function ResultsPage() {
     }
 
     loadAssessmentResults()
-  }, [categoryId, assessmentId, user?.id, isUserLoading])
+  }, [categoryId, assessmentId, user?.id, isUserLoading, supabase])
 
   if (loading) {
     return (
