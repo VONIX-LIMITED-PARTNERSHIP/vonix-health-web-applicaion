@@ -34,7 +34,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { useTranslation } from "@/hooks/use-translation"
 import { AssessmentService } from "@/lib/assessment-service"
 import { isSupabaseConfigured } from "@/lib/supabase"
-import { assessmentCategories as allAssessmentCategories } from "@/data/assessment-questions"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
 
 interface HealthOverviewModalProps {
@@ -61,7 +60,7 @@ export function HealthOverviewModal({
   targetAssessmentId = null,
   onTargetAssessmentIdChange,
 }: HealthOverviewModalProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation(["common"])
   const { user, loading: authLoading } = useAuth()
 
   const [loading, setLoading] = useState(true)
@@ -129,7 +128,7 @@ export function HealthOverviewModal({
   ──────────────────────────────────────────────────────────────────── */
   const loadUserAssessments = async () => {
     if (!user?.id || !isSupabaseConfigured()) {
-      setError("กรุณาเข้าสู่ระบบเพื่อดูภาพรวมสุขภาพ")
+      setError(t("login_to_view_health_overview"))
       setLoading(false)
       return
     }
@@ -256,8 +255,24 @@ export function HealthOverviewModal({
 
   const getCategoryIcon = (categoryId: string) => (iconMap[categoryId] ?? Info) as React.ElementType
 
-  const getCategoryTitle = (categoryId: string) =>
-    allAssessmentCategories.find((c) => c.id === categoryId)?.title ?? "ไม่พบข้อมูล"
+  const getCategoryTitle = (categoryId: string) => {
+    switch (categoryId) {
+      case "basic":
+        return t("personal_information")
+      case "heart":
+        return "ประเมินหัวใจและหลอดเลือด"
+      case "nutrition":
+        return "ประเมินไลฟ์สไตล์และโภชนาการ"
+      case "mental":
+        return "ประเมินสุขภาพจิต"
+      case "physical":
+        return "ประเมินสุขภาพกาย"
+      case "sleep":
+        return "ประเมินคุณภาพการนอน"
+      default:
+        return t("not_available")
+    }
+  }
 
   const getRiskLevelBadge = (level: string) => {
     const label = getRiskLevelLabel(level)
@@ -285,14 +300,14 @@ export function HealthOverviewModal({
                 className="absolute left-4 top-0 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="h-5 w-5" />
-                <span className="sr-only">กลับ</span>
+                <span className="sr-only">{t("back")}</span>
               </Button>
             )}
             <Activity className="mr-3 h-7 w-7 text-blue-600" />
-            ภาพรวมสุขภาพของคุณ
+            {t("health_overview_modal_title")}
           </DialogTitle>
           <DialogDescription>
-            {selectedAssessmentId ? "รายละเอียดผลการประเมิน" : "ข้อมูลสรุปและประวัติการประเมินสุขภาพ"}
+            {selectedAssessmentId ? t("detailed_assessment_description") : t("health_overview_modal_description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -300,7 +315,7 @@ export function HealthOverviewModal({
         {selectedAssessmentId ? (
           /* ===== Detailed view ===== */
           loadingDetailedAssessment ? (
-            <LoaderSection text="กำลังโหลดรายละเอียด" />
+            <LoaderSection text={t("loading_details")} />
           ) : detailedAssessmentError ? (
             <ErrorSection
               message={detailedAssessmentError}
@@ -311,7 +326,7 @@ export function HealthOverviewModal({
           ) : null
         ) : /* ===== Overview list ===== */
         loading ? (
-          <LoaderSection text="กำลังโหลดข้อมูล" />
+          <LoaderSection text={t("loading")} />
         ) : error ? (
           <ErrorSection message={error} onRetry={loadUserAssessments} />
         ) : !user ? (
@@ -332,7 +347,7 @@ export function HealthOverviewModal({
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
         <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />
         <h3 className="text-xl font-semibold">{text}...</h3>
-        <p className="text-gray-500">กรุณารอสักครู่</p>
+        <p className="text-gray-500">{t("please_wait")}</p>
       </div>
     )
   }
@@ -342,12 +357,12 @@ export function HealthOverviewModal({
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
         <XCircle className="h-16 w-16 text-red-600" />
         <div>
-          <h3 className="text-xl font-semibold">เกิดข้อผิดพลาด</h3>
+          <h3 className="text-xl font-semibold">{t("error")}</h3>
           <p className="text-gray-500 mt-1">{message}</p>
         </div>
         <Button onClick={onRetry}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          ลองใหม่อีกครั้ง
+          {t("try_again")}
         </Button>
       </div>
     )
@@ -358,11 +373,11 @@ export function HealthOverviewModal({
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
         <Info className="h-16 w-16 text-gray-500" />
         <div>
-          <h3 className="text-xl font-semibold">ยังไม่ได้เข้าสู่ระบบ</h3>
-          <p className="text-gray-500 mt-1">กรุณาเข้าสู่ระบบเพื่อดูภาพรวมสุขภาพ</p>
+          <h3 className="text-xl font-semibold">{t("not_logged_in")}</h3>
+          <p className="text-gray-500 mt-1">{t("login_to_view_health_overview")}</p>
         </div>
         <Button asChild>
-          <Link href="/login">เข้าสู่ระบบ</Link>
+          <Link href="/login">{t("login")}</Link>
         </Button>
       </div>
     )
@@ -373,11 +388,11 @@ export function HealthOverviewModal({
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
         <FileText className="h-16 w-16 text-gray-500" />
         <div>
-          <h3 className="text-xl font-semibold">ยังไม่มีข้อมูลการประเมิน</h3>
-          <p className="text-gray-500 mt-1">เริ่มทำแบบประเมินเพื่อดูภาพรวมสุขภาพของคุณ</p>
+          <h3 className="text-xl font-semibold">{t("no_assessment_data")}</h3>
+          <p className="text-gray-500 mt-1">{t("start_assessment_to_view")}</p>
         </div>
         <Button asChild onClick={() => onOpenChange(false)}>
-          <Link href="/">เริ่มประเมินสุขภาพ</Link>
+          <Link href="/">{t("start_health_assessment")}</Link>
         </Button>
       </div>
     )
@@ -396,13 +411,15 @@ export function HealthOverviewModal({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <StatRow label="จำนวนปัจจัยเสี่ยงที่พบ">
+              <StatRow label={t("risk_factors_found")}>
                 <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200">
-                  {data.risk_factors ? data.risk_factors.length : 0} ปัจจัย
+                  {data.risk_factors ? data.risk_factors.length : 0} {t("risk_factors")}
                 </Badge>
               </StatRow>
-              <StatRow label="ระดับความเสี่ยง">{getRiskLevelBadge(data.risk_level)}</StatRow>
-              <StatRow label="วันที่ประเมิน">{new Date(data.completed_at).toLocaleDateString("th-TH")}</StatRow>
+              <StatRow label={t("risk_level_label")}>{getRiskLevelBadge(data.risk_level)}</StatRow>
+              <StatRow label={t("assessment_date_label")}>
+                {new Date(data.completed_at).toLocaleDateString("th-TH")}
+              </StatRow>
             </CardContent>
           </Card>
 
@@ -412,7 +429,7 @@ export function HealthOverviewModal({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-orange-600" />
-                  ปัจจัยเสี่ยงที่พบ
+                  {t("risk_factors_found")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -431,7 +448,7 @@ export function HealthOverviewModal({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-green-600" />
-                  คำแนะนำ
+                  {t("recommendations_label")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -466,17 +483,21 @@ export function HealthOverviewModal({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-5 w-5 text-blue-600" />
-                สรุปภาพรวม
+                {t("summary_overview")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4 text-center">
-                <Metric value={`${dashboardStats.overallScore}%`} label="คะแนนสุขภาพรวม" color="text-blue-600" />
-                <Metric value={dashboardStats.riskFactors} label="ปัจจัยเสี่ยงที่พบ" color="text-orange-600" />
-                <Metric value={dashboardStats.completedAssessments} label="แบบประเมินที่เสร็จสิ้น" color="text-green-600" />
+                <Metric value={`${dashboardStats.overallScore}%`} label={t("overall_score")} color="text-blue-600" />
+                <Metric value={dashboardStats.riskFactors} label={t("risk_factors_found")} color="text-orange-600" />
                 <Metric
-                  value={dashboardStats.reportReady ? "พร้อมใช้งาน" : "ยังไม่พร้อม"}
-                  label="รายงานสุขภาพ"
+                  value={dashboardStats.completedAssessments}
+                  label={t("assessments_completed")}
+                  color="text-green-600"
+                />
+                <Metric
+                  value={dashboardStats.reportReady ? t("report_ready") : t("report_not_ready")}
+                  label={t("health_report_status")}
                   color="text-purple-600"
                 />
               </div>
@@ -488,7 +509,7 @@ export function HealthOverviewModal({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                แบบประเมินล่าสุด
+                {t("latest_assessments")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -512,7 +533,7 @@ export function HealthOverviewModal({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                  ประวัติการประเมินทั้งหมด
+                  {t("all_assessment_history")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
