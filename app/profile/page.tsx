@@ -9,17 +9,6 @@ import { useTranslation } from "@/hooks/use-translation"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { Separator } from "@/components/ui/separator"
 import { PencilIcon, CheckIcon, XIcon, Loader2, CalendarIcon, ArrowLeft } from "lucide-react" // Import CalendarIcon
 import { useForm } from "react-hook-form"
@@ -368,7 +357,6 @@ export default function ProfilePage() {
 
           <Separator />
 
-         
           {/* <div className="space-y-4">
             <h2 className="text-lg font-semibold">{t("data_management")}</h2>
             <div className="space-y-2">
@@ -415,8 +403,6 @@ export default function ProfilePage() {
               </AlertDialog>
             </div>
           </div> */}
-            
-          </div>
         </CardContent>
       </Card>
     </main>
