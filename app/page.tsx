@@ -38,7 +38,7 @@ import { HealthOverviewModal } from "@/components/health-overview-modal"
 import { useTranslation } from "@/hooks/use-translation"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
 
-const HomePage = () => {
+export default function HomePage() {
   const { user, profile, loading } = useAuth()
   const searchParams = useSearchParams()
   const [mounted, setMounted] = useState(false)
@@ -189,11 +189,13 @@ const HomePage = () => {
 
   const getUpdatedCategories = () => {
     const latestAssessments = getLatestAssessments(assessments)
+
+    // ใช้ translation system สำหรับชื่อและคำอธิบาย
     const assessmentCategories = [
       {
         id: "basic",
-        title: "Basic Assessment",
-        description: "Basic health assessment",
+        title: t("assessment_categories.basic.title"),
+        description: t("assessment_categories.basic.description"),
         icon: User,
         required: true,
         status: "กรอกข้อมูล",
@@ -204,8 +206,8 @@ const HomePage = () => {
       },
       {
         id: "heart",
-        title: "Heart Assessment",
-        description: "Heart health assessment",
+        title: t("assessment_categories.heart.title"),
+        description: t("assessment_categories.heart.description"),
         icon: Heart,
         required: true,
         status: "เริ่มประเมิน",
@@ -216,8 +218,8 @@ const HomePage = () => {
       },
       {
         id: "nutrition",
-        title: "Nutrition Assessment",
-        description: "Nutrition health assessment",
+        title: t("assessment_categories.nutrition.title"),
+        description: t("assessment_categories.nutrition.description"),
         icon: Apple,
         required: true,
         status: "เริ่มประเมิน",
@@ -228,8 +230,8 @@ const HomePage = () => {
       },
       {
         id: "mental",
-        title: "Mental Assessment",
-        description: "Mental health assessment",
+        title: t("assessment_categories.mental.title"),
+        description: t("assessment_categories.mental.description"),
         icon: Brain,
         required: false,
         status: "ยังไม่ได้ทำการประเมิน",
@@ -240,8 +242,8 @@ const HomePage = () => {
       },
       {
         id: "physical",
-        title: "Physical Assessment",
-        description: "Physical health assessment",
+        title: t("assessment_categories.physical.title"),
+        description: t("assessment_categories.physical.description"),
         icon: Dumbbell,
         required: false,
         status: "ยังไม่ได้ทำการประเมิน",
@@ -252,8 +254,8 @@ const HomePage = () => {
       },
       {
         id: "sleep",
-        title: "Sleep Assessment",
-        description: "Sleep health assessment",
+        title: t("assessment_categories.sleep.title"),
+        description: t("assessment_categories.sleep.description"),
         icon: MoonIcon,
         required: false,
         status: "ยังไม่ได้ทำการประเมิน",
@@ -341,7 +343,7 @@ const HomePage = () => {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
                 {t("assess_health_with_ai")}
               </span>
             </h1>
@@ -636,5 +638,3 @@ const HomePage = () => {
     </div>
   )
 }
-
-export default HomePage
