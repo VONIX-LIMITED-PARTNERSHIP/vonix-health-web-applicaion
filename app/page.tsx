@@ -36,83 +36,9 @@ import { useToast } from "@/hooks/use-toast"
 import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
 import { HealthOverviewModal } from "@/components/health-overview-modal"
 import { useTranslation } from "@/hooks/use-translation"
+import { useRiskLevelTranslation } from "@/utils/risk-level"
 
-const assessmentCategories = [
-  {
-    id: "basic",
-    title: "ข้อมูลส่วนตัว",
-    description: "ข้อมูลสำคัญที่แพทย์ต้องการเพื่อการวินิจฉัยและรักษา",
-    icon: User,
-    required: true,
-    status: "กรอกข้อมูล",
-    progress: 0,
-    gradient: "from-blue-500 to-cyan-500",
-    bgGradient: "from-blue-50 to-cyan-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
-  },
-  {
-    id: "heart",
-    title: "ประเมินหัวใจและหลอดเลือด",
-    description: "ตรวจสอบความเสี่ยงหัวใจ ความดันโลหิต และสุขภาพหลอดเลือด",
-    icon: Heart,
-    required: true,
-    status: "เริ่มประเมิน",
-    progress: 0,
-    gradient: "from-red-500 to-pink-500",
-    bgGradient: "from-red-50 to-pink-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
-  },
-  {
-    id: "nutrition",
-    title: "ประเมินไลฟ์สไตล์และโภชนาการ",
-    description: "ตรวจสอบพฤติกรรมการกิน การออกกำลังกาย และการดูแลสุขภาพ",
-    icon: Apple,
-    required: true,
-    status: "เริ่มประเมิน",
-    progress: 0,
-    gradient: "from-green-500 to-emerald-500",
-    bgGradient: "from-green-50 to-green-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
-  },
-  {
-    id: "mental",
-    title: "ประเมินสุขภาพจิต",
-    description: "การตรวจสุขภาพจิต ความเครียด และสุขภาพทางอารมณ์",
-    icon: Brain,
-    required: false,
-    status: "ยังไม่ได้ทำการประเมิน",
-    progress: 0,
-    gradient: "from-purple-500 to-violet-500",
-    bgGradient: "from-purple-50 to-purple-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
-  },
-  {
-    id: "physical",
-    title: "ประเมินสุขภาพกาย",
-    description: "ตรวจสอบสุขภาพกาย ความแข็งแรง และความสามารถทางกาย",
-    icon: Dumbbell,
-    required: false,
-    status: "ยังไม่ได้ทำการประเมิน",
-    progress: 0,
-    gradient: "from-orange-500 to-amber-500",
-    bgGradient: "from-orange-50 to-orange-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
-  },
-  {
-    id: "sleep",
-    title: "ประเมินคุณภาพการนอน",
-    description: "วิเคราะห์รูปแบบการนอนและคุณภาพการพักผ่อน",
-    icon: MoonIcon,
-    required: false,
-    status: "ยังไม่ได้ทำการประเมิน",
-    progress: 0,
-    gradient: "from-indigo-500 to-blue-500",
-    bgGradient: "from-indigo-50 to-indigo-50",
-    darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
-  },
-]
-
-export default function HomePage() {
+const HomePage = () => {
   const { user, profile, loading } = useAuth()
   const searchParams = useSearchParams()
   const [mounted, setMounted] = useState(false)
@@ -128,6 +54,7 @@ export default function HomePage() {
   const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false)
   const [targetAssessmentId, setTargetAssessmentId] = useState<string | null>(null)
   const { t } = useTranslation()
+  const { getRiskLevelLabel } = useRiskLevelTranslation()
 
   const router = useRouter()
   const { toast } = useToast()
@@ -262,6 +189,80 @@ export default function HomePage() {
 
   const getUpdatedCategories = () => {
     const latestAssessments = getLatestAssessments(assessments)
+    const assessmentCategories = [
+      {
+        id: "basic",
+        title: "Basic Assessment",
+        description: "Basic health assessment",
+        icon: User,
+        required: true,
+        status: "กรอกข้อมูล",
+        progress: 0,
+        gradient: "from-blue-500 to-cyan-500",
+        bgGradient: "from-blue-50 to-cyan-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "heart",
+        title: "Heart Assessment",
+        description: "Heart health assessment",
+        icon: Heart,
+        required: true,
+        status: "เริ่มประเมิน",
+        progress: 0,
+        gradient: "from-red-500 to-pink-500",
+        bgGradient: "from-red-50 to-pink-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "nutrition",
+        title: "Nutrition Assessment",
+        description: "Nutrition health assessment",
+        icon: Apple,
+        required: true,
+        status: "เริ่มประเมิน",
+        progress: 0,
+        gradient: "from-green-500 to-emerald-500",
+        bgGradient: "from-green-50 to-green-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "mental",
+        title: "Mental Assessment",
+        description: "Mental health assessment",
+        icon: Brain,
+        required: false,
+        status: "ยังไม่ได้ทำการประเมิน",
+        progress: 0,
+        gradient: "from-purple-500 to-violet-500",
+        bgGradient: "from-purple-50 to-purple-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "physical",
+        title: "Physical Assessment",
+        description: "Physical health assessment",
+        icon: Dumbbell,
+        required: false,
+        status: "ยังไม่ได้ทำการประเมิน",
+        progress: 0,
+        gradient: "from-orange-500 to-amber-500",
+        bgGradient: "from-orange-50 to-orange-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "sleep",
+        title: "Sleep Assessment",
+        description: "Sleep health assessment",
+        icon: MoonIcon,
+        required: false,
+        status: "ยังไม่ได้ทำการประเมิน",
+        progress: 0,
+        gradient: "from-indigo-500 to-blue-500",
+        bgGradient: "from-indigo-50 to-indigo-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+    ]
 
     return assessmentCategories.map((category) => {
       const userAssessment = latestAssessments.find((a) => a.category_id === category.id)
@@ -274,7 +275,6 @@ export default function HomePage() {
           lastCompleted: new Date(userAssessment.completed_at).toLocaleDateString("th-TH"),
           riskLevel: userAssessment.risk_level,
           riskFactorsCount: userAssessment.risk_factors ? userAssessment.risk_factors.length : 0,
-          // เอา score และ healthLevel ออก
         }
       }
 
@@ -341,7 +341,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                 {t("assess_health_with_ai")}
               </span>
             </h1>
@@ -586,17 +586,7 @@ export default function HomePage() {
                                               : "text-gray-600"
                                     }`}
                                   >
-                                    (
-                                    {category.riskLevel === "low"
-                                      ? "ความเสี่ยงต่ำ"
-                                      : category.riskLevel === "medium"
-                                        ? "ความเสี่ยงปานกลาง"
-                                        : category.riskLevel === "high"
-                                          ? "ความเสี่ยงสูง"
-                                          : category.riskLevel === "very-high"
-                                            ? "ความเสี่ยงสูงมาก"
-                                            : "ไม่ระบุ"}
-                                    )
+                                    ({getRiskLevelLabel(category.riskLevel)})
                                   </div>
                                 )}
                               </div>
@@ -646,3 +636,5 @@ export default function HomePage() {
     </div>
   )
 }
+
+export default HomePage
