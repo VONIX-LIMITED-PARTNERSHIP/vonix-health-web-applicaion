@@ -104,17 +104,19 @@ export function MultiSelectComboboxWithOther({
   }
 
   const handleRemoveSelected = (itemToRemove: string) => {
+    const trimmedItemToRemove = itemToRemove.trim() // Ensure consistency
     const newSelectedPredefined = new Set(selectedPredefined)
-    let newOtherText = otherText
     let newIsOtherSelected = isOtherSelected
+    let newOtherText = otherText
 
-    if (options.includes(itemToRemove)) {
-      newSelectedPredefined.delete(itemToRemove)
-    } else if (itemToRemove === otherOptionLabel || itemToRemove === otherText.trim()) {
-      // If removing the "อื่นๆ" label or the custom text
+    // Case 1: It's a predefined option
+    if (options.includes(trimmedItemToRemove)) {
+      newSelectedPredefined.delete(trimmedItemToRemove)
+    }
+    // Case 2: It's the 'other' label or the custom 'other' text
+    else if (trimmedItemToRemove === otherOptionLabel || trimmedItemToRemove === otherText.trim()) {
       newIsOtherSelected = false
       newOtherText = ""
-      newSelectedPredefined.delete(otherOptionLabel) // Ensure the label is also removed if present
     }
 
     setSelectedPredefined(newSelectedPredefined)
@@ -151,7 +153,7 @@ export function MultiSelectComboboxWithOther({
                       className="h-3 w-3 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleRemoveSelected(item)
+                        handleRemoveSelected(item.trim()) // Ensure item is trimmed before passing
                       }}
                     />
                   </Badge>
