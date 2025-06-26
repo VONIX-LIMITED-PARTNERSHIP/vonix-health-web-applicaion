@@ -99,7 +99,7 @@ export function Header() {
 
         <div className="flex items-center space-x-2 sm:space-x-4">
           {/* Settings Dropdown */}
-         {/* <DropdownMenu>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="p-2">
                 <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -120,7 +120,7 @@ export function Header() {
                 </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu> */}
+          </DropdownMenu>
 
           {isAuthSessionLoading ? ( // Use isAuthSessionLoading here
             <div className="flex items-center space-x-2">
