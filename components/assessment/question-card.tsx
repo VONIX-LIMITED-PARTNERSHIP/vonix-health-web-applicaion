@@ -110,6 +110,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
             value={(localAnswer as string) || ""}
             onChange={(e) => handleChange(e.target.value)}
             placeholder={question.placeholder}
+            className="text-center text-lg h-12 rounded-xl border-2 focus:border-blue-400 dark:text-white dark:placeholder:text-gray-300 dark:bg-input dark:border-border"
           />
         )
       case "number":
@@ -127,6 +128,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
             value={(localAnswer as string) || ""}
             onChange={(e) => handleChange(e.target.value)}
             placeholder={question.placeholder}
+            className="min-h-[100px] rounded-xl border-2 focus:border-blue-400 dark:text-white dark:placeholder:text-gray-300 dark:bg-input dark:border-border"
           />
         )
       case "multiple-choice":
@@ -200,7 +202,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
       <CardHeader>
-        <CardTitle className="text-xl dark:text-foreground">
+        <CardTitle className="text-xl dark:text-white">
           <div className="flex items-center gap-2">
             {question.questionText}
             {question.required && <span className="text-red-500 text-sm font-bold">*</span>}
@@ -212,7 +214,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
           </div>
         </CardTitle>
         {question.description && (
-          <p className="text-gray-600 dark:text-muted-foreground text-sm mt-2">{question.description}</p>
+          <p className="text-gray-600 dark:text-gray-200 text-sm mt-2">{question.description}</p>
         )}
       </CardHeader>
       <CardContent>
