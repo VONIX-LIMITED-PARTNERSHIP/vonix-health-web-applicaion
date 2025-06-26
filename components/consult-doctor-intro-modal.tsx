@@ -10,15 +10,21 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Stethoscope, Info, CheckCircle, MessageSquare, Clock } from "lucide-react"
-import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
+import { useTranslation } from "@/hooks/use-translation"
 
 interface ConsultDoctorIntroModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
+  onProceed: () => void // New prop to trigger the next step
 }
 
-export function ConsultDoctorIntroModal({ isOpen, onOpenChange }: ConsultDoctorIntroModalProps) {
-  const { t } = useTranslation() // Use translation hook
+export function ConsultDoctorIntroModal({ isOpen, onOpenChange, onProceed }: ConsultDoctorIntroModalProps) {
+  const { t } = useTranslation(["common"])
+
+  const handleUnderstood = () => {
+    onOpenChange(false) // Close this modal
+    onProceed() // Trigger the next step (open summary modal)
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -61,7 +67,7 @@ export function ConsultDoctorIntroModal({ isOpen, onOpenChange }: ConsultDoctorI
         </div>
         <DialogFooter className="flex justify-center pt-4">
           <Button
-            onClick={() => onOpenChange(false)}
+            onClick={handleUnderstood}
             className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg"
           >
             <CheckCircle className="mr-2 h-4 w-4" />

@@ -35,6 +35,7 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
 import { HealthOverviewModal } from "@/components/health-overview-modal"
+import { ConsultDoctorSummaryModal } from "@/components/consult-doctor-summary-modal" // Import new modal
 import { useTranslation } from "@/hooks/use-translation"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
 
@@ -50,11 +51,11 @@ export default function HomePage() {
     reportReady: false,
   })
   const [loadingStats, setLoadingStats] = useState(false)
-  const [isConsultModalOpen, setIsConsultModalOpen] = useState(false)
+  const [isConsultIntroModalOpen, setIsConsultIntroModalOpen] = useState(false) // Renamed for clarity
+  const [isConsultSummaryModalOpen, setIsConsultSummaryModalOpen] = useState(false) // New state for summary modal
   const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false)
   const [targetAssessmentId, setTargetAssessmentId] = useState<string | null>(null)
 
-  // เพิ่ม namespace "common" เพื่อให้ useTranslation ทำงานได้ถูกต้อง
   const { t } = useTranslation(["common"])
   const { getRiskLevelLabel } = useRiskLevelTranslation()
 
@@ -63,7 +64,6 @@ export default function HomePage() {
 
   const isLoggedIn = !loading && user && profile
 
-  // แก้ไขฟังก์ชันแปลงเปอร์เซ็นต์เป็นระดับคุณภาพ (คะแนนน้อย = ดี, คะแนนเยอะ = แย่)
   const getHealthLevel = (percentage: number): string => {
     if (percentage <= 20) return t("health_level_excellent")
     if (percentage <= 40) return t("health_level_good")
@@ -72,7 +72,6 @@ export default function HomePage() {
     return t("health_level_very_poor")
   }
 
-  // แก้ไขฟังก์ชันกำหนดสีตามระดับคุณภาพ (คะแนนน้อย = เขียว, คะแนนเยอะ = แดง)
   const getHealthLevelColor = (percentage: number): string => {
     if (percentage <= 20) return "text-green-600"
     if (percentage <= 40) return "text-blue-600"
@@ -91,7 +90,6 @@ export default function HomePage() {
     }
   }, [isLoggedIn, user?.id])
 
-  // ตรวจสอบ URL parameter เพื่อเปิด Health Overview Modal
   useEffect(() => {
     if (mounted && searchParams.get("openHealthOverview")) {
       const categoryToOpen = searchParams.get("openHealthOverview")
@@ -102,12 +100,10 @@ export default function HomePage() {
 
       setIsHealthOverviewModalOpen(true)
 
-      // ถ้ามี assessmentId ให้เก็บไว้เพื่อใช้ใน modal
       if (assessmentId) {
         setTargetAssessmentId(assessmentId)
       }
 
-      // ลบ parameter ออกจาก URL หลังจากเปิด modal แล้ว
       const url = new URL(window.location.href)
       url.searchParams.delete("openHealthOverview")
       url.searchParams.delete("assessmentId")
@@ -118,13 +114,11 @@ export default function HomePage() {
   const loadUserAssessments = async () => {
     if (!user?.id || !isSupabaseConfigured()) return
 
-    // NEW ➜ get a client for the browser
     const supabaseClient = createClientComponentClient()
     if (!supabaseClient) return
 
     setLoadingStats(true)
     try {
-      // Pass the client as first arg
       const { data, error } = await AssessmentService.getUserAssessments(supabaseClient, user.id)
 
       if (error) {
@@ -197,7 +191,6 @@ export default function HomePage() {
   const getUpdatedCategories = () => {
     const latestAssessments = getLatestAssessments(assessments)
 
-    // ใช้ flat keys แทน nested keys และเพิ่ม debug logging
     const assessmentCategories = [
       {
         id: "basic",
@@ -313,7 +306,11 @@ export default function HomePage() {
       router.push("/login")
       return
     }
-    setIsConsultModalOpen(true)
+    setIsConsultIntroModalOpen(true) // Open the intro modal first
+  }
+
+  const handleProceedToSummary = () => {
+    setIsConsultSummaryModalOpen(true) // Open the summary modal after intro
   }
 
   const handleViewHealthOverview = () => {
@@ -637,7 +634,12 @@ export default function HomePage() {
           )}
         </div>
       </main>
-      <ConsultDoctorIntroModal isOpen={isConsultModalOpen} onOpenChange={setIsConsultModalOpen} />
+      <ConsultDoctorIntroModal
+        isOpen={isConsultIntroModalOpen}
+        onOpenChange={setIsConsultIntroModalOpen}
+        onProceed={handleProceedToSummary}
+      />
+      <ConsultDoctorSummaryModal isOpen={isConsultSummaryModalOpen} onOpenChange={setIsConsultSummaryModalOpen} />
       <HealthOverviewModal
         isOpen={isHealthOverviewModalOpen}
         onOpenChange={setIsHealthOverviewModalOpen}
