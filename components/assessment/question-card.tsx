@@ -134,10 +134,13 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
           <RadioGroup
             onValueChange={handleChange}
             value={(localAnswer as string) || ""}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+            className="flex flex-wrap justify-center gap-4" // Changed to flex-wrap with gap
           >
             {question.options?.map((option) => (
-              <div key={option.value} className="flex items-center space-x-2">
+              <div
+                key={option.value}
+                className="flex items-center space-x-2 p-4 rounded-lg border border-gray-200 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-secondary min-w-[120px] flex-grow"
+              >
                 <RadioGroupItem value={option.value} id={option.value} />
                 <Label htmlFor={option.value}>{option.label}</Label>
               </div>
@@ -146,9 +149,16 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
         )
       case "checkbox":
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-wrap gap-4">
+            {" "}
+            {/* Changed to flex-wrap with gap */}
             {question.options?.map((option) => (
-              <div key={option.value} className="flex items-center space-x-2">
+              <div
+                key={option.value}
+                className="flex items-center space-x-2 p-4 rounded-lg border border-gray-200 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-secondary min-w-[120px] flex-grow"
+              >
+                {" "}
+                {/* Added styling for individual items */}
                 <Checkbox
                   id={option.value}
                   checked={Array.isArray(localAnswer) && localAnswer.includes(option.value)}
