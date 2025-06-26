@@ -364,8 +364,8 @@ export function HealthOverviewModal({
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
         <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />
-        <h3 className="text-xl font-semibold">{text}...</h3>
-        <p className="text-gray-500">{t("please_wait")}</p>
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-white">{text}...</h3>
+        <p className="text-gray-500 dark:text-gray-300">{t("please_wait")}</p>
       </div>
     )
   }
@@ -375,8 +375,8 @@ export function HealthOverviewModal({
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
         <XCircle className="h-16 w-16 text-red-600" />
         <div>
-          <h3 className="text-xl font-semibold">{t("error")}</h3>
-          <p className="text-gray-500 mt-1">{message}</p>
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-white">{t("error")}</h3>
+          <p className="text-gray-500 dark:text-gray-300 mt-1">{message}</p>
         </div>
         <Button onClick={onRetry}>
           <RefreshCw className="mr-2 h-4 w-4" />
@@ -391,8 +391,8 @@ export function HealthOverviewModal({
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
         <Info className="h-16 w-16 text-gray-500" />
         <div>
-          <h3 className="text-xl font-semibold">{t("not_logged_in")}</h3>
-          <p className="text-gray-500 mt-1">{t("login_to_view_health_overview")}</p>
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-white">{t("not_logged_in")}</h3>
+          <p className="text-gray-500 dark:text-gray-300 mt-1">{t("login_to_view_health_overview")}</p>
         </div>
         <Button asChild>
           <Link href="/login">{t("login")}</Link>
@@ -423,8 +423,8 @@ export function HealthOverviewModal({
           {/* ---------- Summary card ---------- */}
           <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-blue-600" />
+              <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 {getCategoryTitle(data.category_id)}
               </CardTitle>
             </CardHeader>
@@ -445,8 +445,8 @@ export function HealthOverviewModal({
           {data.risk_factors?.length > 0 && (
             <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-orange-600" />
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-300" />
                   {t("risk_factors_found")}
                 </CardTitle>
               </CardHeader>
@@ -464,8 +464,8 @@ export function HealthOverviewModal({
           {data.recommendations?.length > 0 && (
             <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-300" />
                   {t("recommendations_label")}
                 </CardTitle>
               </CardHeader>
@@ -482,6 +482,7 @@ export function HealthOverviewModal({
       </ScrollArea>
     )
   }
+
 
   function StatRow({ label, children }: { label: string; children: React.ReactNode }) {
     return (

@@ -370,11 +370,17 @@ export default function HomePage() {
                 <span className="sm:hidden">{t("start_health_assessment")}</span>
               </Button>
               <Button
-                size="lg"
-                variant="outline"
-                className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto border-2 border-gray-300 hover:border-blue-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={handleConsultDoctor}
-              >
+                  size="lg"
+                  variant="outline"
+                  className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto
+                    border-2 border-gray-300 hover:border-blue-400
+                    bg-white/80 dark:bg-gray-800/80
+                    text-gray-700 dark:text-white
+                    backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700
+                    font-semibold rounded-2xl shadow-lg hover:shadow-xl
+                    transition-all duration-300"
+                  onClick={handleConsultDoctor}
+                >
                 <Stethoscope className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
                 <span className="hidden sm:inline">{t("consult_doctor_online")}</span>
                 <span className="sm:hidden">{t("consult_doctor")}</span>
@@ -432,7 +438,7 @@ export default function HomePage() {
               {/* Dashboard Stats */}
               <Card className="mb-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-2xl rounded-3xl overflow-hidden">
                 <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1">
-                  <div className="bg-white rounded-3xl">
+                  <div className="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 shadow-xl rounded-3xl p-6 transition-all">
                     <CardHeader className="pb-6">
                       <div className="flex flex-col md:flex-row md:items-center justify-between">
                         <div>
@@ -468,7 +474,7 @@ export default function HomePage() {
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 overflow-hidden">
+                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
                           <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
                           <div className="relative">
                             <div
@@ -476,43 +482,43 @@ export default function HomePage() {
                             >
                               {loadingStats ? "..." : getHealthLevel(dashboardStats.overallScore)}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 mb-1">{t("overall_health_score")}</div>
-                            <div className="text-xs text-gray-500 flex items-center">
+                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("overall_health_score")}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                               <Clock className="w-3 h-3 mr-1" />
                               {dashboardStats.completedAssessments > 0 ? t("updated_at") : t("no_data")}
                             </div>
                           </div>
                         </div>
 
-                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 overflow-hidden">
+                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
                           <div className="absolute top-0 right-0 w-20 h-20 bg-orange-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
                           <div className="relative">
                             <div className="text-3xl font-bold text-orange-600 mb-1">
                               {loadingStats ? "..." : dashboardStats.riskFactors}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 mb-1">{t("risk_factors")}</div>
-                            <div className="text-xs text-gray-500 flex items-center">
+                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("risk_factors")}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                               <TrendingUp className="w-3 h-3 mr-1" />
                               {t("identified")}
                             </div>
                           </div>
                         </div>
 
-                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-green-50 to-green-100 border border-green-200 overflow-hidden">
+                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
                           <div className="absolute top-0 right-0 w-20 h-20 bg-green-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
                           <div className="relative">
                             <div className="text-3xl font-bold text-green-600 mb-1">
                               {loadingStats ? "..." : `${dashboardStats.completedAssessments}/6`}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 mb-1">{t("assessments")}</div>
-                            <div className="text-xs text-gray-500 flex items-center">
+                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("assessments")}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                               <Award className="w-3 h-3 mr-1" />
                               {t("completed")}
                             </div>
                           </div>
                         </div>
 
-                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 overflow-hidden">
+                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
                           <div className="absolute top-0 right-0 w-20 h-20 bg-purple-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
                           <div className="relative">
                             <div className="text-2xl font-bold text-purple-600 mb-1">
@@ -522,8 +528,8 @@ export default function HomePage() {
                                   ? t("report_ready")
                                   : t("report_not_ready")}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 mb-1">{t("health_report")}</div>
-                            <div className="text-xs text-gray-500 flex items-center mb-1">
+                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("health_report")}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center mb-1">
                               <FileText className="w-3 h-3 mr-1" />
                               {dashboardStats.reportReady ? t("can_generate_report") : t("can_generate_report")}
                             </div>
