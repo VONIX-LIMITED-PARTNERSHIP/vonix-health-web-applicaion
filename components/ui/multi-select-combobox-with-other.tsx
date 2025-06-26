@@ -110,7 +110,7 @@ export function MultiSelectComboboxWithOther({
 
     if (options.includes(itemToRemove)) {
       newSelectedPredefined.delete(itemToRemove)
-    } else if (itemToRemove === otherOptionLabel || itemToRemove === otherText) {
+    } else if (itemToRemove === otherOptionLabel || itemToRemove === otherText.trim()) {
       // If removing the "อื่นๆ" label or the custom text
       newIsOtherSelected = false
       newOtherText = ""
@@ -140,7 +140,7 @@ export function MultiSelectComboboxWithOther({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between h-auto min-h-[40px] flex-wrap"
+            className="w-full justify-between h-auto min-h-[40px] flex-wrap bg-transparent"
           >
             {displayBadges.length > 0 ? (
               <div className="flex flex-wrap gap-1">
