@@ -368,7 +368,7 @@ const en: Dictionary = {
     chatbot_login_guide_step2: "2. Fill in information:",
     chatbot_login_guide_step3: "3. Click 'Login'",
     chatbot_login_guide_forgot_password: "❓ Forgot password?",
-    chatbot_login_guide_forgot_password_steps: "• Click 'Forgot Password' • Enter email • Check email for reset link",
+    chatbot_login_guide_forgot_password_steps: "��� Click 'Forgot Password' • Enter email • Check email for reset link",
     chatbot_login_guide_troubleshoot: "⚠️ Cannot login? Check:",
     chatbot_login_guide_troubleshoot_tips:
       "• Is email correct? • Is password correct? • Have you confirmed your email?",

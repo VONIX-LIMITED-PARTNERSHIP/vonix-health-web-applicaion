@@ -8,7 +8,7 @@ export default function PrivacyPolicyPage() {
       <div className="max-w-5xl mx-auto bg-white/80 backdrop-blur-lg border-0 shadow-2xl rounded-3xl p-8 sm:p-10">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
-            นโยบายความเป็นส่วนตัวของบริษัท วอนิกซ์ จำกัด (VONIX LIMITED PARTNERSHIP)
+            นโยบายความเป็นส่วนตัวของบริษัท วอนิกซ��� จำกัด (VONIX LIMITED PARTNERSHIP)
           </h1>
           <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-gray-800 transition-colors">
             <Link href="/register" className="flex items-center">
