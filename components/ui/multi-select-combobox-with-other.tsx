@@ -21,7 +21,7 @@ import { useTranslation } from "@/hooks/use-translation"
 
 interface MultiSelectComboboxWithOtherProps {
   options: { value: string; label: string }[]
-  selected: string[]
+  selected?: string[]
   onSelectedChange: (selected: string[]) => void
   placeholder?: string
   otherLabel?: string
@@ -32,7 +32,7 @@ interface MultiSelectComboboxWithOtherProps {
 
 export function MultiSelectComboboxWithOther({
   options,
-  selected,
+  selected = [],
   onSelectedChange,
   placeholder = "เลือก...",
   otherLabel = "อื่นๆ",
@@ -45,8 +45,11 @@ export function MultiSelectComboboxWithOther({
   const inputRef = React.useRef<HTMLInputElement>(null)
   const { t } = useTranslation(["common"])
 
-  const isOtherSelected = selected.includes(otherLabel)
-  const selectedPredefined = selected.filter((item) => item !== otherLabel && options.some((opt) => opt.value === item))
+  const safeSelected = selected // guarantees an array
+  const isOtherSelected = safeSelected.includes(otherLabel)
+  const selectedPredefined = safeSelected.filter(
+    (item) => item !== otherLabel && options.some((opt) => opt.value === item),
+  )
   const selectedOtherValue = isOtherSelected ? otherText : ""
 
   const handleSelect = (value: string) => {
@@ -63,7 +66,7 @@ export function MultiSelectComboboxWithOther({
       }
     } else {
       // Handle predefined options
-      if (selected.includes(value)) {
+      if (safeSelected.includes(value)) {
         newSelected = selected.filter((item) => item !== value)
       } else {
         if (maxSelected && selected.length >= maxSelected) return // Prevent selecting if max reached
@@ -162,7 +165,7 @@ export function MultiSelectComboboxWithOther({
                 >
                   <span>{option.label}</span>
                   <Check
-                    className={cn("ml-auto h-4 w-4", selected.includes(option.value) ? "opacity-100" : "opacity-0")}
+                    className={cn("ml-auto h-4 w-4", safeSelected.includes(option.value) ? "opacity-100" : "opacity-0")}
                   />
                 </CommandItem>
               ))}
