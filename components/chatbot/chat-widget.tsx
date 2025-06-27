@@ -229,7 +229,7 @@ export function ChatWidget() {
             {/* Chat Content */}
             {!isMinimized && (
               <>
-                <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
+                <CardContent className="flex-1 p-0 flex flex-col overflow-hidden bg-white dark:bg-[#12131a]">
                   <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
                     <div className="space-y-4">
                       {messages.map((message) => (
@@ -259,7 +259,7 @@ export function ChatWidget() {
                                 "rounded-2xl px-5 py-4 text-sm leading-relaxed shadow-md",
                                 message.sender === "user"
                                   ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-blue-200 dark:shadow-blue-900/50"
-                                  : "bg-muted dark:bg-secondary text-foreground dark:text-foreground border border-border dark:border-border shadow-sm",
+                                  : "bg-gray-100 text-gray-800 dark:bg-[#1e1e2f] dark:text-gray-100 border border-gray-700/60"
                               )}
                             >
                               <div className="whitespace-pre-wrap font-medium">{message.content}</div>
@@ -303,7 +303,7 @@ export function ChatWidget() {
 
                   {/* Quick Replies - Only visible if not interacted yet */}
                   {!hasInteracted && (
-                    <div className="px-6 py-4 bg-accent/20 dark:bg-accent/30 border-t border-border flex-shrink-0">
+                    <div className="px-6 py-4 bg-accent/20 dark:bg-gray-700/40 text-white border-t border-border flex-shrink-0">
                       <div className="text-sm text-foreground mb-3 font-semibold">💡 คำถามยอดนิยม</div>
                       <div className="grid grid-cols-2 gap-2">
                         {QUICK_REPLIES.map((reply, index) => (
@@ -322,7 +322,7 @@ export function ChatWidget() {
                 </CardContent>
 
                 {/* Input Area - Always visible */}
-                <div className="p-6 bg-card dark:bg-card-foreground border-t border-border flex-shrink-0">
+                <div className="p-6 bg-background dark:bg-muted border-t border-border flex-shrink-0">
                   <div className="flex items-end space-x-4">
                     <Input
                       ref={inputRef}

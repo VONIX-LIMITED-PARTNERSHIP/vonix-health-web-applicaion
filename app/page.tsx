@@ -438,7 +438,7 @@ export default function HomePage() {
               {/* Dashboard Stats */}
               <Card className="mb-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-2xl rounded-3xl overflow-hidden">
                 <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1">
-                  <div className="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 shadow-xl rounded-3xl p-6 transition-all">
+                  <div className="bg-white dark:bg-gray-900 rounded-3xl">
                     <CardHeader className="pb-6">
                       <div className="flex flex-col md:flex-row md:items-center justify-between">
                         <div>
@@ -548,7 +548,7 @@ export default function HomePage() {
               <div className="mb-16" id="assessment-section">
                 <div className="text-center mb-12">
                   <h2 className="text-4xl font-bold mb-4">
-                    <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text dark:bg-red-900 dark:text-red-200 text-transparent">
                       {t("health_assessments")}
                     </span>
                   </h2>
@@ -559,9 +559,12 @@ export default function HomePage() {
                   {getUpdatedCategories().map((category, index) => (
                     <Card
                       key={category.id}
-                      className={`group relative overflow-hidden bg-gradient-to-br ${category.bgGradient} ${category.darkBgGradient} border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 cursor-pointer rounded-3xl`}
+                      className={`group relative overflow-hidden 
+                        bg-gradient-to-br ${category.bgGradient} ${category.darkBgGradient} 
+                        border-0 shadow-xl hover:shadow-2xl transition-all duration-500 
+                        transform hover:scale-105 cursor-pointer rounded-3xl`}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-black/30 dark:to-transparent"></div>
                       <CardContent className="relative p-8">
                         <div className="flex items-start justify-between mb-6">
                           <div
@@ -571,14 +574,13 @@ export default function HomePage() {
                           </div>
                           <div className="flex flex-col items-end space-y-2">
                             {category.required ? (
-                              <Badge className="bg-red-500 hover:bg-red-600 text-white font-medium px-3 py-1 rounded-full">
+                              <Badge className="bg-red-500 text-white font-medium px-3 py-1 rounded-full dark:bg-red-700">
                                 {t("required")}
                               </Badge>
                             ) : (
                               <Badge
                                 variant="secondary"
-                                className="bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full
-                                dark:bg-blue-900 dark:text-blue-200"
+                                className="bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full dark:bg-blue-800 dark:text-white"
                               >
                                 {t("optional")}
                               </Badge>
@@ -590,14 +592,14 @@ export default function HomePage() {
                                   <div
                                     className={`font-semibold text-sm mt-1 ${
                                       category.riskLevel === "low"
-                                        ? "text-green-600"
+                                        ? "text-green-600 dark:text-green-400"
                                         : category.riskLevel === "medium"
-                                          ? "text-yellow-600"
-                                          : category.riskLevel === "high"
-                                            ? "text-orange-600"
-                                            : category.riskLevel === "very-high"
-                                              ? "text-red-600"
-                                              : "text-gray-600"
+                                        ? "text-yellow-600 dark:text-yellow-400"
+                                        : category.riskLevel === "high"
+                                        ? "text-orange-600 dark:text-orange-400"
+                                        : category.riskLevel === "very-high"
+                                        ? "text-red-600 dark:text-red-400"
+                                        : "text-gray-600 dark:text-gray-300"
                                     }`}
                                   >
                                     ({getRiskLevelLabel(category.riskLevel)})
@@ -608,11 +610,11 @@ export default function HomePage() {
                           </div>
                         </div>
 
-                        <h3 className="font-bold text-xl mb-3 text-gray-800 group-hover:text-gray-900 transition-colors dark:text-white dark:group-hover:text-gray-50">
+                        <h3 className="font-bold text-xl mb-3 text-gray-800 group-hover:text-gray-900 transition-colors dark:text-white dark:group-hover:text-gray-100">
                           {category.title}
                         </h3>
-                        <p className="text-gray-600 mb-4 leading-relaxed dark:text-gray-100">{category.description}</p>
-                        <p className="text-sm text-gray-500 mb-6 flex items-center dark:text-gray-200">
+                        <p className="text-gray-600 mb-4 leading-relaxed dark:text-gray-300">{category.description}</p>
+                        <p className="text-sm text-gray-500 mb-6 flex items-center dark:text-gray-400">
                           <Clock className="w-4 h-4 mr-2" />
                           {category.status}
                           {category.lastCompleted && <span className="ml-2 text-xs">({category.lastCompleted})</span>}
@@ -622,7 +624,8 @@ export default function HomePage() {
                           className={`w-full font-semibold py-3 rounded-xl transition-all duration-300 ${
                             category.required
                               ? `bg-gradient-to-r ${category.gradient} hover:shadow-lg text-white`
-                              : "bg-white/80 hover:bg-white text-gray-700 border border-gray-200 hover:border-gray-300 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-700 dark:hover:border-gray-600"
+                              : `bg-white/90 hover:bg-white text-gray-700 border border-gray-200 hover:border-gray-300 
+                                dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700 dark:hover:border-gray-600`
                           }`}
                           asChild
                         >
