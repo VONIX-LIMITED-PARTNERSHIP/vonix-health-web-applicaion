@@ -1,202 +1,168 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronDown, X } from "lucide-react"
-
+import { Check, ChevronsUpDown, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { useTranslation } from "@/hooks/use-translation"
 
 interface MultiSelectComboboxWithOtherProps {
-  options: { value: string; label: string }[]
-  selected?: string[]
-  onSelectedChange: (selected: string[]) => void
+  options: string[]
+  value?: string[]
+  onChange: (value: string[]) => void
   placeholder?: string
-  otherLabel?: string
-  otherPlaceholder?: string
-  maxSelected?: number
-  disabled?: boolean
+  otherInputPlaceholder?: string
+  className?: string
 }
 
 export function MultiSelectComboboxWithOther({
-  options,
-  selected = [],
-  onSelectedChange,
-  placeholder = "เลือก...",
-  otherLabel = "อื่นๆ",
-  otherPlaceholder = "ระบุ...",
-  maxSelected,
-  disabled,
+  options = [],
+  value = [],
+  onChange,
+  placeholder = "เลือกหรือพิมพ์เพื่อค้นหา",
+  otherInputPlaceholder = "ระบุข้อมูลอื่นๆ ที่นี่",
+  className,
 }: MultiSelectComboboxWithOtherProps) {
   const [open, setOpen] = React.useState(false)
   const [otherText, setOtherText] = React.useState("")
-  const inputRef = React.useRef<HTMLInputElement>(null)
+  const [showOtherInput, setShowOtherInput] = React.useState(false)
   const { t } = useTranslation(["common"])
 
-  const safeSelected = selected // guarantees an array
+  // Ensure value is always an array
+  const safeSelected = value || []
+
+  const otherLabel = "อื่นๆ"
   const isOtherSelected = safeSelected.includes(otherLabel)
-  const selectedPredefined = safeSelected.filter(
-    (item) => item !== otherLabel && options.some((opt) => opt.value === item),
-  )
+  const selectedPredefined = safeSelected.filter((item) => item !== otherLabel && options.some((opt) => opt === item))
   const selectedOtherValue = isOtherSelected ? otherText : ""
 
-  const handleSelect = (value: string) => {
-    let newSelected: string[]
-
-    if (value === otherLabel) {
-      // Toggle 'อื่นๆ' option
+  const handleSelect = (currentValue: string) => {
+    if (currentValue === otherLabel) {
       if (isOtherSelected) {
-        newSelected = selected.filter((item) => item !== otherLabel)
-        setOtherText("") // Clear other text when 'อื่นๆ' is deselected
+        // Remove "อื่นๆ" and any custom text
+        const newSelected = safeSelected.filter((item) => item !== otherLabel)
+        onChange(newSelected)
+        setShowOtherInput(false)
+        setOtherText("")
       } else {
-        if (maxSelected && safeSelected.length >= maxSelected) return // Prevent selecting if max reached
-        newSelected = [...safeSelected, otherLabel]
+        // Add "อื่นๆ" and show input
+        const newSelected = [...safeSelected, otherLabel]
+        onChange(newSelected)
+        setShowOtherInput(true)
       }
     } else {
-      // Handle predefined options
-      if (safeSelected.includes(value)) {
-        newSelected = safeSelected.filter((item) => item !== value)
-      } else {
-        if (maxSelected && safeSelected.length >= maxSelected) return // Prevent selecting if max reached
-        newSelected = [...safeSelected, value]
-      }
-    }
-    onSelectedChange(newSelected)
-  }
-
-  const handleOtherTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newText = e.target.value
-    setOtherText(newText)
-    // If 'อื่นๆ' is selected and text is cleared, deselect 'อื่นๆ'
-    if (isOtherSelected && newText.trim() === "") {
-      onSelectedChange(safeSelected.filter((item) => item !== otherLabel))
+      const newSelected = safeSelected.includes(currentValue)
+        ? safeSelected.filter((item) => item !== currentValue)
+        : [...safeSelected, currentValue]
+      onChange(newSelected)
     }
   }
 
-  const handleRemoveSelected = (itemToRemove: string) => {
-    let newSelected: string[]
-    const trimmedItemToRemove = itemToRemove.trim() // Ensure consistency
-
-    if (trimmedItemToRemove === otherText.trim() && isOtherSelected) {
-      // If the item to remove is the 'other' custom text
-      newSelected = safeSelected.filter((item) => item !== otherLabel)
+  const handleRemove = (valueToRemove: string) => {
+    if (valueToRemove === otherLabel) {
+      setShowOtherInput(false)
       setOtherText("")
-    } else {
-      // If the item to remove is a predefined option
-      newSelected = safeSelected.filter((item) => item !== trimmedItemToRemove)
     }
-    onSelectedChange(newSelected)
+    const newSelected = safeSelected.filter((item) => item !== valueToRemove)
+    onChange(newSelected)
   }
 
-  // Combine selected predefined and other text for display
-  const displayBadges = [
-    ...selectedPredefined.map((value) => options.find((opt) => opt.value === value)?.label || value),
-    ...(isOtherSelected && otherText.trim() !== "" ? [otherText.trim()] : []),
-  ]
+  const handleOtherTextChange = (text: string) => {
+    setOtherText(text)
+    // Update the selected values to include the custom text
+    const newSelected = safeSelected.filter((item) => item !== otherLabel)
+    if (text.trim()) {
+      newSelected.push(text.trim())
+    }
+    onChange(newSelected)
+  }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between h-auto min-h-[40px] px-3 py-2 bg-transparent"
-          disabled={disabled}
-        >
-          <div className="flex flex-wrap gap-1">
-            {displayBadges.length > 0 ? (
-              displayBadges.map((item) => (
-                <Badge
-                  key={item}
-                  variant="secondary"
-                  className="flex items-center gap-1 pr-1 text-sm font-normal bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                >
-                  {item}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-auto p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
-                    onClick={(e) => {
-                      e.stopPropagation() // Prevent closing popover
-                      handleRemoveSelected(item)
-                    }}
-                    disabled={disabled}
-                  >
-                    <X className="h-3 w-3 text-gray-500 dark:text-gray-300" />
-                    <span className="sr-only">
-                      {t("remove")} {item}
-                    </span>
-                  </Button>
-                </Badge>
-              ))
-            ) : (
-              <span className="text-gray-500 dark:text-gray-400">{placeholder}</span>
-            )}
-          </div>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-        <Command>
-          <CommandInput placeholder={t("search_options")} />
-          <CommandList>
-            <CommandEmpty>{t("no_results_found")}</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label} // Use label for searchability
-                  onSelect={() => handleSelect(option.value)}
-                  className="flex items-center justify-between"
-                >
-                  <span>{option.label}</span>
-                  <Check
-                    className={cn("ml-auto h-4 w-4", safeSelected.includes(option.value) ? "opacity-100" : "opacity-0")}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-            <CommandSeparator />
-            <CommandGroup>
-              <CommandItem
-                value={otherLabel}
-                onSelect={() => handleSelect(otherLabel)}
-                className="flex items-center justify-between"
-              >
-                <span>{otherLabel}</span>
-                <Check className={cn("ml-auto h-4 w-4", isOtherSelected ? "opacity-100" : "opacity-0")} />
-              </CommandItem>
-              {isOtherSelected && (
-                <CommandItem className="p-0">
-                  <Input
-                    ref={inputRef}
-                    placeholder={otherPlaceholder}
-                    value={otherText}
-                    onChange={handleOtherTextChange}
-                    className="w-full border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                    onKeyDown={(e) => e.stopPropagation()} // Prevent Command from handling key events
-                    autoFocus
-                  />
-                </CommandItem>
+    <div className={cn("w-full", className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between min-h-[2.5rem] h-auto bg-transparent"
+          >
+            <div className="flex flex-wrap gap-1 flex-1">
+              {safeSelected.length === 0 ? (
+                <span className="text-muted-foreground">{placeholder}</span>
+              ) : (
+                <>
+                  {selectedPredefined.map((item) => (
+                    <Badge
+                      key={item}
+                      variant="secondary"
+                      className="text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleRemove(item)
+                      }}
+                    >
+                      {item}
+                      <X className="ml-1 h-3 w-3 cursor-pointer" />
+                    </Badge>
+                  ))}
+                  {selectedOtherValue && (
+                    <Badge
+                      variant="secondary"
+                      className="text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleRemove(otherLabel)
+                      }}
+                    >
+                      {selectedOtherValue}
+                      <X className="ml-1 h-3 w-3 cursor-pointer" />
+                    </Badge>
+                  )}
+                </>
               )}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+            </div>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-full p-0" align="start">
+          <Command>
+            <CommandInput placeholder="ค้นหา..." />
+            <CommandList>
+              <CommandEmpty>ไม่พบข้อมูล</CommandEmpty>
+              <CommandGroup>
+                {options.map((option) => (
+                  <CommandItem key={option} value={option} onSelect={() => handleSelect(option)}>
+                    <Check
+                      className={cn("mr-2 h-4 w-4", safeSelected.includes(option) ? "opacity-100" : "opacity-0")}
+                    />
+                    {option}
+                  </CommandItem>
+                ))}
+                <CommandItem value={otherLabel} onSelect={() => handleSelect(otherLabel)}>
+                  <Check className={cn("mr-2 h-4 w-4", isOtherSelected ? "opacity-100" : "opacity-0")} />
+                  {otherLabel}
+                </CommandItem>
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      {showOtherInput && (
+        <div className="mt-2">
+          <Input
+            placeholder={otherInputPlaceholder}
+            value={otherText}
+            onChange={(e) => handleOtherTextChange(e.target.value)}
+            className="w-full"
+          />
+        </div>
+      )}
+    </div>
   )
 }
