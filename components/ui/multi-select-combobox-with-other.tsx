@@ -61,16 +61,16 @@ export function MultiSelectComboboxWithOther({
         newSelected = selected.filter((item) => item !== otherLabel)
         setOtherText("") // Clear other text when 'อื่นๆ' is deselected
       } else {
-        if (maxSelected && selected.length >= maxSelected) return // Prevent selecting if max reached
-        newSelected = [...selected, otherLabel]
+        if (maxSelected && safeSelected.length >= maxSelected) return // Prevent selecting if max reached
+        newSelected = [...safeSelected, otherLabel]
       }
     } else {
       // Handle predefined options
       if (safeSelected.includes(value)) {
-        newSelected = selected.filter((item) => item !== value)
+        newSelected = safeSelected.filter((item) => item !== value)
       } else {
-        if (maxSelected && selected.length >= maxSelected) return // Prevent selecting if max reached
-        newSelected = [...selected, value]
+        if (maxSelected && safeSelected.length >= maxSelected) return // Prevent selecting if max reached
+        newSelected = [...safeSelected, value]
       }
     }
     onSelectedChange(newSelected)
@@ -81,7 +81,7 @@ export function MultiSelectComboboxWithOther({
     setOtherText(newText)
     // If 'อื่นๆ' is selected and text is cleared, deselect 'อื่นๆ'
     if (isOtherSelected && newText.trim() === "") {
-      onSelectedChange(selected.filter((item) => item !== otherLabel))
+      onSelectedChange(safeSelected.filter((item) => item !== otherLabel))
     }
   }
 
@@ -91,11 +91,11 @@ export function MultiSelectComboboxWithOther({
 
     if (trimmedItemToRemove === otherText.trim() && isOtherSelected) {
       // If the item to remove is the 'other' custom text
-      newSelected = selected.filter((item) => item !== otherLabel)
+      newSelected = safeSelected.filter((item) => item !== otherLabel)
       setOtherText("")
     } else {
       // If the item to remove is a predefined option
-      newSelected = selected.filter((item) => item !== trimmedItemToRemove)
+      newSelected = safeSelected.filter((item) => item !== trimmedItemToRemove)
     }
     onSelectedChange(newSelected)
   }
