@@ -40,6 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthSessionLoading, setIsAuthSessionLoading] = useState(true)
   const [isProfileLoading, setIsProfileLoading] = useState(false)
   const [initialized, setInitialized] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const supabase = createClientComponentClient()
 
@@ -160,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } finally {
         if (mounted) {
           setIsAuthSessionLoading(false)
-          setInitialized(true)
+          setIsInitialized(true)
         }
       }
     }
