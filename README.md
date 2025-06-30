@@ -1,276 +1,129 @@
-# VONIX Health Assessment System
+# VONIX Health Dashboard
 
-##  เกี่ยวกับระบบ
+This is a health assessment and management platform built with Next.js, React, Tailwind CSS, and Supabase. It features AI-powered health analysis and a chatbot.
 
-**VONIX Health Assessment System** เป็นแพลตฟอร์มประเมินสุขภาพที่ขับเคลื่อนด้วย AI พัฒนาโดย VONIX LIMITED PARTNERSHIP เพื่อวิเคราะห์ข้อมูลและให้คำแนะนำด้านสุขภาพเฉพาะบุคคล
+## Features
 
-##  ฟีเจอร์หลัก
+-   **User Authentication:** Secure sign-up, sign-in, and profile management using Supabase Auth.
+-   **Health Assessments:** Comprehensive assessments across various categories (Basic, Heart, Nutrition, Mental, Physical, Sleep).
+-   **AI-Powered Analysis:** Utilizes OpenAI for analyzing assessment results and providing personalized recommendations.
+-   **Interactive Chatbot:** An AI assistant to answer health-related questions and provide app support.
+-   **Health Dashboard:** Overview of user's health score, risk factors, and assessment progress.
+-   **Responsive Design:** Optimized for various screen sizes using Tailwind CSS and Shadcn UI components.
+-   **Internationalization:** Supports multiple languages (Thai and English).
+-   **Data Management:** Secure data storage and retrieval with Supabase.
 
-*   **ระบบสมาชิก**: การยืนยันตัวตนที่ปลอดภัย, การจัดการโปรไฟล์, การปฏิบัติตาม PDPA
-*   **การประเมินสุขภาพ**: การประเมินที่ครอบคลุม 6 หมวดหมู่ (3 หมวดหมู่บังคับ, 3 หมวดหมู่เสริม) รวมถึงข้อมูลพื้นฐาน, หัวใจและหลอดเลือด, ไลฟ์สไตล์, สุขภาพจิต, สุขภาพกาย และคุณภาพการนอน
-*   **การวิเคราะห์ด้วย AI**: ผสานรวม OpenAI GPT-4 เพื่อตรวจจับปัจจัยเสี่ยงและให้คำแนะนำสุขภาพส่วนบุคคล (รองรับภาษาไทย)
-*   **แดชบอร์ด**: แสดงผลคะแนนสุขภาพโดยรวม, สรุปปัจจัยเสี่ยง, การติดตามความคืบหน้า และประวัติการประเมิน
-*   **AI Chatbot**: ให้คำแนะนำด้านสุขภาพ, ช่วยเหลือการใช้งานแอป และตอบคำถามที่พบบ่อย
+## Technologies Used
 
-##  เทคโนโลยีที่ใช้
+-   **Framework:** Next.js (App Router)
+-   **UI Library:** React
+-   **Styling:** Tailwind CSS, Shadcn UI
+-   **Database & Auth:** Supabase
+-   **AI:** OpenAI (via Vercel AI SDK)
+-   **Language:** TypeScript
 
-*   **Frontend**: Next.js 14 (App Router), shadcn/ui, Tailwind CSS, React Hooks
-*   **Backend**: Supabase (PostgreSQL), OpenAI GPT-4
-*   **Deployment**: Vercel
+## Getting Started
 
----
+1.  **Clone the repository:**
+    \`\`\`bash
+    git clone <repository-url>
+    cd vonix-health-dashboard
+    \`\`\`
+2.  **Install dependencies:**
+    \`\`\`bash
+    npm install
+    # or
+    yarn install
+    \`\`\`
+3.  **Set up Supabase:**
+    -   Create a new Supabase project.
+    -   Configure environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
+    -   Run the SQL scripts in the `scripts/` directory to set up your database schema and RLS policies.
+4.  **Set up OpenAI:**
+    -   Obtain an OpenAI API key.
+    -   Set the `OPENAI_API_KEY` environment variable.
+5.  **Run the development server:**
+    \`\`\`bash
+    npm run dev
+    # or
+    yarn dev
+    \`\`\`
+    Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-##  สถาปัตยกรรมระบบ
+## Project Structure
 
-### Frontend (Next.js 14)
 \`\`\`
-├──  UI Components (shadcn/ui)
-├──  Authentication (Supabase Auth)
-├──  Dashboard & Analytics
-├──  AI Chatbot Widget
-├──  Responsive Design
-└──  Dark/Light Mode
-\`\`\`
-
-### Backend Services
-\`\`\`
-├──  Database (Supabase PostgreSQL)
-├──  AI Analysis (OpenAI GPT-4)
-├──  Row Level Security (RLS)
-├──  Audit Logging
-└──  Real-time Updates
-\`\`\`
-
----
-
-## 📋 ฟีเจอร์หลักที่มีอยู่
-
-### 1.  ระบบสมาชิก
--  สมัครสมาชิก/เข้าสู่ระบบ
--  จัดการโปรไฟล์
--  PDPA Compliance
--  Email Verification
-
-### 2. ระบบประเมินสุขภาพ (6 ประเภท)
-
-####  **จำเป็น** (Required)
-1. **ข้อมูลพื้นฐานสำหรับแพทย์** 
-   - อายุ, เพศ, น้ำหนัก, ส่วนสูง
-   - โรคประจำตัว, การแพ้ยา
-   - ยาที่ใช้ประจำ
-
-2. **ประเมินหัวใจและหลอดเลือด** 
-   - ประวัติครอบครัว
-   - ความดันโลหิต
-   - พฤติกรรมเสี่ยง (สูบบุหรี่, แอลกอฮอล์)
-
-3. **ประเมินไลฟ์สไตล์และโภชนาการ** 
-   - พฤติกรรมการกิน
-   - การออกกำลังกาย
-   - การดื่มน้ำ
-
-#### 🔵 **เสริม** (Optional)
-4. **ประเมินสุขภาพจิต** 
-   - ความเครียด, ซึมเศร้า
-   - คุณภาพการนอน
-   - การจัดการอารมณ์
-
-5. **ประเมินสุขภาพกาย** 
-   - ความแข็งแรงกล้ามเนื้อ
-   - ความยืดหยุ่น
-   - ปัญหาปวดเมื่อย
-
-6. **ประเมินคุณภาพการนอน** 
-   - ชั่วโมงการนอน
-   - คุณภาพการนอน
-   - ปัญหาการนอน
-
-### 3. 🤖 AI Analysis Engine
-- OpenAI GPT-4 Integration
-- Rule-based Scoring (Basic Assessment)
-- Risk Factor Detection
-- Personalized Recommendations
-- Thai Language Support
-
-### 4. 📈 Dashboard & Analytics
-- Overall Health Score
-- Risk Factors Summary
-- Progress Tracking
-- Assessment History
-- Health Report Generation
-
-### 5. 🤖 AI Chatbot Assistant
-- Health Guidance
-- App Usage Help
-- FAQ Support
-- Quick Replies
-
----
-
-##  โครงสร้าง Database (ปัจจุบัน)
-
-### Core Tables
-
-#### 1. `profiles` - ข้อมูลผู้ใช้
-\`\`\`sql
-- id (UUID, PK) - User ID from Supabase Auth
-- email (TEXT) - อีเมล
-- full_name (TEXT) - ชื่อ-นามสกุล
-- role (ENUM) - บทบาท: patient, doctor, admin
-- pdpa_consent (BOOLEAN) - ยินยอม PDPA
-- phone, date_of_birth, gender - ข้อมูลเพิ่มเติม
-- created_at, updated_at - วันที่สร้าง/แก้ไข
+.
+├── app/                      # Next.js App Router routes and pages
+│   ├── api/                  # API routes (e.g., for AI analysis, profile updates)
+│   ├── assessment/[category]/# Dynamic routes for assessment forms and results
+│   ├── auth/                 # Authentication related pages (login, register, etc.)
+│   ├── (auth)/               # Grouped auth routes
+│   ├── forgot-password/
+│   ├── guest-assessment/     # Guest assessment pages
+│   ├── login/
+│   ├── profile/              # User profile page
+│   ├── register/
+│   ├── update-password/
+│   ├── globals.css           # Global CSS styles (Tailwind, Shadcn)
+│   ├── layout.tsx            # Root layout for the application
+│   ├── loading.tsx           # Global loading UI
+│   └── page.tsx              # Homepage
+├── components/               # Reusable React components
+│   ├── assessment/           # Components specific to assessments (form, question card, results)
+│   ├── chatbot/              # Chatbot widget
+│   ├── ui/                   # Shadcn UI components (extended or custom)
+│   ├── header.tsx            # Application header
+│   ├── footer.tsx            # Application footer
+│   └── ...                   # Other general components
+├── contexts/                 # React Contexts for global state (e.g., LanguageContext)
+├── data/                     # Static data (e.g., assessment questions, chatbot knowledge base)
+├── docs/                     # Documentation (e.g., database schema, system overview)
+├── hooks/                    # Custom React hooks (e.g., useAuth, useTranslation)
+├── lib/                      # Utility functions and services (e.g., Supabase client, AssessmentService)
+├── locales/                  # Internationalization files (en.ts, th.ts)
+├── public/                   # Static assets (images, fonts)
+├── scripts/                  # SQL scripts for database setup and migrations
+├── styles/                   # Additional global styles (e.g., main-colors.css)
+├── types/                    # TypeScript type definitions
+├── utils/                    # General utility functions (e.g., risk level calculations, validation)
+├── tailwind.config.ts        # Tailwind CSS configuration
+├── tsconfig.json             # TypeScript configuration
+└── ...                       # Other configuration files (package.json, next.config.mjs, etc.)
 \`\`\`
 
-#### 2. `assessments` - ผลการประเมิน
-\`\`\`sql
-- id (UUID, PK) - รหัสการประเมิน
-- user_id (UUID, FK) - รหัสผู้ใช้
-- category_id (TEXT) - ประเภทการประเมิน
-- category_title (TEXT) - ชื่อประเภท
-- answers (JSONB) - คำตอบทั้งหมด
-- total_score, max_score, percentage - คะแนน
-- risk_level (ENUM) - ระดับความเสี่ยง: low, medium, high, very-high
-- risk_factors (TEXT[]) - ปัจจัยเสี่ยง
-- recommendations (TEXT[]) - คำแนะนำ
-- completed_at, created_at - วันที่ทำ/สร้าง
-\`\`\`
+## ฟังก์ชันหลัก (Core Functionalities)
 
-#### 3. `audit_logs` - บันทึกการใช้งาน
-\`\`\`sql
-- id (UUID, PK) - รหัสบันทึก
-- user_id (UUID, FK) - ผู้ใช้
-- action (TEXT) - การกระทำ
-- resource_type (TEXT) - ประเภทข้อมูล
-- resource_id (TEXT) - รหัสข้อมูล
-- details (JSONB) - รายละเอียด
-- ip_address, user_agent - ข้อมูลเทคนิค
-- created_at - วันที่บันทึก
-\`\`\`
+### 1. **ระบบยืนยันตัวตน (Authentication)**
+-   **ไฟล์ที่เกี่ยวข้อง:** `app/login/page.tsx`, `app/register/page.tsx`, `app/forgot-password/page.tsx`, `app/update-password/page.tsx`, `hooks/use-auth.tsx`, `lib/supabase.ts`, `app/api/auth/*`
+-   **การทำงาน:** ผู้ใช้สามารถลงทะเบียน, เข้าสู่ระบบ, กู้คืนรหัสผ่าน, และอัปเดตรหัสผ่านได้อย่างปลอดภัย โดยใช้ Supabase Auth เป็น Backend as a Service (BaaS) มีการจัดการสถานะการเข้าสู่ระบบและข้อมูลโปรไฟล์ผู้ใช้ผ่าน `useAuth` hook
 
-### Future Tables (เตรียมไว้)
+### 2. **ระบบแบบประเมินสุขภาพ (Health Assessment)**
+-   **ไฟล์ที่เกี่ยวข้อง:** `app/assessment/[category]/page.tsx`, `components/assessment/assessment-form.tsx`, `components/assessment/question-card.tsx`, `data/assessment-questions.ts`, `lib/assessment-service.ts`, `types/assessment.ts`, `app/api/assessment/analyze/route.ts`
+-   **การทำงาน:**
+    -   **หมวดหมู่แบบประเมิน:** แบ่งเป็น 6 หมวดหลัก (ข้อมูลพื้นฐาน, หัวใจ, โภชนาการ, จิตใจ, ร่างกาย, การนอน) และมีแบบประเมินสำหรับแขก (Guest Assessment)
+    -   **การแสดงคำถาม:** `AssessmentForm` จัดการการแสดงคำถามทีละข้อ โดยใช้ `QuestionCard` ในการเรนเดอร์ประเภทคำถามที่แตกต่างกัน (multiple-choice, rating, yes-no, checkbox, number, text, multi-select-combobox-with-other)
+    -   **การบันทึกผล:** เมื่อทำแบบประเมินเสร็จสิ้น ข้อมูลจะถูกบันทึกลง Supabase ผ่าน `AssessmentService`
+    -   **การวิเคราะห์ AI:** สำหรับแบบประเมินที่ไม่ใช่ข้อมูลพื้นฐาน จะมีการส่งข้อมูลไปให้ AI (OpenAI) วิเคราะห์เพื่อหาปัจจัยเสี่ยงและคำแนะนำส่วนบุคคล
 
-#### 4. `doctor_profiles` - ข้อมูลแพทย์
-\`\`\`sql
-- id (UUID, PK)
-- user_id (UUID, FK) - เชื่อมกับ profiles
-- license_number (TEXT) - เลขใบประกอบวิชาชีพ
-- specialization (TEXT[]) - ความเชี่ยวชาญ
-- experience_years (INTEGER) - ประสบการณ์
-- hospital_affiliation (TEXT) - โรงพยาบาลที่สังกัด
-- consultation_fee (DECIMAL) - ค่าปรึกษา
-- available_hours (JSONB) - เวล���ที่ว่าง
-- bio (TEXT) - ประวัติ
-- verified (BOOLEAN) - ยืนยันตัวตน
-\`\`\`
+### 3. **แดชบอร์ดสุขภาพ (Health Dashboard)**
+-   **ไฟล์ที่เกี่ยวข้อง:** `app/page.tsx`, `lib/assessment-service.ts`, `utils/risk-level.ts`
+-   **การทำงาน:** แสดงภาพรวมสุขภาพของผู้ใช้ เช่น คะแนนสุขภาพรวม, จำนวนปัจจัยเสี่ยง, และจำนวนแบบประเมินที่ทำเสร็จแล้ว ข้อมูลเหล่านี้ดึงมาจากผลการประเมินล่าสุดของผู้ใช้
 
-#### 5. `consultations` - การปรึกษาแพทย์
-\`\`\`sql
-- id (UUID, PK)
-- patient_id (UUID, FK) - ผู้ป่วย
-- doctor_id (UUID, FK) - แพทย์
-- status (ENUM) - สถานะ: pending, confirmed, completed, cancelled
-- scheduled_at (TIMESTAMP) - เวลานัดหมาย
-- duration_minutes (INTEGER) - ระยะเวลา
-- consultation_type (ENUM) - ประเภท: video, chat, phone
-- notes (TEXT) - บันทึกแพทย์
-- prescription (JSONB) - ใบสั่งยา
-\`\`\`
+### 4. **Chatbot AI**
+-   **ไฟล์ที่เกี่ยวข้อง:** `components/chatbot/chat-widget.tsx`, `app/api/chat/route.ts`, `data/chatbot-app-knowledge.ts`
+-   **การทำงาน:** ผู้ช่วย AI ที่สามารถตอบคำถามเกี่ยวกับสุขภาพทั่วไป และคำถามเกี่ยวกับการใช้งานแอปพลิเคชัน VONIX โดยใช้ OpenAI API ในการประมวลผลภาษาธรรมชาติ และมีฐานข้อมูลความรู้เฉพาะของแอปเพื่อตอบคำถามที่เกี่ยวข้อง
 
----
+### 5. **การจัดการข้อมูล (Data Management)**
+-   **ไฟล์ที่เกี่ยวข้อง:** `lib/supabase.ts`, `lib/supabase-server.ts`, `scripts/*.sql`, `types/database.ts`
+-   **การทำงาน:** ใช้ Supabase เป็นฐานข้อมูลหลัก มีการตั้งค่า Row Level Security (RLS) เพื่อความปลอดภัยของข้อมูลผู้ใช้ และมี SQL scripts สำหรับการสร้าง schema และจัดการฐานข้อมูล
 
-##  แผนพัฒนาอนาคต
+### 6. **การรองรับหลายภาษา (Internationalization - i18n)**
+-   **ไฟล์ที่เกี่ยวข้อง:** `locales/en.ts`, `locales/th.ts`, `hooks/use-translation.ts`, `app/language-provider-client.tsx`
+-   **การทำงาน:** รองรับการแสดงผลทั้งภาษาไทยและภาษาอังกฤษ ผู้ใช้สามารถสลับภาษาได้
 
-### Phase 2: Doctor Consultation System
--  ระบบจองคิวแพทย์
--  Video/Chat Consultation
--  ระบบใบสั่งยา
--  ระบบนัดหมาย
+### 7. **ส่วนประกอบ UI และการออกแบบ (UI Components & Design)**
+-   **ไฟล์ที่เกี่ยวข้อง:** `components/ui/*`, `app/globals.css`, `tailwind.config.ts`, `components.json`, `components/theme-provider.tsx`
+-   **การทำงาน:** ใช้ Shadcn UI components และ Tailwind CSS ในการสร้าง UI ที่สวยงามและ responsive รองรับทั้ง Light Mode และ Dark Mode
 
-### Phase 3: Advanced Analytics
--  Health Trends Analysis
--  Health Alerts & Reminders
--  Predictive Health Modeling
--  Gamification & Rewards
-
-### Phase 4: Integration & Expansion
--  Hospital System Integration
--  Mobile App (React Native)
--  Wearable Device Integration
--  Multi-language Support
-
-### Phase 5: AI Enhancement
--  Advanced AI Models
--  Lab Results Analysis
--  Medical Image Analysis
--  Genetic Risk Assessment
-
----
-
-##  Security & Compliance
-
-### ความปลอดภัย
--  Row Level Security (RLS)
--  JWT Authentication
--  Data Encryption
--  Audit Logging
--  Input Validation
--  Rate Limiting
-
-### การปฏิบัติตามกฎหมาย
--  PDPA Compliance (Thailand)
--  Medical Disclaimer
--  Data Retention Policy
-
----
-
-##  เมตริกส์และการติดตาม
-
-### KPIs หลัก
--  จำนวนผู้ใช้งาน
--  จำนวนการประเมิน
--  Completion Rate
--  User Satisfaction
--  Return User Rate
-
-### Technical Metrics
--  Response Time
--  Uptime
--  Database Performance
--  AI Accuracy
--  Security Incidents
-
----
-
-## 🛠️ Tech Stack Summary
-
-### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **UI Library**: shadcn/ui + Tailwind CSS
-- **State Management**: React Hooks + Context
-- **Authentication**: Supabase Auth
-- **Deployment**: Vercel
-
-### Backend
-- **Database**: Supabase (PostgreSQL)
-- **AI Service**: OpenAI GPT-4
-- **File Storage**: Vercel Blob (Future)
-- **Email**: Supabase (SMTP)
-
-### DevOps & Monitoring
-- **Version Control**: Git
-- **CI/CD**: Vercel
-- **Monitoring**: Built-in Logging
-- **Analytics**: Custom Dashboard
-
----
-
-##  ติดต่อ
-
-**VONIX LIMITED PARTNERSHIP**
-*   อีเมล: vonix.th@gmail.com
-\`\`\`
-
----
-
-*เอกสารนี้อัปเดตล่าสุด: ธันวาคม 2024*
+นี่คือภาพรวมของโปรเจกต์ VONIX Health Dashboard ครับ หากมีส่วนไหนที่ต้องการรายละเอียดเพิ่มเติม สามารถสอบถามได้เลยครับ!
