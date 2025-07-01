@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2, Info } from "lucide-react"
 import { QuestionCard } from "./question-card"
 import { getAssessmentCategories } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
@@ -96,7 +97,11 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         let aiAnalysis = null
         if (categoryId !== "basic") {
           console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
-          const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, finalAnswersToSave)
+          const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(
+            categoryId,
+            finalAnswersToSave,
+            locale, // ส่งภาษาปัจจุบันไปด้วย
+          )
           if (aiError) {
             console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
           } else {
@@ -113,6 +118,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
           category.title,
           finalAnswersToSave,
           aiAnalysis,
+          locale, // ส่งภาษาปัจจุบันไปด้วย
         )
 
         if (saveError) {
@@ -195,6 +201,16 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
             </CardHeader>
           </Card>
         </div>
+
+        {/* Language Notice */}
+        <Alert className="mb-8 bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <AlertDescription className="text-blue-800 dark:text-blue-200">
+            {locale === "en"
+              ? `📋 Assessment Language: English - Your results will be provided in English based on your current language selection.`
+              : `📋 ภาษาการประเมิน: ไทย - ผลลัพธ์จะแสดงเป็นภาษาไทยตามการตั้งค่าภาษาปัจจุบันของคุณ`}
+          </AlertDescription>
+        </Alert>
 
         {/* Progress */}
         <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
