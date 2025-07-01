@@ -1,263 +1,93 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import type { AssessmentQuestion, AssessmentAnswer } from "@/types/assessment" // ใช้ AssessmentQuestion
-import { AlertCircle } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { MultiSelectComboboxWithOther } from "@/components/ui/multi-select-combobox-with-other"
-import { cn } from "@/lib/utils"
+import type { AssessmentQuestion, AssessmentAnswer } from "@/types/assessment"
 
 interface QuestionCardProps {
-  question: AssessmentQuestion // ใช้ AssessmentQuestion type
+  question: AssessmentQuestion
   answer?: AssessmentAnswer
-  onAnswer: (questionId: string, answer: string | number | string[] | null, score: number, isValid: boolean) => void // เพิ่ม isValid
+  onAnswerChange: (questionId: string, answer: any, score: number) => void
 }
 
-export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) {
-  const [currentAnswer, setCurrentAnswer] = useState<string | number | string[] | null>(() => {
-    if (answer?.answer !== undefined) {
-      return answer.answer
-    }
-    if (question.type === "checkbox" || question.type === "multi-select-combobox-with-other") {
-      return []
-    }
-    if (question.type === "number" || question.type === "text") {
-      return null
-    }
-    return ""
-  })
-  const [error, setError] = useState<string | null>(null)
-
-  // Regex สำหรับอักขระที่อนุญาต: ตัวอักษร (ทุกภาษา), ตัวเลข, ช่องว่าง, จุด, คอมม่า, ไฮเฟน, อัญประกาศเดี่ยว
-  const textRegex = /^[\p{L}\p{N}\s.,'-]*$/u
-
-  // ฟังก์ชันสำหรับตรวจสอบความถูกต้องของ input
-  const validateInput = (value: string | number | string[] | null): { valid: boolean; message: string | null } => {
-    // ตรวจสอบว่าคำถามที่จำเป็นต้องมีคำตอบหรือไม่
-    if (question.required) {
-      if (
-        value === null ||
-        (typeof value === "string" && value.trim() === "") ||
-        (Array.isArray(value) && value.length === 0)
-      ) {
-        return { valid: false, message: "กรุณาตอบคำถามนี้" }
-      }
-    }
-
-    switch (question.type) {
-      case "number":
-        // ตรวจสอบค่าลบสำหรับ input ประเภท number
-        if (typeof value === "number" && value < 0) {
-          return { valid: false, message: "กรุณาใส่ตัวเลขที่ไม่เป็นค่าลบ" }
-        }
-        // ตรวจสอบว่าเป็นตัวเลขที่ถูกต้องหรือไม่ หากมีค่า
-        if (value !== null && value !== undefined && typeof value !== "number") {
-          return { valid: false, message: "กรุณาใส่ตัวเลขที่ถูกต้อง" }
-        }
-        return { valid: true, message: null }
-
-      case "text":
-        // ตรวจสอบอักขระพิเศษสำหรับ input ประเภท text
-        if (typeof value === "string" && value.trim() !== "" && !textRegex.test(value)) {
-          return { valid: false, message: "มีอักขระพิเศษที่ไม่ได้รับอนุญาต" }
-        }
-        return { valid: true, message: null }
-
-      case "checkbox":
-      case "multi-select-combobox-with-other": // ลบการตรวจสอบอักขระพิเศษสำหรับ multi-select-combobox-with-other
-        // ตรวจสอบว่าคำถามที่จำเป็นต้องมีคำตอบหรือไม่ (ยังคงอยู่)
-        if (question.required) {
-          if (Array.isArray(value) && value.length === 0) {
-            return { valid: false, message: "กรุณาตอบคำถามนี้" }
-          }
-        }
-        // สำหรับ checkbox ยังคงตรวจสอบอักขระพิเศษ
-        if (question.type === "checkbox" && Array.isArray(value)) {
-          for (const item of value) {
-            if (typeof item === "string" && !textRegex.test(item)) {
-              return { valid: false, message: "มีอักขระพิเศษที่ไม่ได้รับอนุญาตในตัวเลือก" }
-            }
-          }
-        }
-        return { valid: true, message: null }
-
-      default:
-        return { valid: true, message: null }
+export function QuestionCard({ question, answer, onAnswerChange }: QuestionCardProps) {
+  const handleRadioChange = (value: string) => {
+    const option = question.options?.find((opt) => opt.value === value)
+    if (option) {
+      onAnswerChange(question.id, value, option.score)
     }
   }
 
-  // ใช้ useEffect เพื่อทำการตรวจสอบค่าเริ่มต้นและเมื่อคำถามหรือคำตอบเริ่มต้นเปลี่ยน
-  useEffect(() => {
-    const initialValue =
-      answer?.answer !== undefined
-        ? answer.answer
-        : question.type === "checkbox" || question.type === "multi-select-combobox-with-other"
-          ? []
-          : question.type === "number" || question.type === "text"
-            ? null
-            : ""
-    setCurrentAnswer(initialValue)
-    const initialValidation = validateInput(initialValue)
-    setError(initialValidation.message)
-    onAnswer(question.id, initialValue, calculateScore(initialValue), initialValidation.valid)
-  }, [question.id, answer?.answer]) // Dependency array เพื่อให้ทำงานเมื่อ question.id หรือ answer.answer เปลี่ยน
-
-  const calculateScore = (value: string | number | string[] | null): number => {
-    if (value === null || (Array.isArray(value) && value.length === 0)) return 0
-    switch (question.type) {
-      case "rating":
-        return Number(value) * question.weight
-      case "yes-no":
-        return value === "ใช่" ? question.weight * 2 : question.weight
-      case "multiple-choice":
-        const index = question.options?.indexOf(String(value)) || 0
-        return (index + 1) * question.weight
-      case "checkbox":
-      case "multi-select-combobox-with-other":
-        const selectedCount = Array.isArray(value) ? value.length : 0
-        return selectedCount * question.weight
-      default:
-        return question.weight
-    }
+  const handleInputChange = (value: string) => {
+    // For input questions, we'll assign a default score of 0
+    // The actual scoring will be done by AI analysis
+    onAnswerChange(question.id, value, 0)
   }
 
-  const handleAnswerChange = (value: string | number | string[] | null) => {
-    setCurrentAnswer(value)
-    const validationResult = validateInput(value)
-    setError(validationResult.message)
-    const score = calculateScore(value)
-    onAnswer(question.id, value, score, validationResult.valid)
+  const handleMultiSelectChange = (values: string[]) => {
+    // For multi-select questions, calculate score based on selected options
+    let totalScore = 0
+    if (question.options) {
+      values.forEach((value) => {
+        const option = question.options?.find((opt) => opt.value === value)
+        if (option) {
+          totalScore += option.score
+        }
+      })
+    }
+    onAnswerChange(question.id, values, totalScore)
   }
 
   const renderQuestionInput = () => {
     switch (question.type) {
-      case "multiple-choice":
-      case "rating": // Rating ก็ใช้ RadioGroup เหมือนกัน
-      case "yes-no":
-        const yesNoOptions = question.options || ["ใช่", "ไม่ใช่"]
+      case "radio":
         return (
-          <RadioGroup
-            value={String(currentAnswer)}
-            onValueChange={(value) => handleAnswerChange(value)}
-            className="flex flex-wrap justify-center gap-4"
-          >
-            {yesNoOptions.map((option, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "flex items-center space-x-3 p-4 rounded-lg border border-gray-200 cursor-pointer transition-colors",
-                  "hover:bg-gray-50 dark:hover:bg-secondary",
-                  "data-[state=checked]:bg-blue-50 data-[state=checked]:border-blue-500 dark:data-[state=checked]:bg-primary/20 dark:data-[state=checked]:border-primary",
-                  "min-w-[120px] flex-grow",
-                  question.type === "rating" && "justify-center",
-                )}
-                data-state={String(currentAnswer) === option ? "checked" : "unchecked"} // เพิ่ม data-state เพื่อให้ Tailwind รู้สถานะ
-                onClick={() => handleAnswerChange(option)} // ทำให้ div ทั้งหมดคลิกได้
-              >
-                <RadioGroupItem value={option} id={`${question.id}-${index}`} />
-                <Label htmlFor={`${question.id}-${index}`} className="flex-1 cursor-pointer dark:text-gray-100">
-                  {option}
+          <RadioGroup value={answer?.answer as string} onValueChange={handleRadioChange} className="space-y-3">
+            {question.options?.map((option) => (
+              <div key={option.value} className="flex items-center space-x-2">
+                <RadioGroupItem value={option.value} id={option.value} />
+                <Label htmlFor={option.value} className="text-sm font-normal cursor-pointer flex-1">
+                  {option.label}
                 </Label>
               </div>
             ))}
-            {question.type === "rating" && (
-              <div className="flex justify-between text-xs text-gray-500 px-2 mt-2">
-                <span>น้อยที่สุด</span>
-                <span>มากที่สุด</span>
-              </div>
-            )}
           </RadioGroup>
         )
 
-      case "checkbox":
-        return (
-          <div className="flex flex-wrap gap-4">
-            {question.options?.map((option, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "flex items-center space-x-3 p-4 rounded-lg border border-gray-200 cursor-pointer transition-colors",
-                  "hover:bg-gray-50 dark:hover:bg-secondary",
-                  Array.isArray(currentAnswer) &&
-                    currentAnswer.includes(option) &&
-                    "bg-blue-50 border-blue-500 dark:bg-primary/20 dark:border-primary", // เพิ่มเงื่อนไขสำหรับสถานะ checked
-                  "min-w-[120px] flex-grow",
-                )}
-                onClick={() => {
-                  // ทำให้ div ทั้งหมดคลิกได้
-                  const newAnswer = Array.isArray(currentAnswer) ? [...currentAnswer] : []
-                  const isChecked = newAnswer.includes(option)
-                  if (isChecked) {
-                    const index = newAnswer.indexOf(option)
-                    if (index > -1) {
-                      newAnswer.splice(index, 1)
-                    }
-                  } else {
-                    newAnswer.push(option)
-                  }
-                  handleAnswerChange(newAnswer)
-                }}
-              >
-                <Checkbox
-                  id={`${question.id}-${index}`}
-                  checked={Array.isArray(currentAnswer) && currentAnswer.includes(option)}
-                  onCheckedChange={(checked) => {
-                    const newAnswer = Array.isArray(currentAnswer) ? [...currentAnswer] : []
-                    if (checked) {
-                      if (!newAnswer.includes(option)) {
-                        newAnswer.push(option)
-                      }
-                    } else {
-                      const index = newAnswer.indexOf(option)
-                      if (index > -1) {
-                        newAnswer.splice(index, 1)
-                      }
-                    }
-                    handleAnswerChange(newAnswer)
-                  }}
-                />
-                <Label htmlFor={`${question.id}-${index}`} className="flex-1 cursor-pointer dark:text-gray-100">
-                  {option}
-                </Label>
-              </div>
-            ))}
-          </div>
-        )
-
-      case "number":
+      case "input":
         return (
           <Input
-            type="number"
-            value={currentAnswer === null ? "" : String(currentAnswer)}
-            onChange={(e) => handleAnswerChange(e.target.value === "" ? null : Number(e.target.value))}
-            placeholder="กรุณาใส่ตัวเลข"
-            className="text-center text-lg h-12 rounded-xl border-2 focus:border-blue-400 dark:text-foreground dark:placeholder:text-muted-foreground dark:bg-input dark:border-border"
+            type={question.inputType || "text"}
+            value={(answer?.answer as string) || ""}
+            onChange={(e) => handleInputChange(e.target.value)}
+            placeholder={question.placeholder}
+            className="w-full"
           />
         )
 
-      case "text":
+      case "textarea":
         return (
           <Textarea
-            value={currentAnswer === null ? "" : String(currentAnswer)}
-            onChange={(e) => handleAnswerChange(e.target.value.trim() === "" ? null : e.target.value)}
-            placeholder="กรุณาใส่คำตอบ"
-            className="min-h-[100px] rounded-xl border-2 focus:border-blue-400 dark:text-foreground dark:placeholder:text-muted-foreground dark:bg-input dark:border-border"
+            value={(answer?.answer as string) || ""}
+            onChange={(e) => handleInputChange(e.target.value)}
+            placeholder={question.placeholder}
+            className="w-full min-h-[100px]"
           />
         )
 
-      case "multi-select-combobox-with-other":
+      case "multiselect":
         return (
           <MultiSelectComboboxWithOther
             options={question.options || []}
-            value={Array.isArray(currentAnswer) ? currentAnswer : []}
-            onChange={(newValues) => handleAnswerChange(newValues)}
-            placeholder={question.description || "เลือกหรือพิมพ์เพื่อค้นหา"}
-            otherInputPlaceholder="ระบุข้อมูลอื่นๆ ที่นี่"
+            value={(answer?.answer as string[]) || []}
+            onChange={handleMultiSelectChange}
+            placeholder={question.placeholder || "เลือกตัวเลือก..."}
+            allowOther={question.allowOther}
+            otherLabel={question.otherLabel || "อื่นๆ"}
           />
         )
 
@@ -267,34 +97,18 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
   }
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-3xl overflow-hidden dark:bg-card/90 dark:border-border">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 pb-6 dark:from-secondary dark:to-card">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-xl mb-3 text-gray-800 dark:text-gray-100">
-              {question.question}
-              {question.required && <span className="text-red-500 ml-1">*</span>}
-            </CardTitle>
-            {question.description && (
-              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{question.description}</p>
-            )}
-          </div>
-          {question.required && (
-            <div className="flex items-center text-red-500 text-xs bg-red-50 px-2 py-1 rounded-full">
-              <AlertCircle className="w-3 h-3 mr-1" />
-              จำเป็น
-            </div>
-          )}
-        </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">{question.question}</CardTitle>
+        {question.description && <CardDescription>{question.description}</CardDescription>}
       </CardHeader>
-
-      <CardContent className="p-8">
+      <CardContent className="space-y-4">
         {renderQuestionInput()}
-        {error && (
-          <p className="text-red-500 text-sm mt-2 flex items-center">
-            <AlertCircle className="w-4 h-4 mr-1" />
-            {error}
-          </p>
+
+        {question.note && (
+          <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
+            <strong>หมายเหตุ:</strong> {question.note}
+          </div>
         )}
       </CardContent>
     </Card>

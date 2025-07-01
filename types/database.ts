@@ -54,6 +54,10 @@ export interface Database {
           risk_level: "low" | "medium" | "high" | "very-high"
           risk_factors: string[]
           recommendations: string[]
+          summary: string
+          risk_factors_en: string[]
+          recommendations_en: string[]
+          summary_en: string
           completed_at: string
           created_at: string
         }
@@ -69,6 +73,10 @@ export interface Database {
           risk_level: "low" | "medium" | "high" | "very-high"
           risk_factors?: string[]
           recommendations?: string[]
+          summary?: string
+          risk_factors_en?: string[]
+          recommendations_en?: string[]
+          summary_en?: string
           completed_at?: string
         }
         Update: {
@@ -79,6 +87,10 @@ export interface Database {
           risk_level?: "low" | "medium" | "high" | "very-high"
           risk_factors?: string[]
           recommendations?: string[]
+          summary?: string
+          risk_factors_en?: string[]
+          recommendations_en?: string[]
+          summary_en?: string
         }
       }
       doctor_profiles: {
