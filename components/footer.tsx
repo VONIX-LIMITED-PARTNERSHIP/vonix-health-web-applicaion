@@ -1,10 +1,11 @@
 import Link from "next/link"
 import { Mail, MapPin } from "lucide-react"
-import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
+import { FaFacebookF, FaLinkedinIn, FaInstagram, FaXTwitter, FaLine } from "react-icons/fa6"
+import { useTranslation } from "@/hooks/use-translation"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
-  const { t } = useTranslation() // Use translation hook
+  const { t } = useTranslation()
 
   return (
     <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
@@ -18,13 +19,14 @@ export function Footer() {
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">VONIX</span>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">{t("ai_powered_description")}</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
+              An intelligent health assessment system that helps you take better care of your health. No medical knowledge required, easy to use, and instantly understandable, with advice from expert doctors.
+            </p>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               <p className="font-semibold mb-1">VONIX LIMITED PARTNERSHIP</p>
               <p>ห้างหุ้นส่วนจำกัด วอนิกซ์</p>
             </div>
           </div>
-
 
           {/* Contact Info */}
           <div>
@@ -34,18 +36,34 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center space-x-3">
                 <Mail className="w-4 h-4 text-gray-400" />
-                <a
-                  href="mailto:vonix.th@gmail.com"
-                  className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
+                <a href="mailto:vonix.th@gmail.com" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                   vonix.th@gmail.com
                 </a>
               </li>
               <li className="flex items-start space-x-3">
                 <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                <span className="text-gray-600 dark:text-gray-400 text-sm">{t("thailand")}</span>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Thailand</span>
               </li>
             </ul>
+
+            {/* Social Icons */}
+            <div className="mt-6 bg-gray-700 px-4 py-3 rounded-lg flex space-x-5 justify-center md:justify-start">
+              <a href="#" aria-label="Facebook" className="text-white hover:text-blue-300">
+                <FaFacebookF size={20} />
+              </a>
+              <a href="#" aria-label="LinkedIn" className="text-white hover:text-blue-300">
+                <FaLinkedinIn size={20} />
+              </a>
+              <a href="#" aria-label="X (Twitter)" className="text-white hover:text-blue-300">
+                <FaXTwitter size={20} />
+              </a>
+              <a href="#" aria-label="Instagram" className="text-white hover:text-blue-300">
+                <FaInstagram size={20} />
+              </a>
+              <a href="#" aria-label="LINE" className="text-white hover:text-blue-300">
+                <FaLine size={20} />
+              </a>
+            </div>
           </div>
         </div>
 
@@ -53,23 +71,15 @@ export function Footer() {
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-gray-500 dark:text-gray-400 text-center md:text-left">
-              <p>
-                © {currentYear} VONIX LIMITED PARTNERSHIP. {t("all_rights_reserved")}.
-              </p>
-              <p className="mt-1">{t("preliminary_assessment_only")}</p>
+              <p>© {currentYear} VONIX LIMITED PARTNERSHIP. All Rights Reserved.</p>
+              <p className="mt-1">This system is for preliminary assessment only, not a medical diagnosis.</p>
             </div>
             <div className="flex space-x-6 text-sm">
-              <Link
-                href="/privacy-policy"
-                className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                {t("privacy_policy")}
+              <Link href="/privacy-policy" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                Privacy Policy
               </Link>
-              <Link
-                href="/terms"
-                className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                {t("terms_of_use")}
+              <Link href="/terms" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                Terms of Use
               </Link>
             </div>
           </div>

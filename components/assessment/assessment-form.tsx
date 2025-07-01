@@ -8,9 +8,11 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from "lucide-react"
 import { QuestionCard } from "./question-card"
-import { assessmentCategories } from "@/data/assessment-questions"
+import { getAssessmentCategories } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
 import { useAuth } from "@/hooks/use-auth"
+import { useLanguage } from "@/contexts/language-context"
+import { useTranslation } from "@/hooks/use-translation"
 import type { AssessmentAnswer } from "@/types/assessment"
 import { createClientComponentClient } from "@/lib/supabase"
 
@@ -21,15 +23,19 @@ interface AssessmentFormProps {
 export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const router = useRouter()
   const { user } = useAuth()
+  const { locale } = useLanguage()
+  const { t } = useTranslation()
   const supabase = createClientComponentClient()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Get assessment categories based on current language
+  const assessmentCategories = getAssessmentCategories(locale)
   const category = assessmentCategories.find((cat) => cat.id === categoryId)
 
   if (!category) {
-    return <div>ไม่พบแบบประเมินที่ระบุ</div>
+    return <div>{t("assessment.error_loading_answers")}</div>
   }
 
   const currentQuestion = category.questions[currentQuestionIndex]
@@ -78,9 +84,8 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     }
 
     if (isLastQuestion) {
-      // บันทึกข้อมูลลง Supabase ทันที
       if (!user?.id) {
-        alert("กรุณาเข้าสู่ระบบก่อนทำแบบประเมิน")
+        alert(t("assessment.not_logged_in"))
         return
       }
 
@@ -88,7 +93,6 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
 
       try {
-        // วิเคราะห์ด้วย AI หากไม่ใช่ basic category
         let aiAnalysis = null
         if (categoryId !== "basic") {
           console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
@@ -101,10 +105,9 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
           }
         }
 
-        // บันทึกลง Supabase
         console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
         const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
-          supabase, // NEW first argument
+          supabase,
           user.id,
           categoryId,
           category.title,
@@ -118,8 +121,6 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
         console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
 
-        // สำหรับแบบประเมิน basic ให้กลับหน้า home พร้อมเปิด popup ภาพรวมสุขภาพไปยังข้อมูลส่วนตัวโดยตรง
-        // สำหรับแบบประเมินอื่นๆ ให้ไปหน้าผลลัพธ์
         if (categoryId === "basic") {
           console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
           router.push(`/?openHealthOverview=basic&assessmentId=${savedData.id}`)
@@ -129,7 +130,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         }
       } catch (error) {
         console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
-        alert("เกิดข้อผิดพลาดในการบันทึกแบบประเมิน กรุณาลองใหม่อีกครั้ง")
+        alert(t("assessment.save_failed").replace("{{message}}", String(error)))
       } finally {
         setIsSubmitting(false)
       }
@@ -148,17 +149,16 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     router.push("/")
   }
 
-  // ปรับข้อความปุ่มสำหรับแบบประเมิน basic
   const getSubmitButtonText = () => {
     if (categoryId === "basic") {
       return {
-        full: "บันทึกข้อมูลและดูภาพรวม",
-        short: "บันทึก",
+        full: locale === "en" ? "Save Data and View Overview" : "บันทึกข้อมูลและดูภาพรวม",
+        short: locale === "en" ? "Save" : "บันทึก",
       }
     } else {
       return {
-        full: "ดูผลการประเมิน",
-        short: "ดูผล",
+        full: t("common.view_results"),
+        short: locale === "en" ? "View Results" : "ดูผล",
       }
     }
   }
@@ -172,7 +172,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         <div className="mb-8">
           <Button variant="ghost" onClick={handleBack} className="mb-4 hover:bg-white/80">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            กลับหน้าหลัก
+            {t("common.back")}
           </Button>
 
           <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80 dark:border-border">
@@ -183,10 +183,12 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                   <p className="text-gray-600 dark:text-muted-foreground">{category.description}</p>
                 </div>
                 <div className="flex items-center space-x-4">
-                  {category.required && <Badge className="bg-red-500 text-white">จำเป็น</Badge>}
+                  {category.required && <Badge className="bg-red-500 text-white">{t("common.required")}</Badge>}
                   <div className="flex items-center text-gray-500 dark:text-gray-400">
                     <Clock className="w-4 h-4 mr-1" />
-                    <span className="text-sm">{category.estimatedTime} นาที</span>
+                    <span className="text-sm">
+                      {category.estimatedTime} {t("common.estimated_time")}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -199,10 +201,12 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                คำถามที่ {currentQuestionIndex + 1} จาก {category.questions.length}
+                {locale === "en"
+                  ? `Question ${currentQuestionIndex + 1} of ${category.questions.length}`
+                  : `คำถามที่ ${currentQuestionIndex + 1} จาก ${category.questions.length}`}
               </span>
               <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                {Math.round(progress)}% เสร็จสิ้น
+                {Math.round(progress)}% {locale === "en" ? "Complete" : "เสร็จสิ้น"}
               </span>
             </div>
             <Progress value={progress} className="h-3 bg-gray-200 dark:bg-gray-700" />
@@ -225,11 +229,11 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={currentQuestionIndex === 0 || isSubmitting}
-                className="px-4 sm:px-6 py-2 text-sm sm:text-base"
+                className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-transparent"
               >
                 <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">ก่อนหน้า</span>
-                <span className="sm:hidden">ก่อน</span>
+                <span className="hidden sm:inline">{t("common.previous")}</span>
+                <span className="sm:hidden">{locale === "en" ? "Prev" : "ก่อน"}</span>
               </Button>
 
               <Button
@@ -240,8 +244,8 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span className="hidden sm:inline">กำลังบันทึก...</span>
-                    <span className="sm:hidden">บันทึก...</span>
+                    <span className="hidden sm:inline">{locale === "en" ? "Saving..." : "กำลังบันทึก..."}</span>
+                    <span className="sm:hidden">{locale === "en" ? "Saving..." : "บันทึก..."}</span>
                   </>
                 ) : isLastQuestion ? (
                   <>
@@ -251,8 +255,8 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                   </>
                 ) : (
                   <>
-                    <span className="hidden sm:inline">ถัดไป</span>
-                    <span className="sm:hidden">ถัดไป</span>
+                    <span className="hidden sm:inline">{t("common.next")}</span>
+                    <span className="sm:hidden">{t("common.next")}</span>
                     <ArrowRight className="ml-1 sm:ml-2 h-4 w-4" />
                   </>
                 )}
