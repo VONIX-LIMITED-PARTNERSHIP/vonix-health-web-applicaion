@@ -1,6 +1,25 @@
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
 import { assessmentCategories } from "@/data/assessment-questions"
 import type { SupabaseClient } from "@supabase/supabase-js"
+import type { Database } from "@/types/database"
+
+type AssessmentRow = Database["public"]["Tables"]["assessments"]["Row"]
+type AssessmentInsert = Database["public"]["Tables"]["assessments"]["Insert"]
+
+interface BilingualAnalysis {
+  th: {
+    riskLevel: string
+    riskFactors: string[]
+    recommendations: string[]
+    summary: string
+  }
+  en: {
+    riskLevel: string
+    riskFactors: string[]
+    recommendations: string[]
+    summary: string
+  }
+}
 
 export class AssessmentService {
   private static activeRequests = new Map<string, AbortController>()
@@ -13,22 +32,15 @@ export class AssessmentService {
     return assessmentCategories.find((cat) => cat.id === categoryId)
   }
 
-  static async analyzeWithAI(categoryId: string, answers: AssessmentAnswer[]): Promise<{ data: any; error: any }> {
+  /**
+   * Analyze assessment with AI (bilingual)
+   */
+  static async analyzeWithAI(
+    categoryId: string,
+    answers: AssessmentAnswer[],
+  ): Promise<{ data: BilingualAnalysis | null; error: Error | null }> {
     try {
-      const category = AssessmentService.getCategory(categoryId)
-      if (!category) {
-        throw new Error("Category not found")
-      }
-
-      console.log("🤖 AssessmentService: เริ่มการวิเคราะห์ด้วย AI (ทั้งสองภาษา)...")
-
-      const enrichedAnswers = answers.map((answer) => {
-        const question = category.questions.find((q) => q.id === answer.questionId)
-        return {
-          ...answer,
-          question: question?.question || "ไม่ระบุคำถาม",
-        }
-      })
+      console.log("🚀 AssessmentService: Starting AI analysis...")
 
       const response = await fetch("/api/assessment/analyze", {
         method: "POST",
@@ -37,167 +49,153 @@ export class AssessmentService {
         },
         body: JSON.stringify({
           categoryId,
-          categoryTitle: category.title,
-          answers: enrichedAnswers,
+          answers,
         }),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to analyze assessment")
+        throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
       const result = await response.json()
-      console.log("✅ AssessmentService: การวิเคราะห์ AI สำเร็จ (ทั้งสองภาษา)")
-      return { data: result.analysis, error: null }
+
+      if (!result.success) {
+        throw new Error(result.error || "Analysis failed")
+      }
+
+      console.log("✅ AssessmentService: AI analysis completed")
+      return { data: result.data, error: null }
     } catch (error) {
-      console.error("❌ AssessmentService: การวิเคราะห์ AI ล้มเหลว:", error)
-      return { data: null, error }
+      console.error("❌ AssessmentService: AI analysis failed:", error)
+      return {
+        data: null,
+        error: error instanceof Error ? error : new Error("Unknown error"),
+      }
     }
   }
 
+  /**
+   * Save assessment to database with bilingual results
+   */
   static async saveAssessment(
-    supabaseClient: SupabaseClient,
+    supabase: SupabaseClient<Database>,
     userId: string,
     categoryId: string,
     categoryTitle: string,
     answers: AssessmentAnswer[],
-    bilingualAiAnalysis?: any, // รับผลลัพธ์ทั้งสองภาษา
-  ): Promise<{ data: any; error: any }> {
-    console.log("💾 AssessmentService: Starting save assessment process...")
-
+    bilingualAnalysis: BilingualAnalysis | null,
+  ): Promise<{ data: AssessmentRow | null; error: string | null }> {
     try {
-      if (!userId) {
-        throw new Error("User not authenticated")
-      }
+      console.log("💾 AssessmentService: Saving assessment...")
 
-      if (!Array.isArray(answers) || answers.length === 0) {
-        throw new Error("Invalid answers array")
-      }
+      // Calculate basic risk level if no AI analysis
+      let riskLevel = "low"
+      if (!bilingualAnalysis) {
+        const totalScore = answers.reduce((sum, answer) => sum + (answer.score || 0), 0)
+        const maxScore = answers.length * 5 // Assuming max score per question is 5
+        const percentage = (totalScore / maxScore) * 100
 
-      if (!supabaseClient) {
-        throw new Error("Database connection not available")
-      }
-
-      // คำนวณผลลัพธ์
-      let result: AssessmentResult
-      let bilingualResult: { th: AssessmentResult; en: AssessmentResult }
-
-      if (categoryId === "basic") {
-        // สำหรับ basic assessment ให้คำนวณทั้งสองภาษา
-        const thaiResult = this.calculateBasicAssessmentResult(answers, "th")
-        const englishResult = this.calculateBasicAssessmentResult(answers, "en")
-
-        result = thaiResult // ใช้ไทยเป็นหลัก
-        bilingualResult = {
-          th: thaiResult,
-          en: englishResult,
-        }
-      } else if (bilingualAiAnalysis) {
-        // สำหรับ AI analysis ที่มีทั้งสองภาษา
-        const thaiAnalysis = bilingualAiAnalysis.th
-        const englishAnalysis = bilingualAiAnalysis.en
-
-        result = {
-          categoryId,
-          totalScore: thaiAnalysis.score,
-          maxScore: 100,
-          percentage: thaiAnalysis.score,
-          riskLevel: thaiAnalysis.riskLevel,
-          riskFactors: thaiAnalysis.riskFactors || [],
-          recommendations: thaiAnalysis.recommendations || [],
-        }
-
-        bilingualResult = {
-          th: {
-            categoryId,
-            totalScore: thaiAnalysis.score,
-            maxScore: 100,
-            percentage: thaiAnalysis.score,
-            riskLevel: thaiAnalysis.riskLevel,
-            riskFactors: thaiAnalysis.riskFactors || [],
-            recommendations: thaiAnalysis.recommendations || [],
-          },
-          en: {
-            categoryId,
-            totalScore: englishAnalysis.score,
-            maxScore: 100,
-            percentage: englishAnalysis.score,
-            riskLevel: englishAnalysis.riskLevel,
-            riskFactors: englishAnalysis.riskFactors || [],
-            recommendations: englishAnalysis.recommendations || [],
-          },
-        }
+        if (percentage >= 75) riskLevel = "critical"
+        else if (percentage >= 50) riskLevel = "high"
+        else if (percentage >= 25) riskLevel = "moderate"
+        else riskLevel = "low"
       } else {
-        throw new Error("AI analysis required for non-basic assessments")
+        riskLevel = bilingualAnalysis.th.riskLevel
       }
 
-      // เตรียมข้อมูลสำหรับบันทึก (เก็บทั้งสองภาษา)
-      const assessmentData = {
+      // Prepare assessment data
+      const assessmentData: AssessmentInsert = {
         user_id: userId,
         category_id: categoryId,
         category_title: categoryTitle,
-        answers: answers,
-        total_score: Math.round(result.totalScore),
-        max_score: Math.round(result.maxScore),
-        percentage: Math.round(result.percentage),
-        risk_level: result.riskLevel,
-
-        // เก็บผลลัพธ์ภาษาไทย
-        risk_factors: bilingualResult.th.riskFactors || [],
-        recommendations: bilingualResult.th.recommendations || [],
-        summary: bilingualAiAnalysis?.th?.summary || "",
-
-        // เก็บผลลัพธ์ภาษาอังกฤษ
-        risk_factors_en: bilingualResult.en.riskFactors || [],
-        recommendations_en: bilingualResult.en.recommendations || [],
-        summary_en: bilingualAiAnalysis?.en?.summary || "",
-
-        completed_at: new Date().toISOString(),
+        answers: answers as any,
+        risk_level: riskLevel,
+        risk_factors: bilingualAnalysis?.th.riskFactors || [],
+        recommendations: bilingualAnalysis?.th.recommendations || [],
+        summary: bilingualAnalysis?.th.summary || null,
+        summary_en: bilingualAnalysis?.en.summary || null,
+        risk_factors_en: bilingualAnalysis?.en.riskFactors || null,
+        recommendations_en: bilingualAnalysis?.en.recommendations || null,
+        language: "th", // Default language
       }
 
-      console.log("💾 AssessmentService: Inserting bilingual assessment data to Supabase...")
-      const { data: insertedData, error } = await supabaseClient
-        .from("assessments")
-        .insert(assessmentData)
-        .select()
-        .single()
+      // Insert into database
+      const { data, error } = await supabase.from("assessments").insert(assessmentData).select().single()
 
       if (error) {
-        console.error("❌ AssessmentService: Supabase insert error:", error)
-        throw new Error(`Database error: ${error.message}`)
+        console.error("❌ AssessmentService: Database save failed:", error)
+        throw error
       }
 
-      if (!insertedData) {
-        throw new Error("No data returned from insert operation")
-      }
-
-      console.log("✅ AssessmentService: Bilingual assessment saved successfully with ID:", insertedData.id)
-
-      return { data: insertedData, error: null }
+      console.log("✅ AssessmentService: Assessment saved successfully")
+      return { data, error: null }
     } catch (error) {
       console.error("❌ AssessmentService: Save assessment failed:", error)
-      let errorMessage = "เกิดข้อผิดพลาดในการบันทึก"
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : "Failed to save assessment",
+      }
+    }
+  }
 
-      if (error instanceof Error) {
-        if (error.message.includes("network") || error.message.includes("fetch")) {
-          errorMessage = "ปัญหาการเชื่อมต่อ กรุณาตรวจสอบอินเทอร์เน็ต"
-        } else if (error.message.includes("authentication") || error.message.includes("unauthorized")) {
-          errorMessage = "กรุณาเข้าสู่ระบบใหม่"
-        } else {
-          errorMessage = error.message
-        }
+  /**
+   * Get assessment by ID
+   */
+  static async getAssessment(
+    supabase: SupabaseClient<Database>,
+    assessmentId: string,
+  ): Promise<{ data: AssessmentRow | null; error: string | null }> {
+    try {
+      const { data, error } = await supabase.from("assessments").select("*").eq("id", assessmentId).single()
+
+      if (error) {
+        throw error
       }
 
-      return { data: null, error: errorMessage }
+      return { data, error: null }
+    } catch (error) {
+      console.error("❌ AssessmentService: Get assessment failed:", error)
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : "Failed to get assessment",
+      }
+    }
+  }
+
+  /**
+   * Get user assessments
+   */
+  static async getUserAssessments(
+    supabase: SupabaseClient<Database>,
+    userId: string,
+  ): Promise<{ data: AssessmentRow[] | null; error: string | null }> {
+    try {
+      const { data, error } = await supabase
+        .from("assessments")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        throw error
+      }
+
+      return { data, error: null }
+    } catch (error) {
+      console.error("❌ AssessmentService: Get user assessments failed:", error)
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : "Failed to get assessments",
+      }
     }
   }
 
   static async getLatestAssessmentForUserAndCategory(
-    supabaseClient: SupabaseClient,
+    supabaseClient: SupabaseClient<Database>,
     userId: string,
     categoryId: string,
-  ): Promise<{ data: any; error: any }> {
+  ): Promise<{ data: AssessmentRow | null; error: string | null }> {
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
@@ -228,14 +226,17 @@ export class AssessmentService {
       return { data, error: null }
     } catch (error) {
       console.error("❌ AssessmentService: Get latest assessment failed:", error)
-      return { data: null, error: (error as Error).message || "Failed to retrieve latest assessment" }
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : "Failed to retrieve latest assessment",
+      }
     }
   }
 
   static async getAssessmentById(
-    supabaseClient: SupabaseClient,
+    supabaseClient: SupabaseClient<Database>,
     assessmentId: string,
-  ): Promise<{ data: any; error: any }> {
+  ): Promise<{ data: AssessmentRow | null; error: string | null }> {
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
@@ -254,14 +255,17 @@ export class AssessmentService {
       return { data, error: null }
     } catch (error) {
       console.error("❌ AssessmentService: Get assessment by ID failed:", error)
-      return { data: null, error: (error as Error).message || "Failed to retrieve assessment" }
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : "Failed to retrieve assessment",
+      }
     }
   }
 
   static async getUserAssessments(
-    supabaseClient: SupabaseClient,
+    supabaseClient: SupabaseClient<Database>,
     userId: string,
-  ): Promise<{ data: any[]; error: any }> {
+  ): Promise<{ data: AssessmentRow[] | null; error: string | null }> {
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
@@ -282,9 +286,9 @@ export class AssessmentService {
   }
 
   static async getLatestUserAssessments(
-    supabaseClient: SupabaseClient,
+    supabaseClient: SupabaseClient<Database>,
     userId: string,
-  ): Promise<{ data: any[]; error: any }> {
+  ): Promise<{ data: AssessmentRow[] | null; error: string | null }> {
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
@@ -405,16 +409,16 @@ export class AssessmentService {
 
     return {
       categoryId: "basic",
-      totalScore,
-      maxScore,
-      percentage,
-      riskLevel,
+      totalScore: 0,
+      maxScore: 0,
+      percentage: 0,
+      riskLevel: "",
       riskFactors,
       recommendations,
     }
   }
 
-  static async testConnection(supabaseClient: SupabaseClient): Promise<boolean> {
+  static async testConnection(supabaseClient: SupabaseClient<Database>): Promise<boolean> {
     try {
       if (!supabaseClient) return false
 

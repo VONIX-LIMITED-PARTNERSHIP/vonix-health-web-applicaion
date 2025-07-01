@@ -1,260 +1,295 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { ArrowLeft, ArrowRight, CheckCircle, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import { useAuth } from "@/hooks/use-auth"
-import { useTranslation } from "@/hooks/use-translation"
-import { AssessmentService } from "@/lib/assessment-service"
-import { createClient } from "@/lib/supabase"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
+import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from "lucide-react"
 import { QuestionCard } from "./question-card"
-import type { AssessmentAnswer, AssessmentQuestion } from "@/types/assessment"
+import { assessmentCategories } from "@/data/assessment-questions"
+import { AssessmentService } from "@/lib/assessment-service"
+import { useAuth } from "@/hooks/use-auth"
+import type { AssessmentAnswer } from "@/types/assessment"
+import { createClientComponentClient } from "@/lib/supabase"
 
 interface AssessmentFormProps {
   categoryId: string
-  questions: AssessmentQuestion[]
-  title: string
-  description: string
-  isGuest?: boolean
 }
 
-export function AssessmentForm({ categoryId, questions, title, description, isGuest = false }: AssessmentFormProps) {
+export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const router = useRouter()
   const { user } = useAuth()
-  const { t, language } = useTranslation()
+  const supabase = createClientComponentClient()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
 
-  const currentQuestion = questions[currentQuestionIndex]
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100
-  const isLastQuestion = currentQuestionIndex === questions.length - 1
-  const isFirstQuestion = currentQuestionIndex === 0
+  const category = assessmentCategories.find((cat) => cat.id === categoryId)
 
-  // Get current answer for the question
-  const currentAnswer = answers.find((answer) => answer.questionId === currentQuestion?.id)
+  if (!category) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-semibold mb-2">ไม่พบแบบประเมิน</h2>
+            <p className="text-gray-600 mb-4">ไม่พบแบบประเมินที่ระบุ</p>
+            <Button onClick={() => router.push("/")} variant="outline">
+              กลับหน้าหลัก
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
-  const handleAnswerChange = (questionId: string, answer: any, score: number) => {
-    setAnswers((prev) => {
-      const existingIndex = prev.findIndex((a) => a.questionId === questionId)
-      const newAnswer: AssessmentAnswer = { questionId, answer, score }
+  // Check if questions exist
+  if (!category.questions || category.questions.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-semibold mb-2">ไม่มีคำถาม</h2>
+            <p className="text-gray-600 mb-4">แบบประเมินนี้ยังไม่มีคำถาม</p>
+            <Button onClick={() => router.push("/")} variant="outline">
+              กลับหน้าหลัก
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
-      if (existingIndex >= 0) {
-        const updated = [...prev]
-        updated[existingIndex] = newAnswer
-        return updated
-      } else {
-        return [...prev, newAnswer]
-      }
+  const currentQuestion = category.questions[currentQuestionIndex]
+  const progress = ((currentQuestionIndex + 1) / category.questions.length) * 100
+  const isLastQuestion = currentQuestionIndex === category.questions.length - 1
+
+  const handleAnswer = (
+    questionId: string,
+    answer: string | number | string[] | null,
+    score: number,
+    isValid: boolean,
+  ) => {
+    setAnswers((prevAnswers) => {
+      const newAnswers = prevAnswers.filter((a) => a.questionId !== questionId)
+      newAnswers.push({ questionId, answer, score, isValid })
+      return newAnswers
     })
   }
 
-  const handleNext = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1)
+  const getCurrentAnswer = () => {
+    return answers.find((a) => a.questionId === currentQuestion.id)
+  }
+
+  const canProceed = () => {
+    const answerEntry = getCurrentAnswer()
+    if (currentQuestion.required) {
+      const hasAnswer = answerEntry?.answer !== null && answerEntry?.answer !== undefined
+      const isAnswerNotEmpty =
+        hasAnswer &&
+        (Array.isArray(answerEntry.answer) ? answerEntry.answer.length > 0 : String(answerEntry.answer).trim() !== "")
+
+      return answerEntry?.isValid === true && isAnswerNotEmpty
+    }
+    return true
+  }
+
+  const handleNext = async () => {
+    const currentAnswerForSubmission = getCurrentAnswer()
+    let finalAnswersToSave: AssessmentAnswer[] = []
+
+    if (currentAnswerForSubmission) {
+      finalAnswersToSave = answers.filter((a) => a.questionId !== currentQuestion.id)
+      finalAnswersToSave.push(currentAnswerForSubmission)
+    } else {
+      finalAnswersToSave = [...answers]
+    }
+
+    if (isLastQuestion) {
+      // บันทึกข้อมูลลง Supabase ทันที
+      if (!user?.id) {
+        alert("กรุณาเข้าสู่ระบบก่อนทำแบบประเมิน")
+        return
+      }
+
+      setIsSubmitting(true)
+      console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
+
+      try {
+        // วิเคราะห์ด้วย AI หากไม่ใช่ basic category (ทั้งสองภาษา)
+        let bilingualAnalysis = null
+        if (categoryId !== "basic") {
+          console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI (ทั้งสองภาษา)...")
+          const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, finalAnswersToSave)
+          if (aiError) {
+            console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
+          } else {
+            bilingualAnalysis = aiData
+            console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น (ทั้งสองภาษา)")
+          }
+        }
+
+        // บันทึกลง Supabase
+        console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
+        const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
+          supabase,
+          user.id,
+          categoryId,
+          category.title,
+          finalAnswersToSave,
+          bilingualAnalysis,
+        )
+
+        if (saveError) {
+          throw new Error(saveError)
+        }
+
+        console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData?.id)
+
+        // สำหรับแบบประเมิน basic ให้กลับหน้า home พร้อมเปิด popup ภาพรวมสุขภาพ
+        // สำหรับแบบประเมินอื่นๆ ให้ไปหน้าผลลัพธ์
+        if (categoryId === "basic") {
+          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup")
+          router.push(`/?openHealthOverview=basic&assessmentId=${savedData?.id}`)
+        } else {
+          console.log("📊 AssessmentForm: ไปหน้าผลการประเมิน")
+          router.push(`/assessment/${categoryId}/results?id=${savedData?.id}`)
+        }
+      } catch (error) {
+        console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
+        alert("เกิดข้อผิดพลาดในการบันทึกแบบประเมิน กรุณาลองใหม่อีกครั้ง")
+      } finally {
+        setIsSubmitting(false)
+      }
+    } else {
+      setCurrentQuestionIndex((prev) => prev + 1)
     }
   }
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1)
+      setCurrentQuestionIndex((prev) => prev - 1)
     }
   }
 
-  const handleSubmit = async () => {
-    if (!user && !isGuest) {
-      toast.error(t("pleaseLoginFirst"))
-      router.push("/login")
-      return
-    }
+  const handleBack = () => {
+    router.push("/")
+  }
 
-    if (answers.length !== questions.length) {
-      toast.error(t("pleaseAnswerAllQuestions"))
-      return
-    }
-
-    setIsSubmitting(true)
-    setIsAnalyzing(true)
-
-    try {
-      const supabaseClient = createClient()
-
-      // For guest users, redirect to results page with answers
-      if (isGuest) {
-        const queryParams = new URLSearchParams({
-          answers: JSON.stringify(answers),
-          categoryId,
-          categoryTitle: title,
-        })
-        router.push(`/guest-assessment/results?${queryParams.toString()}`)
-        return
+  // ปรับข้อความปุ่มสำหรับแบบประเมิน basic
+  const getSubmitButtonText = () => {
+    if (categoryId === "basic") {
+      return {
+        full: "บันทึกข้อมูลและดูภาพรวม",
+        short: "บันทึก",
       }
-
-      // For authenticated users, analyze and save
-      console.log("🚀 Starting assessment submission process...")
-
-      // Step 1: Analyze with AI (bilingual)
-      console.log("🤖 Analyzing with AI...")
-      const { data: bilingualAnalysis, error: analysisError } = await AssessmentService.analyzeWithAI(
-        categoryId,
-        answers,
-      )
-
-      if (analysisError) {
-        console.error("❌ AI Analysis failed:", analysisError)
-        throw new Error(analysisError.message || "Failed to analyze assessment")
+    } else {
+      return {
+        full: "ดูผลการประเมิน",
+        short: "ดูผล",
       }
-
-      if (!bilingualAnalysis) {
-        throw new Error("No analysis data received")
-      }
-
-      console.log("✅ AI Analysis completed successfully")
-      console.log("🔍 Analysis data:", {
-        hasThai: !!bilingualAnalysis.th,
-        hasEnglish: !!bilingualAnalysis.en,
-        thaiRiskLevel: bilingualAnalysis.th?.riskLevel,
-        englishRiskLevel: bilingualAnalysis.en?.riskLevel,
-      })
-
-      // Step 2: Save to database with bilingual results
-      console.log("💾 Saving assessment to database...")
-      const { data: savedAssessment, error: saveError } = await AssessmentService.saveAssessment(
-        supabaseClient,
-        user.id,
-        categoryId,
-        title,
-        answers,
-        bilingualAnalysis, // Pass bilingual analysis
-      )
-
-      if (saveError) {
-        console.error("❌ Save failed:", saveError)
-        throw new Error(saveError)
-      }
-
-      if (!savedAssessment) {
-        throw new Error("No assessment data returned after save")
-      }
-
-      console.log("✅ Assessment saved successfully with ID:", savedAssessment.id)
-
-      toast.success(t("assessmentCompleted"))
-
-      // Redirect to results page
-      router.push(`/assessment/${categoryId}/results?id=${savedAssessment.id}`)
-    } catch (error) {
-      console.error("❌ Assessment submission failed:", error)
-      let errorMessage = t("assessmentSubmissionFailed")
-
-      if (error instanceof Error) {
-        if (error.message.includes("network") || error.message.includes("fetch")) {
-          errorMessage = t("networkError")
-        } else if (error.message.includes("authentication")) {
-          errorMessage = t("authenticationError")
-        } else {
-          errorMessage = error.message
-        }
-      }
-
-      toast.error(errorMessage)
-    } finally {
-      setIsSubmitting(false)
-      setIsAnalyzing(false)
     }
   }
 
-  const canProceed = currentAnswer !== undefined
+  const submitButtonText = getSubmitButtonText()
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{title}</h1>
-        <p className="text-gray-600 dark:text-gray-400">{description}</p>
-      </div>
+    <div className="min-h-screen">
+      <div className="container mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Button variant="ghost" onClick={handleBack} className="mb-4 hover:bg-white/80">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            กลับหน้าหลัก
+          </Button>
 
-      {/* Progress */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-              <span>
-                {t("question")} {currentQuestionIndex + 1} {t("of")} {questions.length}
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80 dark:border-border">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl mb-2 dark:text-foreground">{category.title}</CardTitle>
+                  <p className="text-gray-600 dark:text-muted-foreground">{category.description}</p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  {category.required && <Badge className="bg-red-500 text-white">จำเป็น</Badge>}
+                  <div className="flex items-center text-gray-500 dark:text-gray-400">
+                    <Clock className="w-4 h-4 mr-1" />
+                    <span className="text-sm">{category.estimatedTime} นาที</span>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Progress */}
+        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                คำถามที่ {currentQuestionIndex + 1} จาก {category.questions.length}
               </span>
-              <span>{Math.round(progress)}%</span>
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                {Math.round(progress)}% เสร็จสิ้น
+              </span>
             </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-        </CardContent>
-      </Card>
+            <Progress value={progress} className="h-3 bg-gray-200 dark:bg-gray-700" />
+          </CardContent>
+        </Card>
 
-      {/* Question */}
-      {currentQuestion && (
-        <QuestionCard question={currentQuestion} answer={currentAnswer} onAnswerChange={handleAnswerChange} />
-      )}
+        {/* Question */}
+        <QuestionCard
+          key={currentQuestion.id}
+          question={currentQuestion}
+          answer={getCurrentAnswer()}
+          onAnswer={handleAnswer}
+        />
 
-      {/* Navigation */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex justify-between items-center">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={isFirstQuestion || isSubmitting}
-              className="flex items-center gap-2 bg-transparent"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {t("previous")}
-            </Button>
+        {/* Navigation */}
+        <Card className="mt-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentQuestionIndex === 0 || isSubmitting}
+                className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-transparent"
+              >
+                <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">ก่อนหน้า</span>
+                <span className="sm:hidden">ก่อน</span>
+              </Button>
 
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {answers.length}/{questions.length} {t("answered")}
-            </div>
-
-            {isLastQuestion ? (
-              <Button onClick={handleSubmit} disabled={!canProceed || isSubmitting} className="flex items-center gap-2">
+              <Button
+                onClick={handleNext}
+                disabled={!canProceed() || isSubmitting}
+                className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm sm:text-base"
+              >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    {isAnalyzing ? t("analyzing") : t("submitting")}
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span className="hidden sm:inline">กำลังบันทึก...</span>
+                    <span className="sm:hidden">บันทึก...</span>
+                  </>
+                ) : isLastQuestion ? (
+                  <>
+                    <span className="hidden sm:inline">{submitButtonText.full}</span>
+                    <span className="sm:hidden">{submitButtonText.short}</span>
+                    <CheckCircle className="ml-1 sm:ml-2 h-4 w-4" />
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="h-4 w-4" />
-                    {t("submit")}
+                    <span className="hidden sm:inline">ถัดไป</span>
+                    <span className="sm:hidden">ถัดไป</span>
+                    <ArrowRight className="ml-1 sm:ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
-            ) : (
-              <Button onClick={handleNext} disabled={!canProceed || isSubmitting} className="flex items-center gap-2">
-                {t("next")}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Analysis Status */}
-      {isAnalyzing && (
-        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-              <div>
-                <p className="font-medium text-blue-900 dark:text-blue-100">{t("analyzingYourAnswers")}</p>
-                <p className="text-sm text-blue-700 dark:text-blue-300">{t("aiAnalysisInProgress")}</p>
-              </div>
             </div>
           </CardContent>
         </Card>
-      )}
+      </div>
     </div>
   )
 }
