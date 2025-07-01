@@ -1,4 +1,4 @@
-export interface AssessmentQuestion {
+export type AssessmentQuestion = {
   id: string
   question: string
   questionEn?: string
@@ -16,7 +16,7 @@ export interface AssessmentQuestion {
   placeholderEn?: string
 }
 
-export interface AssessmentCategory {
+export type AssessmentCategory = {
   id: string
   title: string
   titleEn?: string
@@ -27,11 +27,11 @@ export interface AssessmentCategory {
   questions: AssessmentQuestion[]
 }
 
-export interface AssessmentAnswer {
+export type AssessmentAnswer = {
   questionId: string
-  answer: string | string[] | number
+  answer: string | string[] | number | null
   score: number
-  value?: string | string[] | number
+  isValid: boolean
 }
 
 export interface AssessmentResult {
