@@ -2,285 +2,286 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2, Info } from "lucide-react"
+import { Loader2, AlertCircle, CheckCircle, ArrowLeft, ArrowRight } from "lucide-react"
 import { QuestionCard } from "./question-card"
-import { getAssessmentCategories } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
 import { useAuth } from "@/hooks/use-auth"
-import { useLanguage } from "@/contexts/language-context"
 import { useTranslation } from "@/hooks/use-translation"
-import type { AssessmentAnswer } from "@/types/assessment"
-import { createClientComponentClient } from "@/lib/supabase"
+import type { AssessmentQuestion, AssessmentAnswer } from "@/types/assessment"
 
 interface AssessmentFormProps {
   categoryId: string
+  questions: AssessmentQuestion[]
+  isGuest?: boolean
 }
 
-export function AssessmentForm({ categoryId }: AssessmentFormProps) {
+export function AssessmentForm({ categoryId, questions, isGuest = false }: AssessmentFormProps) {
   const router = useRouter()
   const { user } = useAuth()
-  const { locale } = useLanguage()
-  const { t } = useTranslation()
-  const supabase = createClientComponentClient()
+  const { t, locale } = useTranslation()
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
 
-  // Get assessment categories based on current language
-  const assessmentCategories = getAssessmentCategories(locale)
-  const category = assessmentCategories.find((cat) => cat.id === categoryId)
+  console.log("🎯 AssessmentForm: Initialized with:")
+  console.log("  - Category ID:", categoryId)
+  console.log("  - Questions count:", questions.length)
+  console.log("  - Is guest:", isGuest)
+  console.log("  - Current locale:", locale)
+  console.log("  - User ID:", user?.id)
 
-  if (!category) {
-    return <div>{t("assessment.error_loading_answers")}</div>
+  const currentQuestion = questions[currentQuestionIndex]
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100
+  const isLastQuestion = currentQuestionIndex === questions.length - 1
+  const isFirstQuestion = currentQuestionIndex === 0
+
+  // Get current answer for the question
+  const getCurrentAnswer = () => {
+    return answers.find((answer) => answer.questionId === currentQuestion.id)
   }
 
-  const currentQuestion = category.questions[currentQuestionIndex]
-  const progress = ((currentQuestionIndex + 1) / category.questions.length) * 100
-  const isLastQuestion = currentQuestionIndex === category.questions.length - 1
+  // Handle answer change
+  const handleAnswerChange = (questionId: string, value: any, score?: number) => {
+    console.log("📝 AssessmentForm: Answer changed:", { questionId, value, score })
 
-  const handleAnswer = (
-    questionId: string,
-    answer: string | number | string[] | null,
-    score: number,
-    isValid: boolean,
-  ) => {
-    setAnswers((prevAnswers) => {
-      const newAnswers = prevAnswers.filter((a) => a.questionId !== questionId)
-      newAnswers.push({ questionId, answer, score, isValid })
-      return newAnswers
+    setAnswers((prev) => {
+      const existingIndex = prev.findIndex((answer) => answer.questionId === questionId)
+      const newAnswer: AssessmentAnswer = {
+        questionId,
+        value,
+        score: score || 0,
+      }
+
+      if (existingIndex >= 0) {
+        const updated = [...prev]
+        updated[existingIndex] = newAnswer
+        return updated
+      } else {
+        return [...prev, newAnswer]
+      }
     })
   }
 
-  const getCurrentAnswer = () => {
-    return answers.find((a) => a.questionId === currentQuestion.id)
-  }
-
-  const canProceed = () => {
-    const answerEntry = getCurrentAnswer()
-    if (currentQuestion.required) {
-      const hasAnswer = answerEntry?.answer !== null && answerEntry?.answer !== undefined
-      const isAnswerNotEmpty =
-        hasAnswer &&
-        (Array.isArray(answerEntry.answer) ? answerEntry.answer.length > 0 : String(answerEntry.answer).trim() !== "")
-
-      return answerEntry?.isValid === true && isAnswerNotEmpty
-    }
-    return true
-  }
-
-  const handleNext = async () => {
-    const currentAnswerForSubmission = getCurrentAnswer()
-    let finalAnswersToSave: AssessmentAnswer[] = []
-
-    if (currentAnswerForSubmission) {
-      finalAnswersToSave = answers.filter((a) => a.questionId !== currentQuestion.id)
-      finalAnswersToSave.push(currentAnswerForSubmission)
-    } else {
-      finalAnswersToSave = [...answers]
-    }
-
-    if (isLastQuestion) {
-      if (!user?.id) {
-        alert(t("assessment.not_logged_in"))
-        return
-      }
-
-      setIsSubmitting(true)
-      console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
-      console.log("🌐 AssessmentForm: ภาษาปัจจุบัน:", locale)
-
-      try {
-        let aiAnalysis = null
-        if (categoryId !== "basic") {
-          console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
-          const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(
-            categoryId,
-            finalAnswersToSave,
-            locale, // ส่งภาษาปัจจุบันไปด้วย
-          )
-          if (aiError) {
-            console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
-          } else {
-            aiAnalysis = aiData
-            console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
-          }
-        }
-
-        console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
-        const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
-          supabase,
-          user.id,
-          categoryId,
-          category.title,
-          finalAnswersToSave,
-          aiAnalysis,
-          locale, // ส่งภาษาปัจจุบันไปด้วย
-        )
-
-        if (saveError) {
-          throw new Error(saveError)
-        }
-
-        console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
-
-        if (categoryId === "basic") {
-          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
-          router.push(`/?openHealthOverview=basic&assessmentId=${savedData.id}`)
-        } else {
-          console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
-          router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
-        }
-      } catch (error) {
-        console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
-        alert(t("assessment.save_failed").replace("{{message}}", String(error)))
-      } finally {
-        setIsSubmitting(false)
-      }
-    } else {
+  // Navigate to next question
+  const handleNext = () => {
+    if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1)
     }
   }
 
+  // Navigate to previous question
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex((prev) => prev - 1)
     }
   }
 
-  const handleBack = () => {
-    router.push("/")
+  // Check if current question is answered
+  const isCurrentQuestionAnswered = () => {
+    const currentAnswer = getCurrentAnswer()
+    return (
+      currentAnswer && currentAnswer.value !== undefined && currentAnswer.value !== null && currentAnswer.value !== ""
+    )
   }
 
-  const getSubmitButtonText = () => {
-    if (categoryId === "basic") {
-      return {
-        full: locale === "en" ? "Save Data and View Overview" : "บันทึกข้อมูลและดูภาพรวม",
-        short: locale === "en" ? "Save" : "บันทึก",
+  // Submit assessment
+  const handleSubmit = async () => {
+    console.log("🚀 AssessmentForm: Starting submission...")
+    console.log("🚀 AssessmentForm: Total answers:", answers.length)
+    console.log("🚀 AssessmentForm: Language:", locale)
+
+    if (answers.length !== questions.length) {
+      setError(t("assessment.error_loading_answers"))
+      return
+    }
+
+    setIsSubmitting(true)
+    setIsAnalyzing(true)
+    setError(null)
+
+    try {
+      // Step 1: Analyze with AI
+      console.log("🤖 AssessmentForm: Starting AI analysis...")
+      const analysisResult = await AssessmentService.analyzeAssessment(
+        answers,
+        categoryId,
+        locale, // Pass current locale to analysis
+      )
+
+      if (!analysisResult.success) {
+        throw new Error(analysisResult.error || "AI analysis failed")
       }
-    } else {
-      return {
-        full: t("common.view_results"),
-        short: locale === "en" ? "View Results" : "ดูผล",
+
+      console.log("✅ AssessmentForm: AI analysis completed")
+
+      // Step 2: Save to database (only if user is logged in)
+      if (!isGuest && user?.id) {
+        console.log("💾 AssessmentForm: Saving to database...")
+        const { createClientComponentClient } = await import("@/lib/supabase")
+        const supabase = createClientComponentClient()
+
+        const saveResult = await AssessmentService.saveAssessment(
+          supabase,
+          user.id,
+          categoryId,
+          answers,
+          analysisResult.analysis,
+          locale, // Pass current locale to save
+        )
+
+        if (saveResult.error) {
+          console.error("❌ AssessmentForm: Save failed:", saveResult.error)
+          throw new Error("Failed to save assessment")
+        }
+
+        console.log("✅ AssessmentForm: Assessment saved successfully")
+
+        // Redirect to results page with assessment ID
+        const assessmentId = saveResult.data?.id
+        if (assessmentId) {
+          router.push(`/assessment/${categoryId}/results?id=${assessmentId}`)
+        } else {
+          router.push(`/assessment/${categoryId}/results`)
+        }
+      } else {
+        console.log("👤 AssessmentForm: Guest mode - redirecting to guest results")
+
+        // For guest users, store results in sessionStorage and redirect
+        const guestResults = {
+          categoryId,
+          answers,
+          analysis: analysisResult.analysis,
+          language: locale,
+          timestamp: new Date().toISOString(),
+        }
+
+        sessionStorage.setItem("guestAssessmentResults", JSON.stringify(guestResults))
+        router.push("/guest-assessment/results")
       }
+    } catch (error) {
+      console.error("❌ AssessmentForm: Submission error:", error)
+      setError(error instanceof Error ? error.message : "Unknown error occurred")
+    } finally {
+      setIsSubmitting(false)
+      setIsAnalyzing(false)
     }
   }
 
-  const submitButtonText = getSubmitButtonText()
+  // Loading state during analysis
+  if (isAnalyzing) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
+        <Card className="w-full max-w-md bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+          <CardContent className="flex flex-col items-center justify-center p-8 text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-500 mb-4" />
+            <CardTitle className="text-xl font-semibold text-gray-800 mb-2">
+              {t("common.ai_analyzing_results")}
+            </CardTitle>
+            <p className="text-gray-600 mb-4">{t("common.ai_analyzing_description")}</p>
+            <p className="text-sm text-gray-500">{t("common.please_wait")}</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <Button variant="ghost" onClick={handleBack} className="mb-4 hover:bg-white/80">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+        <div className="mb-6">
+          <Button variant="ghost" onClick={() => router.back()} className="mb-4 flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
             {t("common.back")}
           </Button>
 
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80 dark:border-border">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-2xl mb-2 dark:text-foreground">{category.title}</CardTitle>
-                  <p className="text-gray-600 dark:text-muted-foreground">{category.description}</p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  {category.required && <Badge className="bg-red-500 text-white">{t("common.required")}</Badge>}
-                  <div className="flex items-center text-gray-500 dark:text-gray-400">
-                    <Clock className="w-4 h-4 mr-1" />
-                    <span className="text-sm">
-                      {category.estimatedTime} {t("common.estimated_time")}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+          {/* Progress */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>
+                {t("common.question")} {currentQuestionIndex + 1} {t("common.of")} {questions.length}
+              </span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
         </div>
 
-        {/* Language Notice */}
-        <Alert className="mb-8 bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
-          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          <AlertDescription className="text-blue-800 dark:text-blue-200">
-            {locale === "en"
-              ? `📋 Assessment Language: English - Your results will be provided in English based on your current language selection.`
-              : `📋 ภาษาการประเมิน: ไทย - ผลลัพธ์จะแสดงเป็นภาษาไทยตามการตั้งค่าภาษาปัจจุบันของคุณ`}
-          </AlertDescription>
-        </Alert>
-
-        {/* Progress */}
-        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                {locale === "en"
-                  ? `Question ${currentQuestionIndex + 1} of ${category.questions.length}`
-                  : `คำถามที่ ${currentQuestionIndex + 1} จาก ${category.questions.length}`}
-              </span>
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                {Math.round(progress)}% {locale === "en" ? "Complete" : "เสร็จสิ้น"}
-              </span>
-            </div>
-            <Progress value={progress} className="h-3 bg-gray-200 dark:bg-gray-700" />
+        {/* Question Card */}
+        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl mb-6">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-800">{currentQuestion.question}</CardTitle>
+            {currentQuestion.description && <p className="text-gray-600 text-sm mt-2">{currentQuestion.description}</p>}
+          </CardHeader>
+          <CardContent>
+            <QuestionCard
+              question={currentQuestion}
+              value={getCurrentAnswer()?.value}
+              onChange={(value, score) => handleAnswerChange(currentQuestion.id, value, score)}
+            />
           </CardContent>
         </Card>
 
-        {/* Question */}
-        <QuestionCard
-          key={currentQuestion.id}
-          question={currentQuestion}
-          answer={getCurrentAnswer()}
-          onAnswer={handleAnswer}
-        />
+        {/* Error Alert */}
+        {error && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4 text-red-500" />
+            <AlertDescription className="text-red-700">{error}</AlertDescription>
+          </Alert>
+        )}
 
         {/* Navigation */}
-        <Card className="mt-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center gap-4">
-              <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentQuestionIndex === 0 || isSubmitting}
-                className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-transparent"
-              >
-                <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">{t("common.previous")}</span>
-                <span className="sm:hidden">{locale === "en" ? "Prev" : "ก่อน"}</span>
-              </Button>
+        <div className="flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={isFirstQuestion || isSubmitting}
+            className="flex items-center gap-2 bg-transparent"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t("common.previous")}
+          </Button>
 
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed() || isSubmitting}
-                className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm sm:text-base"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span className="hidden sm:inline">{locale === "en" ? "Saving..." : "กำลังบันทึก..."}</span>
-                    <span className="sm:hidden">{locale === "en" ? "Saving..." : "บันทึก..."}</span>
-                  </>
-                ) : isLastQuestion ? (
-                  <>
-                    <span className="hidden sm:inline">{submitButtonText.full}</span>
-                    <span className="sm:hidden">{submitButtonText.short}</span>
-                    <CheckCircle className="ml-1 sm:ml-2 h-4 w-4" />
-                  </>
-                ) : (
-                  <>
-                    <span className="hidden sm:inline">{t("common.next")}</span>
-                    <span className="sm:hidden">{t("common.next")}</span>
-                    <ArrowRight className="ml-1 sm:ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          {isLastQuestion ? (
+            <Button
+              onClick={handleSubmit}
+              disabled={!isCurrentQuestionAnswered() || isSubmitting}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t("common.submitting")}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4" />
+                  {t("common.submit")}
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button onClick={handleNext} disabled={!isCurrentQuestionAnswered()} className="flex items-center gap-2">
+              {t("common.next")}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
+        {/* Guest Notice */}
+        {isGuest && (
+          <Alert className="mt-6 border-yellow-200 bg-yellow-50">
+            <AlertCircle className="h-4 w-4 text-yellow-500" />
+            <AlertDescription className="text-yellow-700">{t("common.guest_assessment_intro")}</AlertDescription>
+          </Alert>
+        )}
       </div>
     </div>
   )
