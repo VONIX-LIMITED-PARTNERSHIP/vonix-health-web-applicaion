@@ -10,5 +10,5 @@ UPDATE assessments
 SET language = 'th' 
 WHERE language IS NULL;
 
--- Add comment to explain the column
-COMMENT ON COLUMN assessments.language IS 'Language used for the assessment (th, en, etc.)';
+-- Add comment to the column
+COMMENT ON COLUMN assessments.language IS 'Language used for the assessment (th, en)';
