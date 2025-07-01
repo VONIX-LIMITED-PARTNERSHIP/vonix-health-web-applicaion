@@ -92,6 +92,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
       setIsSubmitting(true)
       console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
+      console.log("🌐 AssessmentForm: ภาษาปัจจุบัน:", locale)
 
       try {
         let aiAnalysis = null
