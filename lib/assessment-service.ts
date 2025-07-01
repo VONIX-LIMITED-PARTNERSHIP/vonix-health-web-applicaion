@@ -6,21 +6,6 @@ import type { Database } from "@/types/database"
 type AssessmentRow = Database["public"]["Tables"]["assessments"]["Row"]
 type AssessmentInsert = Database["public"]["Tables"]["assessments"]["Insert"]
 
-interface BilingualAnalysis {
-  th: {
-    riskLevel: string
-    riskFactors: string[]
-    recommendations: string[]
-    summary: string
-  }
-  en: {
-    riskLevel: string
-    riskFactors: string[]
-    recommendations: string[]
-    summary: string
-  }
-}
-
 export class AssessmentService {
   private static activeRequests = new Map<string, AbortController>()
 
@@ -32,15 +17,24 @@ export class AssessmentService {
     return assessmentCategories.find((cat) => cat.id === categoryId)
   }
 
-  /**
-   * Analyze assessment with AI (bilingual)
-   */
   static async analyzeWithAI(
     categoryId: string,
     answers: AssessmentAnswer[],
-  ): Promise<{ data: BilingualAnalysis | null; error: Error | null }> {
+    language: "th" | "en" = "th",
+  ): Promise<{ data: any; error: any }> {
     try {
-      console.log("🚀 AssessmentService: Starting AI analysis...")
+      const category = AssessmentService.getCategory(categoryId)
+      if (!category) {
+        throw new Error("Category not found")
+      }
+
+      const enrichedAnswers = answers.map((answer) => {
+        const question = category.questions.find((q) => q.id === answer.questionId)
+        return {
+          ...answer,
+          question: question?.question || (language === "th" ? "ไม่ระบุคำถาม" : "No question specified"),
+        }
+      })
 
       const response = await fetch("/api/assessment/analyze", {
         method: "POST",
@@ -49,145 +43,130 @@ export class AssessmentService {
         },
         body: JSON.stringify({
           categoryId,
-          answers,
+          categoryTitle: language === "th" ? category.title : category.titleEn || category.title,
+          answers: enrichedAnswers,
+          language,
         }),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || `HTTP ${response.status}`)
+        throw new Error(errorData.error || "Failed to analyze assessment")
       }
 
       const result = await response.json()
-
-      if (!result.success) {
-        throw new Error(result.error || "Analysis failed")
-      }
-
-      console.log("✅ AssessmentService: AI analysis completed")
-      return { data: result.data, error: null }
+      return { data: result.analysis, error: null }
     } catch (error) {
-      console.error("❌ AssessmentService: AI analysis failed:", error)
-      return {
-        data: null,
-        error: error instanceof Error ? error : new Error("Unknown error"),
-      }
+      return { data: null, error }
     }
   }
 
-  /**
-   * Save assessment to database with bilingual results
-   */
   static async saveAssessment(
-    supabase: SupabaseClient<Database>,
+    supabaseClient: SupabaseClient<Database>,
     userId: string,
     categoryId: string,
     categoryTitle: string,
     answers: AssessmentAnswer[],
-    bilingualAnalysis: BilingualAnalysis | null,
-  ): Promise<{ data: AssessmentRow | null; error: string | null }> {
+    language: "th" | "en" = "th",
+    aiAnalysis?: any,
+  ): Promise<{ data: AssessmentRow | null; error: any }> {
+    console.log("💾 AssessmentService: Starting save assessment process...")
+
     try {
-      console.log("💾 AssessmentService: Saving assessment...")
-
-      // Calculate basic risk level if no AI analysis
-      let riskLevel = "low"
-      if (!bilingualAnalysis) {
-        const totalScore = answers.reduce((sum, answer) => sum + (answer.score || 0), 0)
-        const maxScore = answers.length * 5 // Assuming max score per question is 5
-        const percentage = (totalScore / maxScore) * 100
-
-        if (percentage >= 75) riskLevel = "critical"
-        else if (percentage >= 50) riskLevel = "high"
-        else if (percentage >= 25) riskLevel = "moderate"
-        else riskLevel = "low"
-      } else {
-        riskLevel = bilingualAnalysis.th.riskLevel
+      if (!userId) {
+        throw new Error("User not authenticated")
       }
 
-      // Prepare assessment data
+      if (!Array.isArray(answers) || answers.length === 0) {
+        throw new Error("Invalid answers array")
+      }
+
+      if (!supabaseClient) {
+        throw new Error("Database connection not available")
+      }
+
+      // คำนวณผลลัพธ์
+      let result: AssessmentResult
+      if (categoryId === "basic") {
+        result = this.calculateBasicAssessmentResult(answers, language)
+      } else if (aiAnalysis) {
+        result = {
+          categoryId,
+          totalScore: aiAnalysis.score,
+          maxScore: 100,
+          percentage: aiAnalysis.score,
+          riskLevel: aiAnalysis.riskLevel,
+          riskFactors: aiAnalysis.riskFactors || [],
+          recommendations: aiAnalysis.recommendations || [],
+        }
+      } else {
+        throw new Error("AI analysis required for non-basic assessments")
+      }
+
+      // Get category info for bilingual title
+      const category = this.getCategory(categoryId)
+      const categoryTitleEn = category?.titleEn || categoryTitle
+
+      // เตรียมข้อมูลสำหรับบันทึก
       const assessmentData: AssessmentInsert = {
         user_id: userId,
         category_id: categoryId,
         category_title: categoryTitle,
-        answers: answers as any,
-        risk_level: riskLevel,
-        risk_factors: bilingualAnalysis?.th.riskFactors || [],
-        recommendations: bilingualAnalysis?.th.recommendations || [],
-        summary: bilingualAnalysis?.th.summary || null,
-        summary_en: bilingualAnalysis?.en.summary || null,
-        risk_factors_en: bilingualAnalysis?.en.riskFactors || null,
-        recommendations_en: bilingualAnalysis?.en.recommendations || null,
-        language: "th", // Default language
+        category_title_en: categoryTitleEn,
+        answers: answers,
+        total_score: Math.round(result.totalScore),
+        max_score: Math.round(result.maxScore),
+        percentage: Math.round(result.percentage),
+        risk_level: result.riskLevel,
+        language: language,
+        completed_at: new Date().toISOString(),
+
+        // Thai language fields
+        risk_factors: aiAnalysis?.riskFactors || result.riskFactors || [],
+        recommendations: aiAnalysis?.recommendations || result.recommendations || [],
+        summary: aiAnalysis?.summary || null,
+
+        // English language fields
+        risk_factors_en: aiAnalysis?.riskFactorsEn || [],
+        recommendations_en: aiAnalysis?.recommendationsEn || [],
+        summary_en: aiAnalysis?.summaryEn || null,
       }
 
-      // Insert into database
-      const { data, error } = await supabase.from("assessments").insert(assessmentData).select().single()
+      console.log("💾 AssessmentService: Inserting assessment data to Supabase...")
+      const { data: insertedData, error } = await supabaseClient
+        .from("assessments")
+        .insert(assessmentData)
+        .select()
+        .single()
 
       if (error) {
-        console.error("❌ AssessmentService: Database save failed:", error)
-        throw error
+        console.error("❌ AssessmentService: Supabase insert error:", error)
+        throw new Error(`Database error: ${error.message}`)
       }
 
-      console.log("✅ AssessmentService: Assessment saved successfully")
-      return { data, error: null }
+      if (!insertedData) {
+        throw new Error("No data returned from insert operation")
+      }
+
+      console.log("✅ AssessmentService: Assessment saved successfully with ID:", insertedData.id)
+
+      return { data: insertedData, error: null }
     } catch (error) {
       console.error("❌ AssessmentService: Save assessment failed:", error)
-      return {
-        data: null,
-        error: error instanceof Error ? error.message : "Failed to save assessment",
-      }
-    }
-  }
+      let errorMessage = language === "th" ? "เกิดข้อผิดพลาดในการบันทึก" : "Failed to save assessment"
 
-  /**
-   * Get assessment by ID
-   */
-  static async getAssessment(
-    supabase: SupabaseClient<Database>,
-    assessmentId: string,
-  ): Promise<{ data: AssessmentRow | null; error: string | null }> {
-    try {
-      const { data, error } = await supabase.from("assessments").select("*").eq("id", assessmentId).single()
-
-      if (error) {
-        throw error
+      if (error instanceof Error) {
+        if (error.message.includes("network") || error.message.includes("fetch")) {
+          errorMessage =
+            language === "th" ? "ปัญหาการเชื่อมต่อ กรุณาตรวจสอบอินเทอร์เน็ต" : "Connection problem, please check your internet"
+        } else if (error.message.includes("authentication") || error.message.includes("unauthorized")) {
+          errorMessage = language === "th" ? "กรุณาเข้าสู่ระบบใหม่" : "Please login again"
+        } else {
+          errorMessage = error.message
+        }
       }
 
-      return { data, error: null }
-    } catch (error) {
-      console.error("❌ AssessmentService: Get assessment failed:", error)
-      return {
-        data: null,
-        error: error instanceof Error ? error.message : "Failed to get assessment",
-      }
-    }
-  }
-
-  /**
-   * Get user assessments
-   */
-  static async getUserAssessments(
-    supabase: SupabaseClient<Database>,
-    userId: string,
-  ): Promise<{ data: AssessmentRow[] | null; error: string | null }> {
-    try {
-      const { data, error } = await supabase
-        .from("assessments")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        throw error
-      }
-
-      return { data, error: null }
-    } catch (error) {
-      console.error("❌ AssessmentService: Get user assessments failed:", error)
-      return {
-        data: null,
-        error: error instanceof Error ? error.message : "Failed to get assessments",
-      }
+      return { data: null, error: errorMessage }
     }
   }
 
@@ -195,7 +174,7 @@ export class AssessmentService {
     supabaseClient: SupabaseClient<Database>,
     userId: string,
     categoryId: string,
-  ): Promise<{ data: AssessmentRow | null; error: string | null }> {
+  ): Promise<{ data: AssessmentRow | null; error: any }> {
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
@@ -226,17 +205,14 @@ export class AssessmentService {
       return { data, error: null }
     } catch (error) {
       console.error("❌ AssessmentService: Get latest assessment failed:", error)
-      return {
-        data: null,
-        error: error instanceof Error ? error.message : "Failed to retrieve latest assessment",
-      }
+      return { data: null, error: (error as Error).message || "Failed to retrieve latest assessment" }
     }
   }
 
   static async getAssessmentById(
     supabaseClient: SupabaseClient<Database>,
     assessmentId: string,
-  ): Promise<{ data: AssessmentRow | null; error: string | null }> {
+  ): Promise<{ data: AssessmentRow | null; error: any }> {
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
@@ -255,17 +231,14 @@ export class AssessmentService {
       return { data, error: null }
     } catch (error) {
       console.error("❌ AssessmentService: Get assessment by ID failed:", error)
-      return {
-        data: null,
-        error: error instanceof Error ? error.message : "Failed to retrieve assessment",
-      }
+      return { data: null, error: (error as Error).message || "Failed to retrieve assessment" }
     }
   }
 
   static async getUserAssessments(
     supabaseClient: SupabaseClient<Database>,
     userId: string,
-  ): Promise<{ data: AssessmentRow[] | null; error: string | null }> {
+  ): Promise<{ data: AssessmentRow[]; error: any }> {
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
@@ -288,7 +261,7 @@ export class AssessmentService {
   static async getLatestUserAssessments(
     supabaseClient: SupabaseClient<Database>,
     userId: string,
-  ): Promise<{ data: AssessmentRow[] | null; error: string | null }> {
+  ): Promise<{ data: AssessmentRow[]; error: any }> {
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
@@ -321,7 +294,10 @@ export class AssessmentService {
     }
   }
 
-  private static calculateBasicAssessmentResult(answers: AssessmentAnswer[], language = "th"): AssessmentResult {
+  private static calculateBasicAssessmentResult(
+    answers: AssessmentAnswer[],
+    language: "th" | "en" = "th",
+  ): AssessmentResult {
     const category = AssessmentService.getCategory("basic")
     if (!category) throw new Error("Basic category not found")
 
@@ -352,12 +328,12 @@ export class AssessmentService {
           const bmi = weight / (height * height)
 
           if (bmi < 18.5) {
-            riskFactors.push(language === "en" ? "Underweight" : "น้ำหนักต่ำกว่าเกณฑ์")
-            recommendations.push(language === "en" ? "Should gain weight to normal range" : "ควรเพิ่มน้ำหนักให้อยู่ในเกณฑ์ปกติ")
+            riskFactors.push(language === "th" ? "น้ำหนักต่ำกว่าเกณฑ์" : "Underweight")
+            recommendations.push(language === "th" ? "ควรเพิ่มน้ำหนักให้อยู่ในเกณฑ์ปกติ" : "Should gain weight to normal range")
           } else if (bmi >= 25) {
-            riskFactors.push(language === "en" ? "Overweight or obesity" : "น้ำหนักเกินหรือโรคอ้วน")
+            riskFactors.push(language === "th" ? "น้ำหนักเกินหรือโรคอ้วน" : "Overweight or obesity")
             recommendations.push(
-              language === "en" ? "Should lose weight and exercise regularly" : "ควรลดน้ำหนักและออกกำลังกายสม่ำเสมอ",
+              language === "th" ? "ควรลดน้ำหนักและออกกำลังกายสม่ำเสมอ" : "Should lose weight and exercise regularly",
             )
           }
         }
@@ -366,14 +342,15 @@ export class AssessmentService {
       if (question.id === "basic-6" && Array.isArray(answer.answer)) {
         const diseases = answer.answer as string[]
         diseases.forEach((disease) => {
-          if (disease !== (language === "en" ? "No chronic diseases" : "ไม่มีโรคประจำตัว")) {
+          const noDiseaseText = language === "th" ? "ไม่มีโรคประจำตัว" : "No chronic diseases"
+          if (disease !== noDiseaseText) {
             riskFactors.push(disease)
-            if (disease.includes("diabetes") || disease.includes("เบาหวาน")) {
+            if (disease === "เบาหวาน" || disease === "Diabetes") {
               recommendations.push(
-                language === "en" ? "Monitor blood sugar levels regularly" : "ควบคุมระดับน้ำตาลในเลือดอย่างสม่ำเสมอ",
+                language === "th" ? "ควบคุมระดับน้ำตาลในเลือดอย่างสม่ำเสมอ" : "Monitor blood sugar levels regularly",
               )
-            } else if (disease.includes("hypertension") || disease.includes("ความดันโลหิตสูง")) {
-              recommendations.push(language === "en" ? "Monitor blood pressure regularly" : "ตรวจวัดความดันโลหิตเป็นประจำ")
+            } else if (disease === "ความดันโลหิตสูง" || disease === "Hypertension") {
+              recommendations.push(language === "th" ? "ตรวจวัดความดันโลหิตเป็นประจำ" : "Monitor blood pressure regularly")
             }
           }
         })
@@ -382,8 +359,9 @@ export class AssessmentService {
       if (question.id === "basic-7" && Array.isArray(answer.answer)) {
         const allergies = answer.answer as string[]
         allergies.forEach((allergy) => {
-          if (allergy !== (language === "en" ? "No allergies" : "ไม่มีการแพ้")) {
-            riskFactors.push(language === "en" ? `Allergic to: ${allergy}` : `แพ้: ${allergy}`)
+          const noAllergyText = language === "th" ? "ไม่มีการแพ้" : "No allergies"
+          if (allergy !== noAllergyText) {
+            riskFactors.push(language === "th" ? `แพ้: ${allergy}` : `Allergic to: ${allergy}`)
           }
         })
       }
@@ -391,28 +369,28 @@ export class AssessmentService {
 
     if (riskFactors.length === 0) {
       recommendations.push(
-        language === "en" ? "Your basic health data is within normal limits" : "ข้อมูลสุขภาพพื้นฐานของคุณอยู่ในเกณฑ์ปกติ",
+        language === "th" ? "ข้อมูลสุขภาพพื้นฐานของคุณอยู่ในเกณฑ์ปกติ" : "Your basic health information is within normal range",
       )
       recommendations.push(
-        language === "en" ? "Should have annual health checkups to monitor health" : "ควรตรวจสุขภาพประจำปีเพื่อติดตามสุขภาพ",
+        language === "th" ? "ควรตรวจสุขภาพประจำปีเพื่อติดตามสุขภาพ" : "Should have annual health checkups to monitor health",
       )
     } else {
       recommendations.push(
-        language === "en" ? "Should consult a doctor for personalized advice" : "ควรปรึกษาแพทย์เพื่อรับคำแนะนำเฉพาะบุคคล",
+        language === "th" ? "ควรปรึกษาแพทย์เพื่อรับคำแนะนำเฉพาะบุคคล" : "Should consult a doctor for personalized advice",
       )
       recommendations.push(
-        language === "en"
-          ? "Bring this information to show your doctor during treatment"
-          : "นำข้อมูลนี้ไปแสดงแพทย์เมื่อไปรับการรักษา",
+        language === "th"
+          ? "นำข้อมูลนี้ไปแสดงแพทย์เมื่อไปรับการรักษา"
+          : "Show this information to your doctor during medical visits",
       )
     }
 
     return {
       categoryId: "basic",
-      totalScore: 0,
-      maxScore: 0,
-      percentage: 0,
-      riskLevel: "",
+      totalScore,
+      maxScore,
+      percentage,
+      riskLevel,
       riskFactors,
       recommendations,
     }

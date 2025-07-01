@@ -29,36 +29,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const category = assessmentCategories.find((cat) => cat.id === categoryId)
 
   if (!category) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold mb-2">ไม่พบแบบประเมิน</h2>
-            <p className="text-gray-600 mb-4">ไม่พบแบบประเมินที่ระบุ</p>
-            <Button onClick={() => router.push("/")} variant="outline">
-              กลับหน้าหลัก
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // Check if questions exist
-  if (!category.questions || category.questions.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold mb-2">ไม่มีคำถาม</h2>
-            <p className="text-gray-600 mb-4">แบบประเมินนี้ยังไม่มีคำถาม</p>
-            <Button onClick={() => router.push("/")} variant="outline">
-              กลับหน้าหลัก
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    return <div>ไม่พบแบบประเมินที่ระบุ</div>
   }
 
   const currentQuestion = category.questions[currentQuestionIndex]
@@ -117,44 +88,44 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
 
       try {
-        // วิเคราะห์ด้วย AI หากไม่ใช่ basic category (ทั้งสองภาษา)
-        let bilingualAnalysis = null
+        // วิเคราะห์ด้วย AI หากไม่ใช่ basic category
+        let aiAnalysis = null
         if (categoryId !== "basic") {
-          console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI (ทั้งสองภาษา)...")
+          console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
           const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, finalAnswersToSave)
           if (aiError) {
             console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
           } else {
-            bilingualAnalysis = aiData
-            console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น (ทั้งสองภาษา)")
+            aiAnalysis = aiData
+            console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
           }
         }
 
         // บันทึกลง Supabase
         console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
         const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
-          supabase,
+          supabase, // NEW first argument
           user.id,
           categoryId,
           category.title,
           finalAnswersToSave,
-          bilingualAnalysis,
+          aiAnalysis,
         )
 
         if (saveError) {
           throw new Error(saveError)
         }
 
-        console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData?.id)
+        console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
 
-        // สำหรับแบบประเมิน basic ให้กลับหน้า home พร้อมเปิด popup ภาพรวมสุขภาพ
+        // สำหรับแบบประเมิน basic ให้กลับหน้า home พร้อมเปิด popup ภาพรวมสุขภาพไปยังข้อมูลส่วนตัวโดยตรง
         // สำหรับแบบประเมินอื่นๆ ให้ไปหน้าผลลัพธ์
         if (categoryId === "basic") {
-          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup")
-          router.push(`/?openHealthOverview=basic&assessmentId=${savedData?.id}`)
+          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
+          router.push(`/?openHealthOverview=basic&assessmentId=${savedData.id}`)
         } else {
-          console.log("📊 AssessmentForm: ไปหน้าผลการประเมิน")
-          router.push(`/assessment/${categoryId}/results?id=${savedData?.id}`)
+          console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
+          router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
         }
       } catch (error) {
         console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
@@ -254,7 +225,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={currentQuestionIndex === 0 || isSubmitting}
-                className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-transparent"
+                className="px-4 sm:px-6 py-2 text-sm sm:text-base"
               >
                 <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">ก่อนหน้า</span>

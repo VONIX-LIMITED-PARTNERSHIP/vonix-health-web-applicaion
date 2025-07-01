@@ -1,5 +1,3 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
-
 export interface Database {
   public: {
     Tables: {
@@ -13,14 +11,6 @@ export interface Database {
           phone: string | null
           date_of_birth: string | null
           gender: "male" | "female" | "other" | null
-          height: number | null
-          weight: number | null
-          medical_conditions: string[] | null
-          medications: string[] | null
-          allergies: string[] | null
-          emergency_contact_name: string | null
-          emergency_contact_phone: string | null
-          preferred_language: string | null
           created_at: string
           updated_at: string
           pdpa_consent: boolean
@@ -35,18 +25,8 @@ export interface Database {
           phone?: string | null
           date_of_birth?: string | null
           gender?: "male" | "female" | "other" | null
-          height?: number | null
-          weight?: number | null
-          medical_conditions?: string[] | null
-          medications?: string[] | null
-          allergies?: string[] | null
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
-          preferred_language?: string | null
           pdpa_consent?: boolean
           pdpa_consent_date?: string | null
-          created_at?: string
-          updated_at?: string
         }
         Update: {
           id?: string
@@ -57,18 +37,8 @@ export interface Database {
           phone?: string | null
           date_of_birth?: string | null
           gender?: "male" | "female" | "other" | null
-          height?: number | null
-          weight?: number | null
-          medical_conditions?: string[] | null
-          medications?: string[] | null
-          allergies?: string[] | null
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
-          preferred_language?: string | null
           pdpa_consent?: boolean
           pdpa_consent_date?: string | null
-          created_at?: string
-          updated_at?: string
         }
       }
       assessments: {
@@ -77,18 +47,20 @@ export interface Database {
           user_id: string
           category_id: string
           category_title: string
-          answers: Json
+          category_title_en: string | null
+          answers: any
           total_score: number
           max_score: number
           percentage: number
-          risk_level: string
+          risk_level: "low" | "medium" | "high" | "very-high"
           risk_factors: string[]
           recommendations: string[]
           summary: string | null
+          risk_factors_en: string[]
+          recommendations_en: string[]
           summary_en: string | null
-          risk_factors_en: string[] | null
-          recommendations_en: string[] | null
-          language: string | null
+          language: "th" | "en"
+          completed_at: string
           created_at: string
           updated_at: string
         }
@@ -97,34 +69,34 @@ export interface Database {
           user_id: string
           category_id: string
           category_title: string
-          answers: Json
-          risk_level: string
-          risk_factors: string[]
-          recommendations: string[]
-          summary?: string | null
-          summary_en?: string | null
-          risk_factors_en?: string[] | null
-          recommendations_en?: string[] | null
-          language?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          category_id?: string
-          category_title?: string
-          answers?: Json
-          risk_level?: string
+          category_title_en?: string | null
+          answers: any
+          total_score: number
+          max_score: number
+          percentage: number
+          risk_level: "low" | "medium" | "high" | "very-high"
           risk_factors?: string[]
           recommendations?: string[]
           summary?: string | null
+          risk_factors_en?: string[]
+          recommendations_en?: string[]
           summary_en?: string | null
-          risk_factors_en?: string[] | null
-          recommendations_en?: string[] | null
-          language?: string | null
-          created_at?: string
-          updated_at?: string
+          language?: "th" | "en"
+          completed_at?: string
+        }
+        Update: {
+          answers?: any
+          total_score?: number
+          max_score?: number
+          percentage?: number
+          risk_level?: "low" | "medium" | "high" | "very-high"
+          risk_factors?: string[]
+          recommendations?: string[]
+          summary?: string | null
+          risk_factors_en?: string[]
+          recommendations_en?: string[]
+          summary_en?: string | null
+          language?: "th" | "en"
         }
       }
       doctor_profiles: {
@@ -235,9 +207,6 @@ export interface Database {
       risk_level: "low" | "medium" | "high" | "very-high"
       consultation_status: "pending" | "confirmed" | "completed" | "cancelled"
       consultation_type: "video" | "chat" | "phone"
-    }
-    CompositeTypes: {
-      [_ in never]: never
     }
   }
 }
