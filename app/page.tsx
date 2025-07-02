@@ -194,11 +194,11 @@ export default function HomePage() {
     const assessmentCategories = [
       {
         id: "basic",
-        title: "ข้อมูลส่วนตัว",
-        description: "ข้อมูลสำคัญที่แพทย์ต้องการเพื่อการวินิจฉัยและรักษา",
+        title: t("assessment_categories.basic.title"),
+        description: t("assessment_categories.basic.description"),
         icon: User,
         required: true,
-        status: "กรอกข้อมูล",
+        status: t("fill_information"),
         progress: 0,
         gradient: "from-blue-500 to-cyan-500",
         bgGradient: "from-blue-50 to-cyan-50",
@@ -206,11 +206,11 @@ export default function HomePage() {
       },
       {
         id: "heart",
-        title: "ประเมินหัวใจและหลอดเลือด",
-        description: "ตรวจสอบความเสี่ยงหัวใจ ความดันโลหิต และสุขภาพหลอดเลือด",
+        title: t("assessment_categories.heart.title"),
+        description: t("assessment_categories.heart.description"),
         icon: Heart,
         required: true,
-        status: "เริ่มประเมิน",
+        status: t("start_assessment"),
         progress: 0,
         gradient: "from-red-500 to-pink-500",
         bgGradient: "from-red-50 to-pink-50",
@@ -218,11 +218,11 @@ export default function HomePage() {
       },
       {
         id: "nutrition",
-        title: "ประเมินไลฟ์สไตล์และโภชนาการ",
-        description: "ตรวจสอบพฤติกรรมการกิน การออกกำลังกาย และการดูแลสุขภาพ",
+        title: t("assessment_categories.nutrition.title"),
+        description: t("assessment_categories.nutrition.description"),
         icon: Apple,
         required: true,
-        status: "เริ่มประเมิน",
+        status: t("start_assessment"),
         progress: 0,
         gradient: "from-green-500 to-emerald-500",
         bgGradient: "from-green-50 to-green-50",
@@ -230,11 +230,11 @@ export default function HomePage() {
       },
       {
         id: "mental",
-        title: "ประเมินสุขภาพจิต",
-        description: "การตรวจสุขภาพจิต ความเครียด และสุขภาพทางอารมณ์",
+        title: t("assessment_categories.mental.title"),
+        description: t("assessment_categories.mental.description"),
         icon: Brain,
         required: false,
-        status: "ยังไม่ได้ทำการประเมิน",
+        status: t("not_assessed_yet"),
         progress: 0,
         gradient: "from-purple-500 to-violet-500",
         bgGradient: "from-purple-50 to-purple-50",
@@ -242,11 +242,11 @@ export default function HomePage() {
       },
       {
         id: "physical",
-        title: "ประเมินสุขภาพกาย",
-        description: "ตรวจสอบสุขภาพกาย ความแข็งแรง และความสามารถทางกาย",
+        title: t("assessment_categories.physical.title"),
+        description: t("assessment_categories.physical.description"),
         icon: Dumbbell,
         required: false,
-        status: "ยังไม่ได้ทำการประเมิน",
+        status: t("not_assessed_yet"),
         progress: 0,
         gradient: "from-orange-500 to-amber-500",
         bgGradient: "from-orange-50 to-orange-50",
@@ -254,11 +254,11 @@ export default function HomePage() {
       },
       {
         id: "sleep",
-        title: "ประเมินคุณภาพการนอน",
-        description: "วิเคราะห์รูปแบบการนอนและคุณภาพการพักผ่อน",
+        title: t("assessment_categories.sleep.title"),
+        description: t("assessment_categories.sleep.description"),
         icon: MoonIcon,
         required: false,
-        status: "ยังไม่ได้ทำการประเมิน",
+        status: t("not_assessed_yet"),
         progress: 0,
         gradient: "from-indigo-500 to-blue-500",
         bgGradient: "from-indigo-50 to-indigo-50",
@@ -272,7 +272,7 @@ export default function HomePage() {
       if (userAssessment) {
         return {
           ...category,
-          status: "เสร็จสิ้น",
+          status: t("completed"),
           progress: 100,
           lastCompleted: new Date(userAssessment.completed_at).toLocaleDateString("th-TH"),
           riskLevel: userAssessment.risk_level,
@@ -370,17 +370,17 @@ export default function HomePage() {
                 <span className="sm:hidden">{t("start_health_assessment")}</span>
               </Button>
               <Button
-                  size="lg"
-                  variant="outline"
-                  className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto
+                size="lg"
+                variant="outline"
+                className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto
                     border-2 border-gray-300 hover:border-blue-400
                     bg-white/80 dark:bg-gray-800/80
                     text-gray-700 dark:text-white
                     backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700
                     font-semibold rounded-2xl shadow-lg hover:shadow-xl
                     transition-all duration-300"
-                  onClick={handleConsultDoctor}
-                >
+                onClick={handleConsultDoctor}
+              >
                 <Stethoscope className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
                 <span className="hidden sm:inline">{t("consult_doctor_online")}</span>
                 <span className="sm:hidden">{t("consult_doctor")}</span>
@@ -482,7 +482,9 @@ export default function HomePage() {
                             >
                               {loadingStats ? "..." : getHealthLevel(dashboardStats.overallScore)}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("overall_health_score")}</div>
+                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                              {t("overall_health_score")}
+                            </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                               <Clock className="w-3 h-3 mr-1" />
                               {dashboardStats.completedAssessments > 0 ? t("updated_at") : t("no_data")}
@@ -496,7 +498,9 @@ export default function HomePage() {
                             <div className="text-3xl font-bold text-orange-600 mb-1">
                               {loadingStats ? "..." : dashboardStats.riskFactors}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("risk_factors")}</div>
+                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                              {t("risk_factors")}
+                            </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                               <TrendingUp className="w-3 h-3 mr-1" />
                               {t("identified")}
@@ -510,7 +514,9 @@ export default function HomePage() {
                             <div className="text-3xl font-bold text-green-600 mb-1">
                               {loadingStats ? "..." : `${dashboardStats.completedAssessments}/6`}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("assessments")}</div>
+                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                              {t("assessments")}
+                            </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                               <Award className="w-3 h-3 mr-1" />
                               {t("completed")}
@@ -528,7 +534,9 @@ export default function HomePage() {
                                   ? t("report_ready")
                                   : t("report_not_ready")}
                             </div>
-                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("health_report")}</div>
+                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                              {t("health_report")}
+                            </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center mb-1">
                               <FileText className="w-3 h-3 mr-1" />
                               {dashboardStats.reportReady ? t("can_generate_report") : t("can_generate_report")}
@@ -594,12 +602,12 @@ export default function HomePage() {
                                       category.riskLevel === "low"
                                         ? "text-green-600 dark:text-green-400"
                                         : category.riskLevel === "medium"
-                                        ? "text-yellow-600 dark:text-yellow-400"
-                                        : category.riskLevel === "high"
-                                        ? "text-orange-600 dark:text-orange-400"
-                                        : category.riskLevel === "very-high"
-                                        ? "text-red-600 dark:text-red-400"
-                                        : "text-gray-600 dark:text-gray-300"
+                                          ? "text-yellow-600 dark:text-yellow-400"
+                                          : category.riskLevel === "high"
+                                            ? "text-orange-600 dark:text-orange-400"
+                                            : category.riskLevel === "very-high"
+                                              ? "text-red-600 dark:text-red-400"
+                                              : "text-gray-600 dark:text-gray-300"
                                     }`}
                                   >
                                     ({getRiskLevelLabel(category.riskLevel)})
