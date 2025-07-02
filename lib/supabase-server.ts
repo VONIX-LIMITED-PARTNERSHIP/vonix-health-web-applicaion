@@ -1,5 +1,3 @@
-import { cookies } from "next/headers"
-import { createServerComponentClient, type SupabaseClient } from "@supabase/auth-helpers-nextjs"
 import { createClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/database"
 
@@ -19,12 +17,3 @@ export const supabaseAdmin = (() => {
     },
   })
 })()
-
-/**
- * Returns a Supabase client that is scoped to the current request’s cookies.
- * Use inside Server Components / Server Actions when you need the user’s session.
- */
-export function createServerClient(): SupabaseClient<Database> {
-  // The helper automatically reads NEXT_PUBLIC_SUPABASE_URL & NEXT_PUBLIC_ANON_KEY
-  return createServerComponentClient<Database>({ cookies })
-}

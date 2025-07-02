@@ -1,74 +1,46 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
+import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from "lucide-react"
 import { QuestionCard } from "./question-card"
-import { AssessmentResults } from "./assessment-results"
-import { Loader2, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import type { AssessmentCategory, AssessmentAnswer } from "@/data/assessment-questions"
-import type { Database } from "@/types/database"
+import { getAssessmentCategories } from "@/data/assessment-questions"
+import { AssessmentService } from "@/lib/assessment-service"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/contexts/language-context"
-
-type AssessmentRow = Database["public"]["Tables"]["assessments"]["Row"]
+import { useTranslation } from "@/hooks/use-translation"
+import type { AssessmentAnswer } from "@/types/assessment"
+import { createClientComponentClient } from "@/lib/supabase"
 
 interface AssessmentFormProps {
-  category: AssessmentCategory
-  isGuest?: boolean
+  categoryId: string
 }
 
-export function AssessmentForm({ category, isGuest = false }: AssessmentFormProps) {
+export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const router = useRouter()
   const { user } = useAuth()
   const { locale } = useLanguage()
-
+  const { t } = useTranslation()
+  const supabase = createClientComponentClient()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, AssessmentAnswer>>({})
+  const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isCompleted, setIsCompleted] = useState(false)
-  const [assessmentResult, setAssessmentResult] = useState<AssessmentRow | null>(null)
 
-  // --- early guard ---------------------------------------------------------
+  // Get assessment categories based on current language
+  const assessmentCategories = getAssessmentCategories(locale)
+  const category = assessmentCategories.find((cat) => cat.id === categoryId)
+
   if (!category) {
-    return <div className="text-center py-12">{locale === "en" ? "Assessment not found." : "ไม่พบแบบประเมิน"}</div>
-  }
-  // -------------------------------------------------------------------------
-
-  // Get localized content
-  const getLocalizedContent = () => {
-    const isEnglish = locale === "en"
-
-    return {
-      categoryTitle: isEnglish ? category.titleEn || category.title : category.title,
-      categoryDescription: isEnglish ? category.descriptionEn || category.description : category.description,
-
-      // UI Labels
-      questionLabel: isEnglish ? "Question" : "คำถาม",
-      ofLabel: isEnglish ? "of" : "จาก",
-      previousLabel: isEnglish ? "Previous" : "ก่อนหน้า",
-      nextLabel: isEnglish ? "Next" : "ถัดไป",
-      submitLabel: isEnglish ? "Submit Assessment" : "ส่งแบบประเมิน",
-      completedLabel: isEnglish ? "Assessment Completed!" : "ประเมินเสร็จสิ้น!",
-      backToHomeLabel: isEnglish ? "Back to Home" : "กลับหน้าหลัก",
-      backToDashboardLabel: isEnglish ? "Back to Dashboard" : "กลับแดชบอร์ด",
-      analyzingLabel: isEnglish ? "Analyzing your responses..." : "กำลังวิเคราะห์คำตอบของคุณ...",
-      pleaseAnswerLabel: isEnglish ? "Please answer this question to continue" : "กรุณาตอบคำถามนี้เพื่อดำเนินการต่อ",
-      submissionErrorLabel: isEnglish
-        ? "Failed to submit assessment. Please try again."
-        : "ไม่สามารถส่งแบบประเมินได้ กรุณาลองใหม่อีกครั้ง",
-      analysisErrorLabel: isEnglish
-        ? "Failed to analyze assessment. Please try again."
-        : "ไม่สามารถวิเคราะห์แบบประเมินได้ กรุณาลองใหม่อีกครั้ง",
-    }
+    return <div>{t("assessment.error_loading_answers")}</div>
   }
 
-  const localizedContent = getLocalizedContent()
   const currentQuestion = category.questions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / category.questions.length) * 100
+  const isLastQuestion = currentQuestionIndex === category.questions.length - 1
 
   const handleAnswer = (
     questionId: string,
@@ -76,29 +48,93 @@ export function AssessmentForm({ category, isGuest = false }: AssessmentFormProp
     score: number,
     isValid: boolean,
   ) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: {
-        questionId,
-        answer,
-        score,
-        isValid,
-      },
-    }))
+    setAnswers((prevAnswers) => {
+      const newAnswers = prevAnswers.filter((a) => a.questionId !== questionId)
+      newAnswers.push({ questionId, answer, score, isValid })
+      return newAnswers
+    })
+  }
+
+  const getCurrentAnswer = () => {
+    return answers.find((a) => a.questionId === currentQuestion.id)
   }
 
   const canProceed = () => {
-    const currentAnswer = answers[currentQuestion.id]
-    return currentAnswer && currentAnswer.isValid
+    const answerEntry = getCurrentAnswer()
+    if (currentQuestion.required) {
+      const hasAnswer = answerEntry?.answer !== null && answerEntry?.answer !== undefined
+      const isAnswerNotEmpty =
+        hasAnswer &&
+        (Array.isArray(answerEntry.answer) ? answerEntry.answer.length > 0 : String(answerEntry.answer).trim() !== "")
+
+      return answerEntry?.isValid === true && isAnswerNotEmpty
+    }
+    return true
   }
 
-  const handleNext = () => {
-    if (!canProceed()) {
-      toast.error(localizedContent.pleaseAnswerLabel)
-      return
+  const handleNext = async () => {
+    const currentAnswerForSubmission = getCurrentAnswer()
+    let finalAnswersToSave: AssessmentAnswer[] = []
+
+    if (currentAnswerForSubmission) {
+      finalAnswersToSave = answers.filter((a) => a.questionId !== currentQuestion.id)
+      finalAnswersToSave.push(currentAnswerForSubmission)
+    } else {
+      finalAnswersToSave = [...answers]
     }
 
-    if (currentQuestionIndex < category.questions.length - 1) {
+    if (isLastQuestion) {
+      if (!user?.id) {
+        alert(t("assessment.not_logged_in"))
+        return
+      }
+
+      setIsSubmitting(true)
+      console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
+
+      try {
+        let aiAnalysis = null
+        if (categoryId !== "basic") {
+          console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
+          const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, finalAnswersToSave)
+          if (aiError) {
+            console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
+          } else {
+            aiAnalysis = aiData
+            console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
+          }
+        }
+
+        console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
+        const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
+          supabase,
+          user.id,
+          categoryId,
+          category.title,
+          finalAnswersToSave,
+          aiAnalysis,
+        )
+
+        if (saveError) {
+          throw new Error(saveError)
+        }
+
+        console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
+
+        if (categoryId === "basic") {
+          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
+          router.push(`/?openHealthOverview=basic&assessmentId=${savedData.id}`)
+        } else {
+          console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
+          router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
+        }
+      } catch (error) {
+        console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
+        alert(t("assessment.save_failed").replace("{{message}}", String(error)))
+      } finally {
+        setIsSubmitting(false)
+      }
+    } else {
       setCurrentQuestionIndex((prev) => prev + 1)
     }
   }
@@ -109,248 +145,125 @@ export function AssessmentForm({ category, isGuest = false }: AssessmentFormProp
     }
   }
 
-  const calculateTotalScore = () => {
-    return Object.values(answers).reduce((total, answer) => total + answer.score, 0)
+  const handleBack = () => {
+    router.push("/")
   }
 
-  const calculateMaxScore = () => {
-    return category.questions.reduce((total, question) => {
-      if (question.type === "single" && question.options) {
-        return total + Math.max(...question.options.map((opt) => opt.score))
+  const getSubmitButtonText = () => {
+    if (categoryId === "basic") {
+      return {
+        full: locale === "en" ? "Save Data and View Overview" : "บันทึกข้อมูลและดูภาพรวม",
+        short: locale === "en" ? "Save" : "บันทึก",
       }
-      if (question.type === "multiple" && question.options) {
-        return total + question.options.reduce((sum, opt) => sum + opt.score, 0)
+    } else {
+      return {
+        full: t("common.view_results"),
+        short: locale === "en" ? "View Results" : "ดูผล",
       }
-      if (question.type === "scale") {
-        return total + (question.max || 10) - 1
-      }
-      return total + 5 // Default max score for other types
-    }, 0)
-  }
-
-  const getRiskLevel = (percentage: number): "low" | "medium" | "high" | "very-high" => {
-    if (percentage <= 25) return "low"
-    if (percentage <= 50) return "medium"
-    if (percentage <= 75) return "high"
-    return "very-high"
-  }
-
-  const handleSubmit = async () => {
-    if (!canProceed()) {
-      toast.error(localizedContent.pleaseAnswerLabel)
-      return
-    }
-
-    setIsSubmitting(true)
-
-    try {
-      const totalScore = calculateTotalScore()
-      const maxScore = calculateMaxScore()
-      const percentage = Math.round((totalScore / maxScore) * 100)
-      const riskLevel = getRiskLevel(percentage)
-
-      // Prepare answers array
-      const answersArray = Object.values(answers)
-
-      // Call AI analysis API
-      const analysisResponse = await fetch("/api/assessment/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          categoryId: category.id,
-          categoryTitle: localizedContent.categoryTitle,
-          answers: answersArray,
-          language: locale,
-        }),
-      })
-
-      if (!analysisResponse.ok) {
-        throw new Error("Failed to analyze assessment")
-      }
-
-      const analysisData = await analysisResponse.json()
-
-      if (!analysisData.success) {
-        throw new Error(analysisData.error || "Analysis failed")
-      }
-
-      const analysis = analysisData.analysis
-
-      // For guest users, just show results without saving
-      if (isGuest) {
-        const guestResult: AssessmentRow = {
-          id: "guest-" + Date.now(),
-          user_id: "guest",
-          category_id: category.id,
-          category_title: localizedContent.categoryTitle,
-          category_title_en: category.titleEn || null,
-          answers: answersArray as any,
-          total_score: totalScore,
-          max_score: maxScore,
-          percentage,
-          risk_level: riskLevel,
-          language: locale,
-          risk_factors: analysis.riskFactors,
-          recommendations: analysis.recommendations,
-          summary: analysis.summary,
-          risk_factors_en: analysis.riskFactorsEn,
-          recommendations_en: analysis.recommendationsEn,
-          summary_en: analysis.summaryEn,
-          completed_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }
-
-        setAssessmentResult(guestResult)
-        setIsCompleted(true)
-        return
-      }
-
-      // For logged-in users, save to database
-      if (!user) {
-        throw new Error("User not authenticated")
-      }
-
-      const saveResponse = await fetch("/api/assessment/save", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          categoryId: category.id,
-          categoryTitle: localizedContent.categoryTitle,
-          categoryTitleEn: category.titleEn,
-          answers: answersArray,
-          totalScore,
-          maxScore,
-          percentage,
-          riskLevel,
-          language: locale,
-
-          // Thai language results
-          riskFactors: analysis.riskFactors,
-          recommendations: analysis.recommendations,
-          summary: analysis.summary,
-
-          // English language results
-          riskFactorsEn: analysis.riskFactorsEn,
-          recommendationsEn: analysis.recommendationsEn,
-          summaryEn: analysis.summaryEn,
-        }),
-      })
-
-      if (!saveResponse.ok) {
-        throw new Error("Failed to save assessment")
-      }
-
-      const saveData = await saveResponse.json()
-
-      if (!saveData.success) {
-        throw new Error(saveData.error || "Save failed")
-      }
-
-      setAssessmentResult(saveData.data)
-      setIsCompleted(true)
-
-      toast.success(localizedContent.completedLabel)
-    } catch (error) {
-      console.error("Assessment submission error:", error)
-      toast.error(
-        error instanceof Error && error.message.includes("analyze")
-          ? localizedContent.analysisErrorLabel
-          : localizedContent.submissionErrorLabel,
-      )
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
-  if (isCompleted && assessmentResult) {
-    return (
-      <div className="space-y-6">
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3 text-green-700">
-              <CheckCircle className="h-8 w-8" />
-              <div>
-                <h2 className="text-xl font-semibold">{localizedContent.completedLabel}</h2>
-                <p className="text-sm text-green-600">
-                  {locale === "en"
-                    ? "Your health assessment has been completed and analyzed."
-                    : "การประเมินสุขภาพของคุณเสร็จสิ้นและได้รับการวิเคราะห์แล้ว"}
-                </p>
+  const submitButtonText = getSubmitButtonText()
+
+  return (
+    <div className="min-h-screen">
+      <div className="container mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Button variant="ghost" onClick={handleBack} className="mb-4 hover:bg-white/80">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t("common.back")}
+          </Button>
+
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80 dark:border-border">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl mb-2 dark:text-foreground">{category.title}</CardTitle>
+                  <p className="text-gray-600 dark:text-muted-foreground">{category.description}</p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  {category.required && <Badge className="bg-red-500 text-white">{t("common.required")}</Badge>}
+                  <div className="flex items-center text-gray-500 dark:text-gray-400">
+                    <Clock className="w-4 h-4 mr-1" />
+                    <span className="text-sm">
+                      {category.estimatedTime} {t("common.estimated_time")}
+                    </span>
+                  </div>
+                </div>
               </div>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Progress */}
+        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                {locale === "en"
+                  ? `Question ${currentQuestionIndex + 1} of ${category.questions.length}`
+                  : `คำถามที่ ${currentQuestionIndex + 1} จาก ${category.questions.length}`}
+              </span>
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                {Math.round(progress)}% {locale === "en" ? "Complete" : "เสร็จสิ้น"}
+              </span>
             </div>
+            <Progress value={progress} className="h-3 bg-gray-200 dark:bg-gray-700" />
           </CardContent>
         </Card>
 
-        <AssessmentResults assessment={assessmentResult} />
+        {/* Question */}
+        <QuestionCard
+          key={currentQuestion.id}
+          question={currentQuestion}
+          answer={getCurrentAnswer()}
+          onAnswer={handleAnswer}
+        />
 
-        <div className="flex justify-center">
-          <Button onClick={() => router.push(isGuest ? "/" : "/dashboard")} className="min-w-[200px]">
-            {isGuest ? localizedContent.backToHomeLabel : localizedContent.backToDashboardLabel}
-          </Button>
-        </div>
-      </div>
-    )
-  }
+        {/* Navigation */}
+        <Card className="mt-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentQuestionIndex === 0 || isSubmitting}
+                className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-transparent"
+              >
+                <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">{t("common.previous")}</span>
+                <span className="sm:hidden">{locale === "en" ? "Prev" : "ก่อน"}</span>
+              </Button>
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">{localizedContent.categoryTitle}</CardTitle>
-          <p className="text-muted-foreground">{localizedContent.categoryDescription}</p>
-        </CardHeader>
-      </Card>
-
-      {/* Progress */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>
-                {localizedContent.questionLabel} {currentQuestionIndex + 1} {localizedContent.ofLabel}{" "}
-                {category.questions.length}
-              </span>
-              <span>{Math.round(progress)}%</span>
+              <Button
+                onClick={handleNext}
+                disabled={!canProceed() || isSubmitting}
+                className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm sm:text-base"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span className="hidden sm:inline">{locale === "en" ? "Saving..." : "กำลังบันทึก..."}</span>
+                    <span className="sm:hidden">{locale === "en" ? "Saving..." : "บันทึก..."}</span>
+                  </>
+                ) : isLastQuestion ? (
+                  <>
+                    <span className="hidden sm:inline">{submitButtonText.full}</span>
+                    <span className="sm:hidden">{submitButtonText.short}</span>
+                    <CheckCircle className="ml-1 sm:ml-2 h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">{t("common.next")}</span>
+                    <span className="sm:hidden">{t("common.next")}</span>
+                    <ArrowRight className="ml-1 sm:ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
             </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Current Question */}
-      <QuestionCard question={currentQuestion} answer={answers[currentQuestion.id]} onAnswer={handleAnswer} />
-
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {localizedContent.previousLabel}
-        </Button>
-
-        {currentQuestionIndex === category.questions.length - 1 ? (
-          <Button onClick={handleSubmit} disabled={!canProceed() || isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {localizedContent.analyzingLabel}
-              </>
-            ) : (
-              localizedContent.submitLabel
-            )}
-          </Button>
-        ) : (
-          <Button onClick={handleNext} disabled={!canProceed()}>
-            {localizedContent.nextLabel}
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

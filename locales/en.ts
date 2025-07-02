@@ -368,7 +368,7 @@ const en: Dictionary = {
     chatbot_login_guide_step2: "2. Fill in information:",
     chatbot_login_guide_step3: "3. Click 'Login'",
     chatbot_login_guide_forgot_password: "❓ Forgot password?",
-    chatbot_login_guide_forgot_password_steps: "��� Click 'Forgot Password' • Enter email • Check email for reset link",
+    chatbot_login_guide_forgot_password_steps: "• Click 'Forgot Password' • Enter email • Check email for reset link",
     chatbot_login_guide_troubleshoot: "⚠️ Cannot login? Check:",
     chatbot_login_guide_troubleshoot_tips:
       "• Is email correct? • Is password correct? • Have you confirmed your email?",
@@ -664,7 +664,7 @@ const en: Dictionary = {
     delete_assessment_data: "Delete Health Assessment Data",
     delete_assessment_data_description:
       "This action will permanently delete all your health assessment records. This cannot be undone.",
-    delete_assessment_data_confirm_title: "Confirm Data Deteletion",
+    delete_assessment_data_confirm_title: "Confirm Data Deletion",
     delete_assessment_data_confirm_content:
       "Are you sure you want to delete all your health assessment data? This action is irreversible.",
     delete_assessment_data_success: "Health assessment data deleted successfully.",
