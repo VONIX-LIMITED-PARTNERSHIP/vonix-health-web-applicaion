@@ -626,27 +626,8 @@ const en: Dictionary = {
         description: "Analyze sleep patterns and rest quality",
       },
     },
-    // New translations for Consult Doctor Summary Modal
-    consult_doctor_summary_title: "Review Health Report for Consultation",
-    consult_doctor_summary_description:
-      "Please review your latest health assessment data before sending it to the doctor.",
-    review_latest_assessments: "Your Latest Health Assessments",
-    send_to_doctor: "Send to Doctor",
-    data_sharing_consent_title: "Data Sharing Consent",
-    data_sharing_consent_description:
-      "To proceed with the consultation, we need your consent to share your health data with the doctor.",
-    data_sharing_consent_heading: "Consent to Share Health Data",
-    data_sharing_consent_full_text:
-      "I hereby consent to VONIX sharing my latest health assessment data and personal information with the medical professional for the purpose of online consultation. I understand that this data will be used to provide me with medical advice and recommendations. My data will be protected in accordance with the Personal Data Protection Act B.E. 2562 (PDPA) and GDPR.",
-    consent: "Consent",
-    consultation_complete_title: "Consultation Request Sent!",
-    consultation_complete_description:
-      "Your consultation request has been successfully sent. Please wait for the doctor to contact you via our app within 24-48 hours. Thank you for using VONIX.",
-    consultation_success_heading: "Request Sent Successfully",
-    consultation_success_message: "The doctor will review your case and contact you soon.",
-    error_loading_assessments: "Error loading assessments",
-    start_assessment_to_consult:
-      "You haven't completed any assessments yet. Please start an assessment to consult a doctor.",
+    fill_information: "Fill Information",
+    not_assessed_yet: "Not Assessed Yet",
   },
   profile: {
     my_profile: "My Profile",

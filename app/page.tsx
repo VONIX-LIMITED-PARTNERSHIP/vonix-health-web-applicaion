@@ -35,7 +35,7 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
 import { HealthOverviewModal } from "@/components/health-overview-modal"
-import { ConsultDoctorSummaryModal } from "@/components/consult-doctor-summary-modal" // Import new modal
+import { ConsultDoctorSummaryModal } from "@/components/consult-doctor-summary-modal"
 import { useTranslation } from "@/hooks/use-translation"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
 
@@ -51,8 +51,8 @@ export default function HomePage() {
     reportReady: false,
   })
   const [loadingStats, setLoadingStats] = useState(false)
-  const [isConsultIntroModalOpen, setIsConsultIntroModalOpen] = useState(false) // Renamed for clarity
-  const [isConsultSummaryModalOpen, setIsConsultSummaryModalOpen] = useState(false) // New state for summary modal
+  const [isConsultIntroModalOpen, setIsConsultIntroModalOpen] = useState(false)
+  const [isConsultSummaryModalOpen, setIsConsultSummaryModalOpen] = useState(false)
   const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false)
   const [targetAssessmentId, setTargetAssessmentId] = useState<string | null>(null)
 
@@ -194,11 +194,11 @@ export default function HomePage() {
     const assessmentCategories = [
       {
         id: "basic",
-        title: t("assessment_categories.basic.title"),
-        description: t("assessment_categories.basic.description"),
+        title: "ข้อมูลส่วนตัว",
+        description: "ข้อมูลสำคัญที่แพทย์ต้องการเพื่อการวินิจฉัยและรักษา",
         icon: User,
         required: true,
-        status: t("fill_information"),
+        status: "กรอกข้อมูล",
         progress: 0,
         gradient: "from-blue-500 to-cyan-500",
         bgGradient: "from-blue-50 to-cyan-50",
@@ -206,8 +206,8 @@ export default function HomePage() {
       },
       {
         id: "heart",
-        title: t("assessment_categories.heart.title"),
-        description: t("assessment_categories.heart.description"),
+        title: "ประเมินหัวใจและหลอดเลือด",
+        description: "ตรวจสอบความเสี่ยงหัวใจ ความดันโลหิต และสุขภาพหลอดเลือด",
         icon: Heart,
         required: true,
         status: t("start_assessment"),
@@ -218,8 +218,8 @@ export default function HomePage() {
       },
       {
         id: "nutrition",
-        title: t("assessment_categories.nutrition.title"),
-        description: t("assessment_categories.nutrition.description"),
+        title: "ประเมินไลฟ์สไตล์และโภชนาการ",
+        description: "ตรวจสอบพฤติกรรมการกิน การออกกำลังกาย และการดูแลสุขภาพ",
         icon: Apple,
         required: true,
         status: t("start_assessment"),
@@ -230,11 +230,11 @@ export default function HomePage() {
       },
       {
         id: "mental",
-        title: t("assessment_categories.mental.title"),
-        description: t("assessment_categories.mental.description"),
+        title: "ประเมินสุขภาพจิต",
+        description: "การตรวจสุขภาพจิต ความเครียด และสุขภาพทางอารมณ์",
         icon: Brain,
         required: false,
-        status: t("not_assessed_yet"),
+        status: "ยังไม่ได้ประเมิน",
         progress: 0,
         gradient: "from-purple-500 to-violet-500",
         bgGradient: "from-purple-50 to-purple-50",
@@ -242,11 +242,11 @@ export default function HomePage() {
       },
       {
         id: "physical",
-        title: t("assessment_categories.physical.title"),
-        description: t("assessment_categories.physical.description"),
+        title: "ประเมินสุขภาพกาย",
+        description: "ตรวจสอบสุขภาพกาย ความแข็งแรง และความสามารถทางกาย",
         icon: Dumbbell,
         required: false,
-        status: t("not_assessed_yet"),
+        status: "ยังไม่ได้ประเมิน",
         progress: 0,
         gradient: "from-orange-500 to-amber-500",
         bgGradient: "from-orange-50 to-orange-50",
@@ -254,11 +254,11 @@ export default function HomePage() {
       },
       {
         id: "sleep",
-        title: t("assessment_categories.sleep.title"),
-        description: t("assessment_categories.sleep.description"),
+        title: "ประเมินคุณภาพการนอน",
+        description: "วิเคราะห์รูปแบบการนอนและคุณภาพการพักผ่อน",
         icon: MoonIcon,
         required: false,
-        status: t("not_assessed_yet"),
+        status: "ยังไม่ได้ประเมิน",
         progress: 0,
         gradient: "from-indigo-500 to-blue-500",
         bgGradient: "from-indigo-50 to-indigo-50",
@@ -306,11 +306,11 @@ export default function HomePage() {
       router.push("/login")
       return
     }
-    setIsConsultIntroModalOpen(true) // Open the intro modal first
+    setIsConsultIntroModalOpen(true)
   }
 
   const handleProceedToSummary = () => {
-    setIsConsultSummaryModalOpen(true) // Open the summary modal after intro
+    setIsConsultSummaryModalOpen(true)
   }
 
   const handleViewHealthOverview = () => {
