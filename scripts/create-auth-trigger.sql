@@ -7,7 +7,8 @@ BEGIN
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'patient'),
+    -- Explicitly cast the role to the public.user_role enum type
+    COALESCE(NEW.raw_user_meta_data->>'role', 'patient')::public.user_role,
     COALESCE((NEW.raw_user_meta_data->>'pdpa_consent')::boolean, false),
     CASE 
       WHEN COALESCE((NEW.raw_user_meta_data->>'pdpa_consent')::boolean, false) 
