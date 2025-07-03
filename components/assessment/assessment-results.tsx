@@ -1,200 +1,281 @@
 "use client"
 
-import type React from "react"
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { AlertTriangle, CheckCircle, Info, TrendingUp, FileText } from "lucide-react"
-import { useTranslation } from "@/hooks/use-translation"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
-  getRiskLevelText,
-  getRiskLevelDescription,
-  getRiskLevelBadgeClass,
-  getRiskLevelColor,
-  getBilingualText,
-  getBilingualArray,
-} from "@/utils/risk-level"
-import type { SavedAssessment } from "@/types/assessment"
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  TrendingUp,
+  Calendar,
+  FileText,
+  ArrowLeft,
+  Download,
+  Share2,
+  RefreshCw,
+} from "lucide-react"
+import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
+import { useRiskLevelTranslation } from "@/utils/risk-level"
 
 interface AssessmentResultsProps {
-  assessment: SavedAssessment
-  onRetakeAssessment?: () => void
-  onConsultDoctor?: () => void
+  categoryId: string
+  assessmentResult: AssessmentResult
+  answers: AssessmentAnswer[]
+  aiAnalysis?: any
 }
 
-export function AssessmentResults({ assessment, onRetakeAssessment, onConsultDoctor }: AssessmentResultsProps) {
-  const { t, language } = useTranslation()
+export function AssessmentResults({ categoryId, assessmentResult, answers, aiAnalysis }: AssessmentResultsProps) {
+  const router = useRouter()
+  const [showDetails, setShowDetails] = useState(false)
+  const { getRiskLevelLabel, getRiskLevelDescription } = useRiskLevelTranslation()
 
-  // Get bilingual data from AI analysis if available, otherwise use legacy data
-  const getDisplayRiskFactors = (): string[] => {
-    if (assessment.ai_analysis?.riskFactors) {
-      return getBilingualArray(assessment.ai_analysis.riskFactors, language)
-    }
-    return assessment.risk_factors || []
-  }
+  const getRiskLevelInfo = (riskLevel: string) => {
+    const label = getRiskLevelLabel(riskLevel)
+    const description = getRiskLevelDescription(riskLevel)
 
-  const getDisplayRecommendations = (): string[] => {
-    if (assessment.ai_analysis?.recommendations) {
-      return getBilingualArray(assessment.ai_analysis.recommendations, language)
-    }
-    return assessment.recommendations || []
-  }
-
-  const getDisplaySummary = (): string => {
-    if (assessment.ai_analysis?.summary) {
-      return getBilingualText(assessment.ai_analysis.summary, language)
-    }
-    return getRiskLevelDescription(assessment.risk_level, language)
-  }
-
-  const riskFactors = getDisplayRiskFactors()
-  const recommendations = getDisplayRecommendations()
-  const summary = getDisplaySummary()
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    if (language === "th") {
-      return date.toLocaleDateString("th-TH", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    }
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
-
-  const getRiskIcon = () => {
-    switch (assessment.risk_level) {
+    switch (riskLevel?.toLowerCase()) {
       case "low":
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+      case "ต่ำ":
+        return {
+          color: "text-green-600",
+          bgColor: "bg-green-50",
+          borderColor: "border-green-200",
+          icon: CheckCircle,
+          label,
+          description,
+        }
       case "medium":
-        return <Info className="h-5 w-5 text-yellow-500" />
+      case "ปานกลาง":
+        return {
+          color: "text-yellow-600",
+          bgColor: "bg-yellow-50",
+          borderColor: "border-yellow-200",
+          icon: AlertTriangle,
+          label,
+          description,
+        }
       case "high":
-        return <AlertTriangle className="h-5 w-5 text-orange-500" />
+      case "สูง":
+        return {
+          color: "text-red-600",
+          bgColor: "bg-red-50",
+          borderColor: "border-red-200",
+          icon: XCircle,
+          label,
+          description,
+        }
       case "very-high":
-        return <AlertTriangle className="h-5 w-5 text-red-500" />
+      case "very_high":
+      case "สูงมาก":
+        return {
+          color: "text-red-600",
+          bgColor: "bg-red-50",
+          borderColor: "border-red-200",
+          icon: XCircle,
+          label,
+          description,
+        }
       default:
-        return <Info className="h-5 w-5 text-gray-500" />
+        return {
+          color: "text-gray-600",
+          bgColor: "bg-gray-50",
+          borderColor: "border-gray-200",
+          icon: FileText,
+          label,
+          description,
+        }
     }
   }
+
+  const riskInfo = getRiskLevelInfo(assessmentResult.riskLevel)
+  const RiskIcon = riskInfo.icon
+
+  // แปลงชื่อหมวดหมู่
+  const getCategoryTitle = (categoryId: string) => {
+    switch (categoryId) {
+      case "basic":
+        return "ข้อมูลส่วนตัว"
+      case "mental":
+        return "สุขภาพจิต"
+      case "physical":
+        return "สุขภาพกาย"
+      case "lifestyle":
+        return "วิถีชีวิต"
+      default:
+        return "แบบประเมิน"
+    }
+  }
+
+  const categoryTitle = getCategoryTitle(categoryId)
 
   return (
-    <div className="space-y-6">
-      {/* Header Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <CardTitle className="flex items-center gap-2">
-                {getRiskIcon()}
-                {t.assessmentResults.title}
-              </CardTitle>
-              <CardDescription>
-                {assessment.category_title} • {formatDate(assessment.completed_at)}
-              </CardDescription>
-            </div>
-            <Badge className={getRiskLevelBadgeClass(assessment.risk_level)}>
-              {getRiskLevelText(assessment.risk_level, language)}
-            </Badge>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={() => router.push("/")} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            กลับหน้าหลัก
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Share2 className="h-4 w-4 mr-2" />
+              แชร์ผลลัพธ์
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              ดาวน์โหลด PDF
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Score Progress */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>{t.assessmentResults.score}</span>
-                <span className="font-medium">
-                  {assessment.total_score}/{assessment.max_score} ({assessment.percentage}%)
-                </span>
+        </div>
+
+        {/* ผลการประเมินหลัก */}
+        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+          <CardHeader className="text-center pb-4">
+            <div className="flex items-center justify-center mb-4">
+              <div className={`p-4 rounded-full ${riskInfo.bgColor} ${riskInfo.borderColor} border-2`}>
+                <RiskIcon className={`h-12 w-12 ${riskInfo.color}`} />
               </div>
-              <Progress
-                value={assessment.percentage}
-                className="h-2"
-                style={
-                  {
-                    "--progress-background": getRiskLevelColor(assessment.risk_level),
-                  } as React.CSSProperties
-                }
-              />
+            </div>
+            <CardTitle className="text-2xl font-bold text-gray-800">ผลการประเมิน{categoryTitle}</CardTitle>
+            <p className="text-gray-600">{riskInfo.description}</p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* คะแนนและระดับความเสี่ยง */}
+            <div className="text-center space-y-6">
+              {/* แสดงแค่ระดับความเสี่ยง ไม่แสดงคะแนน */}
+              <Badge variant="secondary" className={`${riskInfo.color} ${riskInfo.bgColor} text-xl px-6 py-3`}>
+                {riskInfo.label}
+              </Badge>
+
+              {/* แสดงจำนวนปัจจัยเสี่ยงที่พบ */}
+              {assessmentResult.riskFactors && assessmentResult.riskFactors.length > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600 mb-1">{assessmentResult.riskFactors.length}</div>
+                  <div className="text-sm text-gray-600">ปัจจัยเสี่ยงที่พบ</div>
+                </div>
+              )}
             </div>
 
-            {/* Summary */}
-            <div className="p-4 bg-muted rounded-lg">
-              <h4 className="font-medium mb-2 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                {t.assessmentResults.summary}
-              </h4>
-              <p className="text-sm text-muted-foreground">{summary}</p>
+            <Separator />
+
+            {/* ปัจจัยเสี่ยงและคำแนะนำ */}
+            {(assessmentResult.riskFactors?.length > 0 || assessmentResult.recommendations?.length > 0) && (
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* ปัจจัยเสี่ยง */}
+                {assessmentResult.riskFactors?.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                      ปัจจัยเสี่ยงที่พบ
+                    </h3>
+                    <ScrollArea className="h-32">
+                      <ul className="space-y-2">
+                        {assessmentResult.riskFactors.map((factor, index) => (
+                          <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                            <span className="text-yellow-500 mt-1">•</span>
+                            {factor}
+                          </li>
+                        ))}
+                      </ul>
+                    </ScrollArea>
+                  </div>
+                )}
+
+                {/* คำแนะนำ */}
+                {assessmentResult.recommendations?.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-blue-500" />
+                      คำแนะนำ
+                    </h3>
+                    <ScrollArea className="h-32">
+                      <ul className="space-y-2">
+                        {assessmentResult.recommendations.map((recommendation, index) => (
+                          <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                            <span className="text-blue-500 mt-1">•</span>
+                            {recommendation}
+                          </li>
+                        ))}
+                      </ul>
+                    </ScrollArea>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ข้อมูลเพิ่มเติม */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600 flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  วันที่ทำแบบประเมิน
+                </span>
+                <span className="font-medium">{new Date().toLocaleDateString("th-TH")}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600 flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  จำนวนคำถาม
+                </span>
+                <span className="font-medium">{answers.length} ข้อ</span>
+              </div>
+              {/* เอาการแสดงคะแนนออก */}
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Risk Factors */}
-      {riskFactors.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
-              {t.assessmentResults.riskFactors}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {riskFactors.map((factor, index) => (
-                <li key={index} className="text-sm text-muted-foreground">
-                  {factor}
-                </li>
-              ))}
-            </ul>
+            {/* ปุ่มดำเนินการ */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button onClick={() => router.push(`/assessment/${categoryId}`)} className="flex-1">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                ทำแบบประเมินใหม่
+              </Button>
+              <Button variant="outline" onClick={() => setShowDetails(!showDetails)} className="flex-1">
+                <FileText className="h-4 w-4 mr-2" />
+                {showDetails ? "ซ่อนรายละเอียด" : "ดูรายละเอียดคำตอบ"}
+              </Button>
+            </div>
+
+            {/* รายละเอียดคำตอบ */}
+            {showDetails && answers.length > 0 && (
+              <div className="mt-6 space-y-4">
+                <Separator />
+                <h3 className="font-semibold text-gray-800">รายละเอียดคำตอบ</h3>
+                <ScrollArea className="h-64">
+                  <div className="space-y-3">
+                    {answers.map((answer, index) => (
+                      <div key={answer.questionId} className="bg-gray-50 rounded-lg p-3">
+                        <div className="text-sm font-medium text-gray-800 mb-1">
+                          คำถามที่ {index + 1}: {answer.questionId}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          คำตอบ: {Array.isArray(answer.answer) ? answer.answer.join(", ") : answer.answer}
+                        </div>
+                        {answer.score !== undefined && (
+                          <div className="text-xs text-gray-500 mt-1">คะแนน: {answer.score}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
           </CardContent>
         </Card>
-      )}
 
-      {/* Recommendations */}
-      {recommendations.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-500" />
-              {t.assessmentResults.recommendations}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {recommendations.map((recommendation, index) => (
-                <li key={index} className="text-sm text-muted-foreground">
-                  {recommendation}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Buttons */}
-      <div className="flex justify-between">
-        {onRetakeAssessment && (
-          <Button onClick={onRetakeAssessment} variant="outline">
-            {t.assessmentResults.retakeAssessment}
-          </Button>
-        )}
-        {onConsultDoctor && (
-          <Button onClick={onConsultDoctor} variant="default">
-            {t.assessmentResults.consultDoctor}
-          </Button>
-        )}
+        {/* คำแนะนำเพิ่มเติม */}
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>หมายเหตุ:</strong> ผลการประเมินนี้เป็นเพียงข้อมูลเบื้องต้นเท่านั้น ไม่สามารถใช้แทนการวินิจฉัยทางการแพทย์ได้
+            หากมีข้อสงสัยหรือมีอาการที่น่ากังวล แนะนำให้ปรึกษาแพทย์หรือผู้เชี่ยวชาญเพื่อการตรวจสอบและรักษาที่เหมาะสม
+          </AlertDescription>
+        </Alert>
       </div>
     </div>
   )

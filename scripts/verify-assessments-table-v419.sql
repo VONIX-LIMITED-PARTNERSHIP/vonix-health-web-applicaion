@@ -11,19 +11,26 @@ BEGIN
     END IF;
 END $$;
 
--- Show detailed table structure
+-- Verify assessments table structure
 RAISE NOTICE '';
 RAISE NOTICE '📋 Table Structure:';
 SELECT 
     column_name,
     data_type,
     is_nullable,
-    column_default,
-    character_maximum_length
+    column_default
 FROM information_schema.columns 
 WHERE table_name = 'assessments' 
-  AND table_schema = 'public'
 ORDER BY ordinal_position;
+
+-- Check constraints
+RAISE NOTICE '';
+RAISE NOTICE '🔒 Constraints:';
+SELECT 
+    constraint_name,
+    constraint_type
+FROM information_schema.table_constraints 
+WHERE table_name = 'assessments';
 
 -- Check indexes
 RAISE NOTICE '';
@@ -32,20 +39,7 @@ SELECT
     indexname,
     indexdef
 FROM pg_indexes 
-WHERE tablename = 'assessments' 
-  AND schemaname = 'public'
-ORDER BY indexname;
-
--- Check constraints
-RAISE NOTICE '';
-RAISE NOTICE '🔒 Constraints:';
-SELECT 
-    conname as constraint_name,
-    contype as constraint_type,
-    pg_get_constraintdef(oid) as constraint_definition
-FROM pg_constraint 
-WHERE conrelid = 'public.assessments'::regclass
-ORDER BY conname;
+WHERE tablename = 'assessments';
 
 -- Check RLS policies
 RAISE NOTICE '';
@@ -58,9 +52,7 @@ SELECT
     qual,
     with_check
 FROM pg_policies 
-WHERE tablename = 'assessments' 
-  AND schemaname = 'public'
-ORDER BY policyname;
+WHERE tablename = 'assessments';
 
 -- Check functions
 RAISE NOTICE '';
@@ -233,6 +225,61 @@ EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE '❌ Guest test failed: %', SQLERRM;
     -- Clean up on error
     DELETE FROM public.assessments WHERE guest_session_id = test_session_id;
+END $$;
+
+-- Test basic operations
+RAISE NOTICE '';
+RAISE NOTICE '🧪 Testing basic operations:';
+DO $$
+DECLARE
+    test_user_id UUID := gen_random_uuid();
+    test_assessment_id UUID;
+    test_count INT;
+BEGIN
+    -- Test insertion
+    INSERT INTO public.assessments (
+        user_id,
+        category_id,
+        category_title,
+        answers,
+        total_score,
+        max_score,
+        percentage,
+        risk_level,
+        risk_factors,
+        recommendations
+    ) VALUES (
+        test_user_id,
+        'test',
+        'Test Assessment',
+        '[{"questionId": "test-1", "answer": "test", "score": 1}]'::jsonb,
+        1,
+        5,
+        20,
+        'low',
+        '["Test risk factor"]'::jsonb,
+        '["Test recommendation"]'::jsonb
+    ) RETURNING id INTO test_assessment_id;
+    
+    RAISE NOTICE '✅ Basic insertion successful, ID: %', test_assessment_id;
+    
+    -- Verify the insert worked
+    SELECT COUNT(*) INTO test_count FROM public.assessments WHERE category_id = 'test';
+    
+    IF test_count > 0 THEN
+        RAISE NOTICE '✅ Basic operation test passed, % records found', test_count;
+    ELSE
+        RAISE NOTICE '❌ Basic operation test failed, no records found';
+    END IF;
+    
+    -- Clean up test data
+    DELETE FROM public.assessments WHERE category_id = 'test';
+    RAISE NOTICE '✅ Basic test data cleaned up';
+    
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE '❌ Basic operation test failed: %', SQLERRM;
+    -- Clean up on error
+    DELETE FROM public.assessments WHERE user_id = test_user_id;
 END $$;
 
 -- Show sample data format
