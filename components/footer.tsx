@@ -48,20 +48,41 @@ export function Footer() {
 
             {/* Social Icons */}
             <div className="mt-6 bg-gray-700 px-4 py-3 rounded-lg flex space-x-5 justify-center md:justify-start">
-              <a href="#" aria-label="Facebook" className="text-white hover:text-blue-300">
+              <a
+                href="https://www.facebook.com/share/1A7JtFPPuh/?mibextid=wwXIfr"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="text-white hover:text-blue-300"
+              >
                 <FaFacebookF size={20} />
               </a>
-              <a href="#" aria-label="LinkedIn" className="text-white hover:text-blue-300">
+              <a
+                href="https://www.linkedin.com/company/vonix-co-ltd/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                className="text-white hover:text-blue-300"
+              >
                 <FaLinkedinIn size={20} />
               </a>
-              <a href="#" aria-label="X (Twitter)" className="text-white hover:text-blue-300">
+              <a
+                href="https://x.com/vonixth?s=21&t=AS59LsinHEdhLf6yXgERRA"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="X (Twitter)"
+                className="text-white hover:text-blue-300"
+              >
                 <FaXTwitter size={20} />
               </a>
-              <a href="#" aria-label="Instagram" className="text-white hover:text-blue-300">
+              <a
+                href="https://www.instagram.com/vonixlimited?igsh=M2U0ZnNrcjF6NXVr"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="text-white hover:text-blue-300"
+              >
                 <FaInstagram size={20} />
-              </a>
-              <a href="#" aria-label="LINE" className="text-white hover:text-blue-300">
-                <FaLine size={20} />
               </a>
             </div>
           </div>

@@ -20,7 +20,7 @@ export default function UpdatePasswordPage() {
   const [message, setMessage] = useState("")
   const [isSuccess, setIsSuccess] = useState(false)
   const { toast } = useToast()
-  const { updatePassword, user, loading: authLoading } = useAuth() // ดึง user และ authLoading มาใช้
+  const { updatePassword, user, loading: authLoading } = useAuth() // ด��ง user และ authLoading มาใช้
   const router = useRouter()
   const { t } = useTranslation() // Use translation hook
 
