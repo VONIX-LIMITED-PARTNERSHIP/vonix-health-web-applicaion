@@ -1,194 +1,197 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { AssessmentService } from "@/lib/assessment-service"
-import { useAuth } from "@/hooks/use-auth"
+import { useParams, useSearchParams } from "next/navigation"
 import { AssessmentResults } from "@/components/assessment/assessment-results"
-import { Card, CardContent, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { AlertCircle, Loader2 } from "lucide-react"
-import { createClientComponentClient } from "@/lib/supabase"
+import { AssessmentService } from "@/lib/assessment-service"
+import { createClient } from "@/lib/supabase"
+import { useAuth } from "@/hooks/use-auth"
+import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertTriangle } from "lucide-react"
+import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
 
-export default function ResultsPage() {
+export default function AssessmentResultsPage() {
   const params = useParams()
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const { user, isLoading: isUserLoading } = useAuth()
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null)
+  const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null)
+  const [assessmentData, setAssessmentData] = useState<any>(null)
+
   const categoryId = params.category as string
   const assessmentId = searchParams.get("id")
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [assessmentData, setAssessmentData] = useState<any>(null)
-
-  const supabase = createClientComponentClient()
-
   useEffect(() => {
-    if (isUserLoading) return
-
-    const loadAssessmentResults = async () => {
-      console.log("📊 ResultsPage: เริ่มโหลดผลการประเมิน...")
-      console.log("📊 ResultsPage: หมวดหมู่:", categoryId)
-      console.log("📊 ResultsPage: รหัสแบบประเมิน:", assessmentId)
-      console.log("📊 ResultsPage: รหัสผู้ใช้:", user?.id)
-
-      setLoading(true)
-      setError(null)
-
+    async function loadAssessmentResults() {
       try {
-        if (!user?.id) {
-          throw new Error("กรุณาเข้าสู่ระบบเพื่อดูผลการประเมิน")
+        setLoading(true)
+        setError(null)
+
+        if (!user) {
+          setError("กรุณาเข้าสู่ระบบ")
+          return
         }
 
-        let resultData = null
+        const supabase = createClient()
+        let fetchedAssessmentData = null
 
+        console.log("🔍 Loading assessment results...")
+        console.log("Category ID:", categoryId)
+        console.log("Assessment ID:", assessmentId)
+        console.log("User ID:", user.id)
+
+        // Try to get specific assessment by ID first
         if (assessmentId) {
-          // ดึงข้อมูลจาก assessmentId ที่ระบุ
-          console.log("🔍 ResultsPage: กำลังดึงข้อมูลแบบประเมินตามรหัสที่ระบุ...")
-          const { data, error: fetchError } = await AssessmentService.getAssessmentById(supabase, assessmentId)
-
-          if (fetchError) {
-            console.error("❌ ResultsPage: ไม่สามารถดึงข้อมูลแบบประเมินได้:", fetchError)
-            throw new Error(fetchError)
+          console.log("📋 Fetching assessment by ID:", assessmentId)
+          const { data, error } = await AssessmentService.getAssessmentById(supabase, assessmentId)
+          if (error) {
+            console.error("❌ Error fetching assessment by ID:", error)
+          } else if (data) {
+            fetchedAssessmentData = data
+            console.log("✅ Found assessment by ID:", data)
           }
+        }
 
-          if (!data) {
-            console.warn("⚠️ ResultsPage: ไม่พบแบบประเมินที่มีรหัส:", assessmentId)
-            throw new Error("ไม่พบข้อมูลแบบประเมินที่ระบุ")
-          }
-
-          resultData = data
-          console.log("✅ ResultsPage: โหลดข้อมูลแบบประเมินสำเร็จ รหัส:", data.id)
-        } else {
-          // ดึงข้อมูลแบบประเมินล่าสุดของ user และ category นี้
-          console.log("🔍 ResultsPage: กำลังดึงข้อมูลแบบประเมินล่าสุด...")
-          const { data, error: fetchError } = await AssessmentService.getLatestAssessmentForUserAndCategory(
+        // If no specific assessment found, get latest for category
+        if (!fetchedAssessmentData) {
+          console.log("📋 Fetching latest assessment for category:", categoryId)
+          const { data, error } = await AssessmentService.getLatestAssessmentForUserAndCategory(
             supabase,
             user.id,
             categoryId,
           )
-
-          if (fetchError) {
-            console.error("❌ ResultsPage: ไม่สามารถดึงข้อมูลแบบประเมินล่าสุดได้:", fetchError)
-            throw new Error(fetchError)
+          if (error) {
+            console.error("❌ Error fetching latest assessment:", error)
+            setError("ไม่สามารถดึงข้อมูลการประเมินได้")
+            return
+          } else if (data) {
+            fetchedAssessmentData = data
+            console.log("✅ Found latest assessment:", data)
           }
-
-          if (!data) {
-            console.warn("⚠️ ResultsPage: ไม่พบแบบประเมินล่าสุดสำหรับผู้ใช้และหมวดหมู่นี้")
-            throw new Error("ไม่พบข้อมูลแบบประเมินล่าสุด กรุณาทำแบบประเมินใหม่")
-          }
-
-          resultData = data
-          console.log("✅ ResultsPage: โหลดข้อมูลแบบประเมินล่าสุดสำเร็จ รหัส:", data.id)
         }
 
-        // ตรวจสอบว่าข้อมูลที่ได้มาตรงกับ category ที่ต้องการหรือไม่
-        if (resultData.category_id !== categoryId) {
-          console.error("❌ ResultsPage: หมวดหมู่ไม่ตรงกัน:", {
-            expected: categoryId,
-            actual: resultData.category_id,
-          })
-          throw new Error("ข้อมูลแบบประเมินไม่ตรงกับหมวดหมู่ที่ต้องการ")
+        if (!fetchedAssessmentData) {
+          setError("ไม่พบข้อมูลการประเมิน")
+          return
         }
 
-        console.log("📊 ResultsPage: โหลดข้อมูลแบบประเมินสำเร็จ:")
-        console.log("  - รหัส:", resultData.id)
-        console.log("  - หมวดหมู่:", resultData.category_id)
-        console.log("  - ชื่อ:", resultData.category_title)
-        console.log("  - คะแนน:", resultData.percentage + "%")
-        console.log("  - ระดับความเสี่ยง:", resultData.risk_level)
-        console.log("  - จำนวนคำตอบ:", resultData.answers?.length || 0)
-        console.log("  - เสร็จสิ้นเมื่อ:", resultData.completed_at)
+        // Set the raw assessment data from database
+        setAssessmentData(fetchedAssessmentData)
 
-        setAssessmentData(resultData)
-      } catch (err: any) {
-        console.error("❌ ResultsPage: เกิดข้อผิดพลาดในการโหลดผลการประเมิน:", err.message)
-        setError(err.message || "เกิดข้อผิดพลาดในการโหลดผลการประเมิน")
+        // Convert database data to AssessmentResult format
+        const result: AssessmentResult = {
+          categoryId: fetchedAssessmentData.category_id,
+          totalScore: fetchedAssessmentData.total_score || 0,
+          maxScore: fetchedAssessmentData.max_score || 100,
+          percentage: fetchedAssessmentData.percentage || 0,
+          riskLevel: fetchedAssessmentData.risk_level || "medium",
+          riskFactors: fetchedAssessmentData.risk_factors_th || [],
+          recommendations: fetchedAssessmentData.recommendations_th || [],
+        }
+
+        setAssessmentResult(result)
+        setAnswers(fetchedAssessmentData.answers || [])
+
+        // Create AI analysis object from database data for compatibility
+        const aiAnalysisFromDb = {
+          riskLevel: fetchedAssessmentData.risk_level,
+          score: fetchedAssessmentData.total_score,
+          riskFactors_th: fetchedAssessmentData.risk_factors_th || [],
+          recommendations_th: fetchedAssessmentData.recommendations_th || [],
+          summary_th: fetchedAssessmentData.summary_th || "",
+          riskFactors_en: fetchedAssessmentData.risk_factors_en || [],
+          recommendations_en: fetchedAssessmentData.recommendations_en || [],
+          summary_en: fetchedAssessmentData.summary_en || "",
+        }
+
+        setAiAnalysis(aiAnalysisFromDb)
+
+        console.log("✅ Assessment results loaded successfully")
+        console.log("📊 Assessment Result:", result)
+        console.log("🤖 AI Analysis:", aiAnalysisFromDb)
+        console.log("💾 Raw Database Data:", fetchedAssessmentData)
+      } catch (error) {
+        console.error("❌ Error loading assessment results:", error)
+        setError("เกิดข้อผิดพลาดในการโหลดผลการประเมิน")
       } finally {
         setLoading(false)
-        console.log("📊 ResultsPage: เสร็จสิ้นการโหลดผลการประเมิน")
       }
     }
 
-    loadAssessmentResults()
-  }, [categoryId, assessmentId, user?.id, isUserLoading, supabase])
+    if (categoryId) {
+      loadAssessmentResults()
+    }
+  }, [categoryId, assessmentId, user])
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
-        <Card className="w-full max-w-md bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-gray-900/80 dark:border-gray-700">
-          <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-blue-500 mb-4" />
-            <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-              กำลังโหลดผลการประเมิน...
-            </CardTitle>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">กรุณารอสักครู่</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-3/4 mx-auto" />
+                <Skeleton className="h-4 w-1/2 mx-auto" />
+                <div className="flex justify-center">
+                  <Skeleton className="h-24 w-24 rounded-full" />
+                </div>
+                <Skeleton className="h-12 w-1/3 mx-auto" />
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-1/2" />
+                    <Skeleton className="h-20 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-1/2" />
+                    <Skeleton className="h-20 w-full" />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
-        <Card className="w-full max-w-md bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-gray-900/80 dark:border-gray-700">
-          <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-            <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">เกิดข้อผิดพลาด</CardTitle>
-            <p className="text-red-500 mt-2 mb-4">{error}</p>
-            <div className="flex gap-2">
-              <Button onClick={() => router.push("/")} variant="outline">
-                กลับหน้าหลัก
-              </Button>
-              <Button onClick={() => router.push(`/assessment/${categoryId}`)}>ทำแบบประเมินใหม่</Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
       </div>
     )
   }
 
-  if (!assessmentData) {
+  if (!assessmentResult) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
-        <Card className="w-full max-w-md bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-gray-900/80 dark:border-gray-700">
-          <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-yellow-500 mb-4" />
-            <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">ไม่พบข้อมูล</CardTitle>
-            <p className="text-gray-600 dark:text-gray-300 mt-2 mb-4">ไม่พบผลการประเมินที่ต้องการ</p>
-            <Button onClick={() => router.push(`/assessment/${categoryId}`)}>ทำแบบประเมินใหม่</Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>ไม่พบข้อมูลการประเมิน</AlertDescription>
+          </Alert>
+        </div>
       </div>
     )
-  }
-
-  // แปลงข้อมูลจาก Supabase format เป็น format ที่ AssessmentResults component ต้องการ
-  const assessmentResult = {
-    categoryId: assessmentData.category_id,
-    totalScore: assessmentData.total_score,
-    maxScore: assessmentData.max_score,
-    percentage: assessmentData.percentage,
-    riskLevel: assessmentData.risk_level,
-    riskFactors: assessmentData.risk_factors || [],
-    recommendations: assessmentData.recommendations || [],
-  }
-
-  const aiAnalysis = {
-    score: assessmentData.percentage,
-    riskLevel: assessmentData.risk_level,
-    riskFactors: assessmentData.risk_factors || [],
-    recommendations: assessmentData.recommendations || [],
   }
 
   return (
     <AssessmentResults
       categoryId={categoryId}
       assessmentResult={assessmentResult}
-      answers={assessmentData.answers || []}
+      answers={answers}
       aiAnalysis={aiAnalysis}
+      assessmentData={assessmentData}
     />
   )
 }

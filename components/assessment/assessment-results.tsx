@@ -145,20 +145,33 @@ export function AssessmentResults({
     if (assessmentData) {
       console.log("📊 Using assessmentData from database")
       const isEnglish = locale === "en"
+
+      // Get the appropriate language data
+      const riskFactors = isEnglish
+        ? assessmentData.risk_factors_en && assessmentData.risk_factors_en.length > 0
+          ? assessmentData.risk_factors_en
+          : assessmentData.risk_factors_th || []
+        : assessmentData.risk_factors_th || assessmentData.risk_factors_en || []
+
+      const recommendations = isEnglish
+        ? assessmentData.recommendations_en && assessmentData.recommendations_en.length > 0
+          ? assessmentData.recommendations_en
+          : assessmentData.recommendations_th || []
+        : assessmentData.recommendations_th || assessmentData.recommendations_en || []
+
+      const summary = isEnglish
+        ? assessmentData.summary_en || assessmentData.summary_th || ""
+        : assessmentData.summary_th || assessmentData.summary_en || ""
+
       const result = {
-        riskFactors: isEnglish
-          ? assessmentData.risk_factors_en || assessmentData.risk_factors_th || []
-          : assessmentData.risk_factors_th || assessmentData.risk_factors_en || [],
-        recommendations: isEnglish
-          ? assessmentData.recommendations_en || assessmentData.recommendations_th || []
-          : assessmentData.recommendations_th || assessmentData.recommendations_en || [],
-        summary: isEnglish
-          ? assessmentData.summary_en || assessmentData.summary_th || ""
-          : assessmentData.summary_th || assessmentData.summary_en || "",
+        riskFactors,
+        recommendations,
+        summary,
         categoryTitle: isEnglish
           ? assessmentData.category_title_en || assessmentData.category_title_th || categoryTitle
           : assessmentData.category_title_th || assessmentData.category_title_en || categoryTitle,
       }
+
       console.log("📊 Database result:", result)
       return result
     }
@@ -271,11 +284,25 @@ export function AssessmentResults({
             <CardHeader>
               <CardTitle className="text-sm text-yellow-800">Debug Information</CardTitle>
             </CardHeader>
-            <CardContent className="text-xs text-yellow-700">
-              <div>Risk Factors: {JSON.stringify(bilingualData.riskFactors)}</div>
-              <div>Recommendations: {JSON.stringify(bilingualData.recommendations)}</div>
-              <div>Summary: {bilingualData.summary}</div>
-              <div>Locale: {locale}</div>
+            <CardContent className="text-xs text-yellow-700 space-y-1">
+              <div>
+                <strong>Risk Factors:</strong> {JSON.stringify(bilingualData.riskFactors)}
+              </div>
+              <div>
+                <strong>Recommendations:</strong> {JSON.stringify(bilingualData.recommendations)}
+              </div>
+              <div>
+                <strong>Summary:</strong> {bilingualData.summary}
+              </div>
+              <div>
+                <strong>Locale:</strong> {locale}
+              </div>
+              <div>
+                <strong>Has Assessment Data:</strong> {!!assessmentData}
+              </div>
+              <div>
+                <strong>Has AI Analysis:</strong> {!!aiAnalysis}
+              </div>
             </CardContent>
           </Card>
         )}
@@ -318,7 +345,7 @@ export function AssessmentResults({
 
             <Separator />
 
-            {/* Risk Factors and Recommendations - Always show if data exists */}
+            {/* Risk Factors and Recommendations - Always show sections */}
             <div className="grid md:grid-cols-2 gap-6">
               {/* Risk Factors */}
               <div className="space-y-3">
@@ -338,7 +365,7 @@ export function AssessmentResults({
                     </ul>
                   </ScrollArea>
                 ) : (
-                  <div className="text-sm text-gray-500 italic">
+                  <div className="text-sm text-gray-500 italic p-3 bg-gray-50 rounded">
                     {locale === "en" ? "No specific risk factors identified" : "ไม่พบปัจจัยเสี่ยงเฉพาะ"}
                   </div>
                 )}
@@ -362,7 +389,7 @@ export function AssessmentResults({
                     </ul>
                   </ScrollArea>
                 ) : (
-                  <div className="text-sm text-gray-500 italic">
+                  <div className="text-sm text-gray-500 italic p-3 bg-gray-50 rounded">
                     {locale === "en" ? "No specific recommendations available" : "ไม่มีคำแนะนำเฉพาะ"}
                   </div>
                 )}
@@ -377,7 +404,9 @@ export function AssessmentResults({
                   {t.assessmentDate}
                 </span>
                 <span className="font-medium">
-                  {new Date().toLocaleDateString(locale === "en" ? "en-US" : "th-TH")}
+                  {assessmentData?.completed_at
+                    ? new Date(assessmentData.completed_at).toLocaleDateString(locale === "en" ? "en-US" : "th-TH")
+                    : new Date().toLocaleDateString(locale === "en" ? "en-US" : "th-TH")}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">

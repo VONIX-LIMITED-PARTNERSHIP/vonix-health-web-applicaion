@@ -8,11 +8,11 @@ CREATE TABLE public.assessments (
     category_id TEXT NOT NULL,
     
     -- Bilingual category titles
-    category_title_th TEXT NOT NULL,
+    category_title_th TEXT,
     category_title_en TEXT,
     
     -- Assessment data
-    answers JSONB NOT NULL DEFAULT '[]'::jsonb,
+    answers JSONB NOT NULL,
     total_score INTEGER NOT NULL DEFAULT 0,
     max_score INTEGER NOT NULL DEFAULT 100,
     percentage INTEGER NOT NULL DEFAULT 0,
@@ -23,15 +23,15 @@ CREATE TABLE public.assessments (
     recommendations_th TEXT[] DEFAULT '{}',
     summary_th TEXT DEFAULT '',
     
-    -- English results  
+    -- English results
     risk_factors_en TEXT[] DEFAULT '{}',
     recommendations_en TEXT[] DEFAULT '{}',
     summary_en TEXT DEFAULT '',
     
     -- Timestamps
-    completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Create indexes for better performance
@@ -65,7 +65,7 @@ CREATE POLICY "Users can delete their own assessments" ON public.assessments
 
 -- Grant necessary permissions
 GRANT ALL ON public.assessments TO authenticated;
-GRANT ALL ON public.assessments TO service_role;
+GRANT USAGE ON SCHEMA public TO authenticated;
 
 -- Create trigger for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -76,22 +76,33 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_assessments_updated_at 
-    BEFORE UPDATE ON public.assessments 
-    FOR EACH ROW 
+DROP TRIGGER IF EXISTS update_assessments_updated_at ON public.assessments;
+CREATE TRIGGER update_assessments_updated_at
+    BEFORE UPDATE ON public.assessments
+    FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Insert some test data to verify the structure
--- (This will be removed in production)
+-- Verify table creation
+SELECT 
+    table_name,
+    column_name,
+    data_type,
+    is_nullable
+FROM information_schema.columns 
+WHERE table_name = 'assessments' 
+    AND table_schema = 'public'
+ORDER BY ordinal_position;
+
+-- Test insert (optional)
 -- INSERT INTO public.assessments (
 --     user_id, 
 --     category_id, 
 --     category_title_th, 
 --     category_title_en,
---     answers,
---     total_score,
---     max_score,
---     percentage,
+--     answers, 
+--     total_score, 
+--     max_score, 
+--     percentage, 
 --     risk_level,
 --     risk_factors_th,
 --     recommendations_th,
@@ -105,22 +116,16 @@ CREATE TRIGGER update_assessments_updated_at
 --     'ทดสอบ',
 --     'Test',
 --     '[]'::jsonb,
---     75,
+--     50,
 --     100,
---     75,
---     'high',
---     ARRAY['ปัจจัยเสี่ยงที่ 1', 'ปัจจัยเสี่ยงที่ 2'],
---     ARRAY['คำแนะนำที่ 1', 'คำแนะนำที่ 2'],
---     'สรุปผลการประเมิน',
---     ARRAY['Risk factor 1', 'Risk factor 2'],
---     ARRAY['Recommendation 1', 'Recommendation 2'],
---     'Assessment summary'
+--     50,
+--     'medium',
+--     ARRAY['ปัจจัยเสี่ยงทดสอบ'],
+--     ARRAY['คำแนะนำทดสอบ'],
+--     'สรุปทดสอบ',
+--     ARRAY['Test risk factor'],
+--     ARRAY['Test recommendation'],
+--     'Test summary'
 -- );
 
 COMMENT ON TABLE public.assessments IS 'Bilingual health assessments with Thai and English results';
-COMMENT ON COLUMN public.assessments.risk_factors_th IS 'Risk factors in Thai language';
-COMMENT ON COLUMN public.assessments.risk_factors_en IS 'Risk factors in English language';
-COMMENT ON COLUMN public.assessments.recommendations_th IS 'Recommendations in Thai language';
-COMMENT ON COLUMN public.assessments.recommendations_en IS 'Recommendations in English language';
-COMMENT ON COLUMN public.assessments.summary_th IS 'Summary in Thai language';
-COMMENT ON COLUMN public.assessments.summary_en IS 'Summary in English language';
