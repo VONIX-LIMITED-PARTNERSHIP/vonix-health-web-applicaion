@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react" // Added useEffect import
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -14,14 +14,14 @@ import { Activity, Eye, EyeOff, ArrowLeft, Mail, Lock, User, Loader2 } from "luc
 import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
-import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
+import { useTranslation } from "@/hooks/use-translation"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { signUp, user, loading: authLoading } = useAuth() // Added user and authLoading from useAuth
+  const { signUp, user, loading: authLoading } = useAuth()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false) // Local loading state for form submission
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -29,9 +29,8 @@ export default function RegisterPage() {
     confirmPassword: "",
     acceptPDPA: false,
   })
-  const { t } = useTranslation() // Use translation hook
+  const { t } = useTranslation()
 
-  // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
       router.push("/")
@@ -48,7 +47,6 @@ export default function RegisterPage() {
 
     setLoading(true)
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: t("password_mismatch"),
@@ -73,6 +71,7 @@ export default function RegisterPage() {
       const { data, error } = await signUp(formData.email, formData.password, {
         full_name: formData.fullName,
         pdpa_consent: formData.acceptPDPA,
+        role: "patient", // Explicitly add role to metadata
       })
 
       if (error) {
@@ -99,7 +98,6 @@ export default function RegisterPage() {
     }
   }
 
-  // Show loading if auth is still loading (full page spinner)
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
@@ -115,7 +113,6 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
       <Header />
 
-      {/* Decorative Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
         <div className="absolute bottom-20 right-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
