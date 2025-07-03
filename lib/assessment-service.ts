@@ -94,12 +94,31 @@ export class AssessmentService {
         throw new Error("AI analysis required for non-basic assessments")
       }
 
-      // Convert bilingual data to database format (Thai only for backward compatibility)
-      const riskFactorsForDb = Array.isArray(result.riskFactors) ? result.riskFactors : result.riskFactors.th || []
+      // Convert bilingual data to simple arrays for database compatibility
+      let riskFactorsForDb: string[] = []
+      let recommendationsForDb: string[] = []
 
-      const recommendationsForDb = Array.isArray(result.recommendations)
-        ? result.recommendations
-        : result.recommendations.th || []
+      if (result.riskFactors) {
+        if (Array.isArray(result.riskFactors)) {
+          riskFactorsForDb = result.riskFactors
+        } else if (typeof result.riskFactors === "object" && result.riskFactors.th) {
+          riskFactorsForDb = result.riskFactors.th
+        }
+      }
+
+      if (result.recommendations) {
+        if (Array.isArray(result.recommendations)) {
+          recommendationsForDb = result.recommendations
+        } else if (typeof result.recommendations === "object" && result.recommendations.th) {
+          recommendationsForDb = result.recommendations.th
+        }
+      }
+
+      console.log("🔍 AssessmentService: Data to save:", {
+        riskFactorsForDb,
+        recommendationsForDb,
+        aiAnalysis: aiAnalysis ? "present" : "null",
+      })
 
       // เตรียมข้อมูลสำหรับบันทึก
       const assessmentData = {
