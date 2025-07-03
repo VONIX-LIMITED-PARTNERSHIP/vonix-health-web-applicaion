@@ -28,7 +28,6 @@ export type AssessmentAnswer = {
   questionId: string
   answer: string | number | string[] | null
   score: number
-  isValid: boolean
 }
 
 export interface AssessmentResult {
@@ -39,6 +38,168 @@ export interface AssessmentResult {
   riskLevel: "low" | "medium" | "high" | "very-high"
   recommendations: string[]
   riskFactors: string[]
+}
+
+// Guest assessment category - moved here and made complete
+export const guestAssessmentCategory: AssessmentCategory = {
+  id: "guest-assessment",
+  title: "ประเมินสุขภาพเบื้องต้น",
+  description: "ทดลองประเมินสุขภาพเบื้องต้นเพื่อดูผลลัพธ์และคำแนะนำ",
+  icon: "FlaskConical",
+  required: false,
+  guest: true,
+  estimatedTime: 5,
+  questions: [
+    {
+      id: "guest_q1",
+      question: "อายุของคุณ",
+      type: "number",
+      description: "กรุณาระบุอายุเป็นปี",
+      required: true,
+      category: "guest",
+      weight: 1,
+    },
+    {
+      id: "guest_q2",
+      question: "เพศ",
+      type: "multiple-choice", // Changed to match existing types
+      options: ["ชาย", "หญิง", "ไม่ระบุ"],
+      required: true,
+      category: "guest",
+      weight: 1,
+    },
+    {
+      id: "guest_q3",
+      question: "น้ำหนัก (กิโลกรัม)",
+      type: "number",
+      description: "น้ำหนักปัจจุบันของคุณ",
+      required: true,
+      category: "guest",
+      weight: 2,
+    },
+    {
+      id: "guest_q4",
+      question: "ส่วนสูง (เซนติเมตร)",
+      type: "number",
+      description: "ส่วนสูงของคุณ",
+      required: true,
+      category: "guest",
+      weight: 2,
+    },
+    {
+      id: "guest_q5",
+      question: "โรคประจำตัว (เลือกได้หลายข้อ)",
+      type: "multi-select-combobox-with-other", // Changed to match existing types
+      options: [
+        "เบาหวาน",
+        "ความดันโลหิตสูง",
+        "โรคหัวใจ",
+        "โรคไต",
+        "โรคตับ",
+        "โรคปอด",
+        "โรคไทรอยด์",
+        "โรคกระดูกพรุน",
+        "ไม่มีโรคประจำตัว",
+      ],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q6",
+      question: "คุณมีประวัติโรคหัวใจในครอบครัวหรือไม่?",
+      type: "yes-no",
+      description: "เช่น พ่อ แม่ พี่น้อง ที่เป็นโรคหัวใจ",
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q7",
+      question: "ความดันโลหิตของคุณเป็นอย่างไร?",
+      type: "multiple-choice", // Changed to match existing types
+      options: ["ปกติ (น้อยกว่า 120/80)", "สูงเล็กน้อย (120-139/80-89)", "สูง (140/90 ขึ้นไป)", "ไม่ทราบ"],
+      required: true,
+      category: "guest",
+      weight: 4,
+    },
+    {
+      id: "guest_q8",
+      question: "คุณสูบบุหรี่หรือไม่?",
+      type: "yes-no",
+      required: true,
+      category: "guest",
+      weight: 4,
+    },
+    {
+      id: "guest_q9",
+      question: "คุณออกกำลังกายสม่ำเสมอแค่ไหน?",
+      type: "rating", // Changed to match existing types
+      description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกวัน)",
+      options: ["1", "2", "3", "4", "5"],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q10",
+      question: "คุณทานผักและผลไม้บ่อยแค่ไหน?",
+      type: "rating", // Changed to match existing types
+      description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกมื้อ)",
+      options: ["1", "2", "3", "4", "5"],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q11",
+      question: "คุณดื่มน้ำเปล่าวันละกี่แก้ว?",
+      type: "multiple-choice", // Changed to match existing types
+      options: ["น้อยกว่า 4 แก้ว", "4-6 แก้ว", "7-8 แก้ว", "มากกว่า 8 แก้ว"],
+      required: true,
+      category: "guest",
+      weight: 2,
+    },
+    {
+      id: "guest_q12",
+      question: "คุณรู้สึกเครียดจากงานหรือชีวิตประจำวันแค่ไหน?",
+      type: "rating", // Changed to match existing types
+      description: "ให้คะแนน 1-5 (1=ไม่เครียด, 5=เครียดมาก)",
+      options: ["1", "2", "3", "4", "5"],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q13",
+      question: "คุณมีปัญหาในการนอนหลับบ่อยแค่ไหน?",
+      type: "rating", // Changed to match existing types
+      description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกคืน)",
+      options: ["1", "2", "3", "4", "5"],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+    {
+      id: "guest_q14",
+      question: "คุณนอนกี่ชั่วโมงต่อคืนโดยเฉลี่ย?",
+      type: "multiple-choice", // Changed to match existing types
+      options: ["น้อยกว่า 5 ชั่วโมง", "5-6 ชั่วโมง", "7-8 ชั่วโมง", "9-10 ชั่วโมง", "มากกว่า 10 ชั่วโมง"],
+      required: true,
+      category: "guest",
+      weight: 4,
+    },
+    {
+      id: "guest_q15",
+      question: "เมื่อตื่นนอนคุณรู้สึกสดชื่นแค่ไหน?",
+      type: "rating", // Changed to match existing types
+      description: "ให้คะแนน 1-5 (1=ไม่สดชื่น, 5=สดชื่นมาก)",
+      options: ["1", "2", "3", "4", "5"],
+      required: true,
+      category: "guest",
+      weight: 3,
+    },
+  ],
 }
 
 // Multilingual assessment data
@@ -151,7 +312,7 @@ export const assessmentData = {
           },
           {
             id: "basic-8",
-            type: "multi-select-combobox-with-other",
+            type: "multi-select-combobox-with-other", // Changed to match existing types
             question: "ยาที่ใช้ประจำ",
             description: "เลือกประเภทของยาที่ใช้ประจำ หรือระบุอื่นๆ",
             options: [
@@ -586,6 +747,7 @@ export const assessmentData = {
           },
         ],
       },
+      guestAssessmentCategory, // Include guest assessment category here
     ],
   },
   en: {
@@ -1136,6 +1298,7 @@ export const assessmentData = {
           },
         ],
       },
+      guestAssessmentCategory, // Include guest assessment category here
     ],
   },
 }
@@ -1145,19 +1308,5 @@ export function getAssessmentCategories(locale: "th" | "en" = "th"): AssessmentC
   return assessmentData[locale].categories as AssessmentCategory[]
 }
 
-// Guest assessment category
-export const guestAssessmentCategory: AssessmentCategory = {
-  id: "guest-assessment",
-  title: "ประเมินสุขภาพเบื้องต้น",
-  description: "ทดลองประเมินสุขภาพเบื้องต้นเพื่อดูผลลัพธ์และคำแนะนำ",
-  icon: "FlaskConical",
-  required: false,
-  guest: true,
-  estimatedTime: 5,
-  questions: [
-    // คำถามสำหรับ guest assessment...
-  ],
-}
-
-// Export for backward compatibility
+// Export for backward compatibility (if still needed, otherwise can be removed)
 export const assessmentCategories = assessmentData.th.categories as AssessmentCategory[]
