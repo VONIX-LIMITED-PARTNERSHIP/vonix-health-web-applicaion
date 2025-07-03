@@ -1,396 +1,337 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
-  CheckCircle,
+  Heart,
+  Apple,
+  Brain,
+  Dumbbell,
+  Moon,
+  User,
   AlertTriangle,
-  XCircle,
-  TrendingUp,
+  CheckCircle,
+  Lightbulb,
   Calendar,
-  FileText,
-  ArrowLeft,
-  Download,
+  TrendingUp,
   Share2,
-  RefreshCw,
+  ArrowLeft,
 } from "lucide-react"
-import type { AssessmentAnswer, AssessmentResult, BilingualArray, BilingualText } from "@/types/assessment"
-import { useRiskLevelTranslation } from "@/utils/risk-level"
+import { AssessmentService } from "@/lib/assessment-service"
+import { createClientComponentClient } from "@/lib/supabase"
+import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/contexts/language-context"
+import { useTranslation } from "@/hooks/use-translation"
+import {
+  getRiskLevelText,
+  getRiskLevelColor,
+  getRiskLevelBadgeClass,
+  getRiskLevelDescription,
+  getBilingualText,
+  getBilingualArray,
+} from "@/utils/risk-level"
+import { useRouter } from "next/navigation"
+
+const categoryIcons = {
+  basic: User,
+  heart: Heart,
+  nutrition: Apple,
+  mental: Brain,
+  physical: Dumbbell,
+  sleep: Moon,
+}
 
 interface AssessmentResultsProps {
   categoryId: string
-  assessmentResult: AssessmentResult
-  answers: AssessmentAnswer[]
-  aiAnalysis?: {
-    riskLevel: string
-    riskFactors: BilingualArray
-    recommendations: BilingualArray
-    summary: BilingualText
-    score: number
-  }
 }
 
-export function AssessmentResults({ categoryId, assessmentResult, answers, aiAnalysis }: AssessmentResultsProps) {
+export function AssessmentResults({ categoryId }: AssessmentResultsProps) {
+  const searchParams = useSearchParams()
   const router = useRouter()
-  const [showDetails, setShowDetails] = useState(false)
-  const { getRiskLevelLabel, getRiskLevelDescription } = useRiskLevelTranslation()
+  const { user } = useAuth()
   const { locale } = useLanguage()
+  const { t } = useTranslation()
+  const supabase = createClientComponentClient()
 
-  // Helper function to get text based on current language
-  const getLocalizedText = (text: BilingualArray | string[]): string[] => {
-    if (Array.isArray(text)) {
-      return text // Legacy format
+  const [assessment, setAssessment] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const assessmentId = searchParams.get("id")
+
+  useEffect(() => {
+    const fetchAssessment = async () => {
+      if (!assessmentId) {
+        setError("Assessment ID not provided")
+        setLoading(false)
+        return
+      }
+
+      try {
+        const { data, error } = await AssessmentService.getAssessmentById(supabase, assessmentId)
+
+        if (error) {
+          setError(error)
+        } else if (data) {
+          setAssessment(data)
+        } else {
+          setError("Assessment not found")
+        }
+      } catch (err) {
+        setError("Failed to load assessment results")
+      } finally {
+        setLoading(false)
+      }
     }
-    return text[locale] || text.th || []
+
+    fetchAssessment()
+  }, [assessmentId, supabase])
+
+  const handleBack = () => {
+    router.push("/")
   }
 
-  const getLocalizedSummary = (summary: BilingualText | string): string => {
-    if (typeof summary === "string") {
-      return summary // Legacy format
-    }
-    return summary[locale] || summary.th || ""
-  }
-
-  const getRiskLevelInfo = (riskLevel: string) => {
-    const label = getRiskLevelLabel(riskLevel)
-    const description = getRiskLevelDescription(riskLevel)
-
-    switch (riskLevel?.toLowerCase()) {
-      case "low":
-      case "ต่ำ":
-        return {
-          color: "text-green-600",
-          bgColor: "bg-green-50",
-          borderColor: "border-green-200",
-          icon: CheckCircle,
-          label,
-          description,
-        }
-      case "medium":
-      case "ปานกลาง":
-        return {
-          color: "text-yellow-600",
-          bgColor: "bg-yellow-50",
-          borderColor: "border-yellow-200",
-          icon: AlertTriangle,
-          label,
-          description,
-        }
-      case "high":
-      case "สูง":
-        return {
-          color: "text-red-600",
-          bgColor: "bg-red-50",
-          borderColor: "border-red-200",
-          icon: XCircle,
-          label,
-          description,
-        }
-      case "very-high":
-      case "very_high":
-      case "สูงมาก":
-        return {
-          color: "text-red-600",
-          bgColor: "bg-red-50",
-          borderColor: "border-red-200",
-          icon: XCircle,
-          label,
-          description,
-        }
-      default:
-        return {
-          color: "text-gray-600",
-          bgColor: "bg-gray-50",
-          borderColor: "border-gray-200",
-          icon: FileText,
-          label,
-          description,
-        }
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${t("assessment.results_title")} - ${assessment.category_title}`,
+          text: `${t("assessment.share_text")} ${getRiskLevelText(assessment.risk_level, locale)}`,
+          url: window.location.href,
+        })
+      } catch (err) {
+        console.log("Error sharing:", err)
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href)
+      alert(t("assessment.link_copied"))
     }
   }
 
-  // Use AI analysis if available, otherwise fall back to assessment result
-  const displayRiskLevel = aiAnalysis?.riskLevel || assessmentResult.riskLevel
-  const displayRiskFactors = aiAnalysis
-    ? getLocalizedText(aiAnalysis.riskFactors)
-    : getLocalizedText(assessmentResult.riskFactors)
-  const displayRecommendations = aiAnalysis
-    ? getLocalizedText(aiAnalysis.recommendations)
-    : getLocalizedText(assessmentResult.recommendations)
-  const displaySummary = aiAnalysis ? getLocalizedSummary(aiAnalysis.summary) : ""
-
-  const riskInfo = getRiskLevelInfo(displayRiskLevel)
-  const RiskIcon = riskInfo.icon
-
-  // แปลงชื่อหมวดหมู่
-  const getCategoryTitle = (categoryId: string) => {
-    const titles = {
-      th: {
-        basic: "ข้อมูลส่วนตัว",
-        heart: "หัวใจและหลอดเลือด",
-        nutrition: "ไลฟ์สไตล์และโภชนาการ",
-        mental: "สุขภาพจิต",
-        physical: "สุขภาพกาย",
-        sleep: "คุณภาพการนอน",
-        "guest-assessment": "ประเมินสุขภาพเบื้องต้น",
-      },
-      en: {
-        basic: "Personal Information",
-        heart: "Heart and Blood Vessels",
-        nutrition: "Lifestyle and Nutrition",
-        mental: "Mental Health",
-        physical: "Physical Health",
-        sleep: "Sleep Quality",
-        "guest-assessment": "Basic Health Assessment",
-      },
-    }
+  if (loading) {
     return (
-      titles[locale][categoryId as keyof typeof titles.th] ||
-      titles.th[categoryId as keyof typeof titles.th] ||
-      "Assessment"
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">{t("common.loading")}</p>
+        </div>
+      </div>
     )
   }
 
-  const categoryTitle = getCategoryTitle(categoryId)
-
-  const getUIText = (key: string) => {
-    const texts = {
-      th: {
-        backToHome: "กลับหน้าหลัก",
-        shareResults: "แชร์ผลลัพธ์",
-        downloadPDF: "ดาวน์โหลด PDF",
-        assessmentResults: "ผลการประเมิน",
-        riskFactorsFound: "ปัจจัยเสี่ยงที่พบ",
-        recommendations: "คำแนะนำ",
-        assessmentDate: "วันที่ทำแบบประเมิน",
-        numberOfQuestions: "จำนวนคำถาม",
-        questions: "ข้อ",
-        retakeAssessment: "ทำแบบประเมินใหม่",
-        viewDetails: "ดูรายละเอียดคำตอบ",
-        hideDetails: "ซ่อนรายละเอียด",
-        answerDetails: "รายละเอียดคำตอบ",
-        question: "คำถามที่",
-        answer: "คำตอบ",
-        score: "คะแนน",
-        note: "หมายเหตุ",
-        disclaimer:
-          "ผลการประเมินนี้เป็นเพียงข้อมูลเบื้องต้นเท่านั้น ไม่สามารถใช้แทนการวินิจฉัยทางการแพทย์ได้ หากมีข้อสงสัยหรือมีอาการที่น่ากังวล แนะนำให้ปรึกษาแพทย์หรือผู้เชี่ยวชาญเพื่อการตรวจสอบและรักษาที่เหมาะสม",
-        summary: "สรุปผลการประเมิน",
-      },
-      en: {
-        backToHome: "Back to Home",
-        shareResults: "Share Results",
-        downloadPDF: "Download PDF",
-        assessmentResults: "Assessment Results",
-        riskFactorsFound: "Risk Factors Found",
-        recommendations: "Recommendations",
-        assessmentDate: "Assessment Date",
-        numberOfQuestions: "Number of Questions",
-        questions: "questions",
-        retakeAssessment: "Retake Assessment",
-        viewDetails: "View Answer Details",
-        hideDetails: "Hide Details",
-        answerDetails: "Answer Details",
-        question: "Question",
-        answer: "Answer",
-        score: "Score",
-        note: "Note",
-        disclaimer:
-          "This assessment result is preliminary information only and cannot replace medical diagnosis. If you have any concerns or worrying symptoms, it is recommended to consult a doctor or specialist for appropriate examination and treatment.",
-        summary: "Assessment Summary",
-      },
-    }
-    return texts[locale][key as keyof typeof texts.th] || texts.th[key as keyof typeof texts.th] || key
+  if (error || !assessment) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">{t("assessment.error_loading")}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+            <Button onClick={handleBack} variant="outline">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("common.back")}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
+  const IconComponent = categoryIcons[categoryId as keyof typeof categoryIcons] || User
+  const riskLevelText = getRiskLevelText(assessment.risk_level, locale)
+  const riskLevelColor = getRiskLevelColor(assessment.risk_level)
+  const riskLevelBadgeClass = getRiskLevelBadgeClass(assessment.risk_level)
+  const riskLevelDescription = getRiskLevelDescription(assessment.risk_level, locale)
+
+  // Get bilingual data - check if ai_analysis exists for new bilingual format
+  const aiAnalysis = assessment.ai_analysis
+  const riskFactors = aiAnalysis
+    ? getBilingualArray(aiAnalysis.riskFactors, locale)
+    : getBilingualArray(assessment.risk_factors, locale)
+
+  const recommendations = aiAnalysis
+    ? getBilingualArray(aiAnalysis.recommendations, locale)
+    : getBilingualArray(assessment.recommendations, locale)
+
+  const summary = aiAnalysis ? getBilingualText(aiAnalysis.summary, locale) : null
+
+  const completedDate = new Date(assessment.completed_at)
+  const formattedDate =
+    locale === "en"
+      ? completedDate.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : completedDate.toLocaleDateString("th-TH", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-6 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => router.push("/")} className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            {getUIText("backToHome")}
+        <div className="mb-8">
+          <Button variant="ghost" onClick={handleBack} className="mb-4 hover:bg-white/80">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t("common.back")}
           </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Share2 className="h-4 w-4 mr-2" />
-              {getUIText("shareResults")}
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              {getUIText("downloadPDF")}
-            </Button>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t("assessment.results_title")}</h1>
+              <p className="text-gray-600 dark:text-gray-400">{assessment.category_title}</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" onClick={handleShare}>
+                <Share2 className="mr-2 h-4 w-4" />
+                {t("common.share")}
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* ผลการประเมินหลัก */}
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
-          <CardHeader className="text-center pb-4">
-            <div className="flex items-center justify-center mb-4">
-              <div className={`p-4 rounded-full ${riskInfo.bgColor} ${riskInfo.borderColor} border-2`}>
-                <RiskIcon className={`h-12 w-12 ${riskInfo.color}`} />
-              </div>
-            </div>
-            <CardTitle className="text-2xl font-bold text-gray-800">
-              {getUIText("assessmentResults")}
-              {categoryTitle}
-            </CardTitle>
-            <p className="text-gray-600">{riskInfo.description}</p>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* คะแนนและระดับความเสี่ยง */}
-            <div className="text-center space-y-6">
-              {/* แสดงแค่ระดับความเสี่ยง ไม่แสดงคะแนน */}
-              <Badge variant="secondary" className={`${riskInfo.color} ${riskInfo.bgColor} text-xl px-6 py-3`}>
-                {riskInfo.label}
-              </Badge>
-
-              {/* แสดงจำนวนปัจจัยเสี่ยงที่พบ */}
-              {displayRiskFactors && displayRiskFactors.length > 0 && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600 mb-1">{displayRiskFactors.length}</div>
-                  <div className="text-sm text-gray-600">{getUIText("riskFactorsFound")}</div>
+        {/* Main Results Card */}
+        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80 dark:border-border">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
+                  <IconComponent className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 </div>
-              )}
+                <div>
+                  <CardTitle className="text-2xl dark:text-foreground">{assessment.category_title}</CardTitle>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-500 dark:text-gray-400">{formattedDate}</span>
+                  </div>
+                </div>
+              </div>
+              <Badge className={`px-4 py-2 text-sm font-medium ${riskLevelBadgeClass}`}>{riskLevelText}</Badge>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* Score Display */}
+            <div className="text-center py-6">
+              <div className="relative inline-flex items-center justify-center">
+                <div className="w-32 h-32">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="none"
+                      className="text-gray-200 dark:text-gray-700"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 40}`}
+                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - assessment.percentage / 100)}`}
+                      className={riskLevelColor}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className={`text-3xl font-bold ${riskLevelColor}`}>{assessment.percentage}%</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{t("assessment.score")}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-md mx-auto">{riskLevelDescription}</p>
             </div>
 
             <Separator />
 
-            {/* AI Summary */}
-            {displaySummary && (
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-blue-500" />
-                  {getUIText("summary")}
-                </h3>
-                <p className="text-sm text-gray-700 leading-relaxed">{displaySummary}</p>
-              </div>
-            )}
-
-            {/* ปัจจัยเสี่ยงและคำแนะนำ */}
-            {(displayRiskFactors?.length > 0 || displayRecommendations?.length > 0) && (
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* ปัจจัยเสี่ยง */}
-                {displayRiskFactors?.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                      {getUIText("riskFactorsFound")}
-                    </h3>
-                    <ScrollArea className="h-32">
-                      <ul className="space-y-2">
-                        {displayRiskFactors.map((factor, index) => (
-                          <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-                            <span className="text-yellow-500 mt-1">•</span>
-                            {factor}
-                          </li>
-                        ))}
-                      </ul>
-                    </ScrollArea>
+            {/* Summary (if available from AI analysis) */}
+            {summary && (
+              <>
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 flex items-center dark:text-foreground">
+                    <TrendingUp className="mr-2 h-5 w-5 text-blue-600" />
+                    {t("assessment.summary")}
+                  </h3>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{summary}</p>
                   </div>
-                )}
-
-                {/* คำแนะนำ */}
-                {displayRecommendations?.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-blue-500" />
-                      {getUIText("recommendations")}
-                    </h3>
-                    <ScrollArea className="h-32">
-                      <ul className="space-y-2">
-                        {displayRecommendations.map((recommendation, index) => (
-                          <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-                            <span className="text-blue-500 mt-1">•</span>
-                            {recommendation}
-                          </li>
-                        ))}
-                      </ul>
-                    </ScrollArea>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ข้อมูลเพิ่มเติม */}
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {getUIText("assessmentDate")}
-                </span>
-                <span className="font-medium">
-                  {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US")}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  {getUIText("numberOfQuestions")}
-                </span>
-                <span className="font-medium">
-                  {answers.length} {getUIText("questions")}
-                </span>
-              </div>
-            </div>
-
-            {/* ปุ่มดำเนินการ */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <Button onClick={() => router.push(`/assessment/${categoryId}`)} className="flex-1">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                {getUIText("retakeAssessment")}
-              </Button>
-              <Button variant="outline" onClick={() => setShowDetails(!showDetails)} className="flex-1">
-                <FileText className="h-4 w-4 mr-2" />
-                {showDetails ? getUIText("hideDetails") : getUIText("viewDetails")}
-              </Button>
-            </div>
-
-            {/* รายละเอียดคำตอบ */}
-            {showDetails && answers.length > 0 && (
-              <div className="mt-6 space-y-4">
+                </div>
                 <Separator />
-                <h3 className="font-semibold text-gray-800">{getUIText("answerDetails")}</h3>
-                <ScrollArea className="h-64">
-                  <div className="space-y-3">
-                    {answers.map((answer, index) => (
-                      <div key={answer.questionId} className="bg-gray-50 rounded-lg p-3">
-                        <div className="text-sm font-medium text-gray-800 mb-1">
-                          {getUIText("question")} {index + 1}: {answer.questionId}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {getUIText("answer")}:{" "}
-                          {Array.isArray(answer.answer) ? answer.answer.join(", ") : answer.answer}
-                        </div>
-                        {answer.score !== undefined && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            {getUIText("score")}: {answer.score}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+              </>
+            )}
+
+            {/* Risk Factors */}
+            {riskFactors.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center dark:text-foreground">
+                  <AlertTriangle className="mr-2 h-5 w-5 text-orange-600" />
+                  {t("assessment.risk_factors")}
+                </h3>
+                <div className="grid gap-2">
+                  {riskFactors.map((factor, index) => (
+                    <div key={index} className="flex items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                      <AlertTriangle className="h-4 w-4 text-orange-600 mr-3 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">{factor}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recommendations */}
+            {recommendations.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center dark:text-foreground">
+                  <Lightbulb className="mr-2 h-5 w-5 text-green-600" />
+                  {t("assessment.recommendations")}
+                </h3>
+                <div className="grid gap-2">
+                  {recommendations.map((recommendation, index) => (
+                    <div key={index} className="flex items-start p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">{recommendation}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* คำแนะนำเพิ่มเติม */}
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>{getUIText("note")}:</strong> {getUIText("disclaimer")}
-          </AlertDescription>
-        </Alert>
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button
+            onClick={() => router.push("/")}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t("assessment.back_to_dashboard")}
+          </Button>
+
+          <Button variant="outline" onClick={handleShare}>
+            <Share2 className="mr-2 h-4 w-4" />
+            {t("assessment.share_results")}
+          </Button>
+        </div>
       </div>
     </div>
   )

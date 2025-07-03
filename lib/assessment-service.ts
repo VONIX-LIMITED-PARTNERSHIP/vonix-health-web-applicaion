@@ -1,4 +1,4 @@
-import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
+import type { AssessmentAnswer, AssessmentResult, AIAnalysisResult, BilingualArray } from "@/types/assessment"
 import { assessmentCategories } from "@/data/assessment-questions"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
@@ -58,7 +58,7 @@ export class AssessmentService {
     categoryId: string,
     categoryTitle: string,
     answers: AssessmentAnswer[],
-    aiAnalysis?: any,
+    aiAnalysis?: AIAnalysisResult,
   ): Promise<{ data: any; error: any }> {
     console.log("💾 AssessmentService: Starting save assessment process...")
 
@@ -86,12 +86,20 @@ export class AssessmentService {
           maxScore: 100,
           percentage: aiAnalysis.score,
           riskLevel: aiAnalysis.riskLevel,
-          riskFactors: aiAnalysis.riskFactors || [],
-          recommendations: aiAnalysis.recommendations || [],
+          riskFactors: aiAnalysis.riskFactors,
+          recommendations: aiAnalysis.recommendations,
+          summary: aiAnalysis.summary,
         }
       } else {
         throw new Error("AI analysis required for non-basic assessments")
       }
+
+      // Convert bilingual data to database format (Thai only for backward compatibility)
+      const riskFactorsForDb = Array.isArray(result.riskFactors) ? result.riskFactors : result.riskFactors.th || []
+
+      const recommendationsForDb = Array.isArray(result.recommendations)
+        ? result.recommendations
+        : result.recommendations.th || []
 
       // เตรียมข้อมูลสำหรับบันทึก
       const assessmentData = {
@@ -103,9 +111,11 @@ export class AssessmentService {
         max_score: Math.round(result.maxScore),
         percentage: Math.round(result.percentage),
         risk_level: result.riskLevel,
-        risk_factors: result.riskFactors || [],
-        recommendations: result.recommendations || [],
+        risk_factors: riskFactorsForDb,
+        recommendations: recommendationsForDb,
         completed_at: new Date().toISOString(),
+        // Store full bilingual data in a separate field for future use
+        ai_analysis: aiAnalysis || null,
       }
 
       console.log("💾 AssessmentService: Inserting assessment data to Supabase...")
@@ -341,14 +351,25 @@ export class AssessmentService {
       recommendations.push("นำข้อมูลนี้ไปแสดงแพทย์เมื่อไปรับการรักษา")
     }
 
+    // Return bilingual format for consistency
+    const bilingualRiskFactors: BilingualArray = {
+      th: riskFactors,
+      en: riskFactors, // For basic assessment, we'll use the same for both languages
+    }
+
+    const bilingualRecommendations: BilingualArray = {
+      th: recommendations,
+      en: recommendations, // For basic assessment, we'll use the same for both languages
+    }
+
     return {
       categoryId: "basic",
       totalScore,
       maxScore,
       percentage,
       riskLevel,
-      riskFactors,
-      recommendations,
+      riskFactors: bilingualRiskFactors,
+      recommendations: bilingualRecommendations,
     }
   }
 
