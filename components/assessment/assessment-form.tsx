@@ -14,8 +14,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/contexts/language-context"
 import { useTranslation } from "@/hooks/use-translation"
 import type { AssessmentAnswer } from "@/types/assessment"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import type { Database } from "@/types/database"
+import { createClientComponentClient } from "@/lib/supabase"
 
 interface AssessmentFormProps {
   categoryId: string
@@ -26,7 +25,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const { user } = useAuth()
   const { locale } = useLanguage()
   const { t } = useTranslation()
-  const supabase = createClientComponentClient<Database>()
+  const supabase = createClientComponentClient()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -94,37 +93,27 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
 
       try {
-        // Calculate total score
-        const totalScore = finalAnswersToSave.reduce((sum, answer) => sum + answer.score, 0)
-        const maxScore = category.questions.length * 5 // Assuming max score per question is 5
-
-        // Prepare answers for API
-        const formattedAnswers = finalAnswersToSave.map((answer) => {
-          const question = category.questions.find((q) => q.id === answer.questionId)
-          return {
-            questionId: answer.questionId,
-            question: question?.question || "Unknown question",
-            value: answer.answer,
-            score: answer.score,
+        let aiAnalysis = null
+        if (categoryId !== "basic") {
+          console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
+          const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, finalAnswersToSave)
+          if (aiError) {
+            console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
+          } else {
+            aiAnalysis = aiData
+            console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
           }
-        })
+        }
 
-        console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
-        console.log("📊 Assessment data:", {
+        console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
+        const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
+          supabase,
+          user.id,
           categoryId,
-          totalScore,
-          maxScore,
-          answersCount: formattedAnswers.length,
-        })
-
-        // Call the new service method
-        const { data: savedData, error: saveError } = await AssessmentService.analyzeAndSaveAssessment(supabase, {
-          userId: user.id,
-          categoryId,
-          answers: formattedAnswers,
-          totalScore,
-          maxScore,
-        })
+          category.title,
+          finalAnswersToSave,
+          aiAnalysis,
+        )
 
         if (saveError) {
           throw new Error(saveError)
