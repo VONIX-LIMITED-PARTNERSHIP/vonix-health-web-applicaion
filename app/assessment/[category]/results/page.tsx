@@ -121,7 +121,7 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${t.common.assessment_results} - ${assessment.category_title}`,
+          title: `${t("assessment_results")} - ${assessment.category_title}`,
           text: `${locale === "th" ? "ผลการประเมินสุขภาพ" : "Health Assessment Results"} ${getRiskLevelText(assessment.risk_level, locale)}`,
           url: window.location.href,
         })
@@ -140,7 +140,7 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">{t.common.loading}</p>
+          <p className="text-gray-600 dark:text-gray-400">{t("loading")}</p>
         </div>
       </div>
     )
@@ -152,11 +152,11 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">{t.common.error_loading_analysis}</h2>
+            <h2 className="text-xl font-semibold mb-2">{t("error_loading_analysis")}</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
             <Button onClick={handleBack} variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t.common.back}
+              {t("back")}
             </Button>
           </CardContent>
         </Card>
@@ -232,18 +232,18 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
         <div className="mb-8">
           <Button variant="ghost" onClick={handleBack} className="mb-4 hover:bg-white/80">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t.common.back}
+            {t("back")}
           </Button>
 
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t.common.assessment_results}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t("assessment_results")}</h1>
               <p className="text-gray-600 dark:text-gray-400">{assessment.category_title}</p>
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm" onClick={handleShare}>
                 <Share2 className="mr-2 h-4 w-4" />
-                {t.common.share_results}
+                {t("share_results")}
               </Button>
             </div>
           </div>
@@ -300,7 +300,7 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
                       <div className={`text-3xl font-bold ${riskLevelColor}`}>{assessment.percentage}%</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{t.common.score}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{t("score")}</div>
                     </div>
                   </div>
                 </div>
@@ -316,7 +316,7 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
                 <div>
                   <h3 className="text-lg font-semibold mb-3 flex items-center dark:text-foreground">
                     <TrendingUp className="mr-2 h-5 w-5 text-blue-600" />
-                    {t.common.ai_summary}
+                    {t("ai_summary")}
                   </h3>
                   <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{summary}</p>
@@ -331,7 +331,7 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
               <div>
                 <h3 className="text-lg font-semibold mb-3 flex items-center dark:text-foreground">
                   <AlertTriangle className="mr-2 h-5 w-5 text-orange-600" />
-                  {t.common.risk_factors}
+                  {t("risk_factors")}
                 </h3>
                 <div className="grid gap-2">
                   {riskFactors.map((factor, index) => (
@@ -349,7 +349,7 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
               <div>
                 <h3 className="text-lg font-semibold mb-3 flex items-center dark:text-foreground">
                   <Lightbulb className="mr-2 h-5 w-5 text-green-600" />
-                  {t.common.recommendations}
+                  {t("recommendations")}
                 </h3>
                 <div className="grid gap-2">
                   {recommendations.map((recommendation, index) => (
@@ -371,12 +371,12 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t.common.back}
+            {t("back")}
           </Button>
 
           <Button variant="outline" onClick={handleShare}>
             <Share2 className="mr-2 h-4 w-4" />
-            {t.common.share_results}
+            {t("share_results")}
           </Button>
         </div>
       </div>
