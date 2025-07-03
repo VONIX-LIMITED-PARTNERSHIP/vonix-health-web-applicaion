@@ -1,146 +1,96 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import {
-  Heart,
-  Apple,
-  Brain,
-  Dumbbell,
-  Moon,
-  User,
-  AlertTriangle,
-  CheckCircle,
-  Lightbulb,
-  Calendar,
-  TrendingUp,
-  Share2,
-  ArrowLeft,
-} from "lucide-react"
-import { AssessmentService } from "@/lib/assessment-service"
-import { createClientComponentClient } from "@/lib/supabase"
-import { useAuth } from "@/hooks/use-auth"
-import { useLanguage } from "@/contexts/language-context"
+import { ArrowLeft, Download, Share2, Calendar, Target, TrendingUp } from "lucide-react"
+import Link from "next/link"
 import { useTranslation } from "@/hooks/use-translation"
-import {
-  getRiskLevelText,
-  getRiskLevelColor,
-  getRiskLevelBadgeClass,
-  getRiskLevelDescription,
-  getBilingualText,
-  getBilingualArray,
-} from "@/utils/risk-level"
-import { useRouter } from "next/navigation"
+import { AssessmentResults } from "@/components/assessment/assessment-results"
+import { getRiskLevelColor, getRiskLevelLabel } from "@/utils/risk-level"
+import { User, Heart, Apple, Brain, Dumbbell, Moon } from "@/components/icons" // Importing the missing icons
 
 const categoryIcons = {
-  basic: User,
-  heart: Heart,
+  "basic-info": User,
+  "heart-health": Heart,
   nutrition: Apple,
-  mental: Brain,
-  physical: Dumbbell,
-  sleep: Moon,
+  "mental-health": Brain,
+  "physical-activity": Dumbbell,
+  "sleep-health": Moon,
 }
 
-interface AssessmentResultsPageProps {
-  params: {
-    category: string
-  }
-}
-
-export default function AssessmentResultsPage({ params }: AssessmentResultsPageProps) {
+export default function AssessmentResultsPage() {
+  const params = useParams()
   const searchParams = useSearchParams()
-  const router = useRouter()
-  const { user } = useAuth()
-  const { locale } = useLanguage()
-  const { t } = useTranslation(["common"])
-  const supabase = createClientComponentClient()
-
+  const { t } = useTranslation(["common", "assessment", "risk_level"])
   const [assessment, setAssessment] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const category = params.category as string
   const assessmentId = searchParams.get("id")
-  const categoryId = params.category
 
   useEffect(() => {
-    const fetchAssessment = async () => {
-      if (!assessmentId) {
-        setError("Assessment ID not provided")
-        setLoading(false)
-        return
-      }
-
-      try {
-        console.log("🔍 ResultsPage: กำลังโหลดข้อมูลแบบประเมิน รหัส:", assessmentId)
-
-        const { data, error } = await AssessmentService.getAssessmentById(supabase, assessmentId)
-
-        if (error) {
-          console.error("❌ ResultsPage: เกิดข้อผิดพลาดในการโหลดข้อมูล:", error)
-          setError(error)
-        } else if (data) {
-          console.log("✅ ResultsPage: โหลดข้อมูลแบบประเมินสำเร็จ รหัส:", data.id)
-
-          // Log detailed assessment data for debugging
-          console.log("📊 ResultsPage: โหลดข้อมูลแบบประเมินสำเร็จ:")
-          console.log("  - รหัส:", data.id)
-          console.log("  - หมวดหมู่:", data.category_id)
-          console.log("  - ชื่อ:", data.category_title)
-          console.log("  - คะแนน:", data.percentage + "%")
-          console.log("  - ระดับความเสี่ยง:", data.risk_level)
-          console.log("  - จำนวนคำตอบ:", Array.isArray(data.answers) ? data.answers.length : "ไม่ทราบ")
-          console.log("  - เสร็จสิ้นเมื่อ:", data.completed_at)
-          console.log("  - มี AI Analysis:", data.ai_analysis ? "ใช่" : "ไม่")
-
-          setAssessment(data)
-        } else {
-          console.warn("⚠️ ResultsPage: ไม่พบข้อมูลแบบประเมิน")
-          setError("Assessment not found")
-        }
-      } catch (err) {
-        console.error("❌ ResultsPage: เกิดข้อผิดพลาดที่ไม่คาดคิด:", err)
-        setError("Failed to load assessment results")
-      } finally {
-        console.log("📊 ResultsPage: เสร็จสิ้นการโหลดผลการประเมิน")
-        setLoading(false)
-      }
+    if (!assessmentId) {
+      setError("Assessment ID not found")
+      setLoading(false)
+      return
     }
 
-    fetchAssessment()
-  }, [assessmentId, supabase])
+    fetchAssessmentResults()
+  }, [assessmentId])
 
-  const handleBack = () => {
-    router.push("/")
+  const fetchAssessmentResults = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/assessment/results?id=${assessmentId}`)
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch assessment results")
+      }
+
+      const data = await response.json()
+      setAssessment(data)
+    } catch (err) {
+      console.error("Error fetching assessment results:", err)
+      setError("Failed to load assessment results")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${t("assessment_results")} - ${assessment.category_title}`,
-          text: `${locale === "th" ? "ผลการประเมินสุขภาพ" : "Health Assessment Results"} ${getRiskLevelText(assessment.risk_level, locale)}`,
-          url: window.location.href,
-        })
-      } catch (err) {
-        console.log("Error sharing:", err)
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href)
-      alert(locale === "th" ? "คัดลอกลิงก์แล้ว" : "Link copied to clipboard")
+  const getCategoryTitle = (category: string) => {
+    const categoryMap: Record<string, string> = {
+      "basic-info": t.assessment.basic_info,
+      "heart-health": t.assessment.heart_health,
+      nutrition: t.assessment.nutrition,
+      "mental-health": t.assessment.mental_health,
+      "physical-activity": t.assessment.physical_activity,
+      "sleep-health": t.assessment.sleep_health,
     }
+    return categoryMap[category] || category
+  }
+
+  const handleDownloadPDF = () => {
+    // TODO: Implement PDF download functionality
+    console.log("Download PDF clicked")
+  }
+
+  const handleShareResults = () => {
+    // TODO: Implement share functionality
+    console.log("Share results clicked")
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">{t("loading")}</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">{t.common.loading}</p>
+          </div>
         </div>
       </div>
     )
@@ -148,236 +98,150 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
 
   if (error || !assessment) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">{t("error_loading_analysis")}</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
-            <Button onClick={handleBack} variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("back")}
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">
+              <Target className="h-12 w-12 mx-auto mb-2" />
+              <p className="text-lg font-semibold">{t.common.error}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{error || t.common.error_loading_analysis}</p>
+            </div>
+            <Link href="/">
+              <Button variant="outline">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t.common.back}
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
 
-  const IconComponent = categoryIcons[categoryId as keyof typeof categoryIcons] || User
-  const riskLevelText = getRiskLevelText(assessment.risk_level, locale)
-  const riskLevelColor = getRiskLevelColor(assessment.risk_level)
-  const riskLevelBadgeClass = getRiskLevelBadgeClass(assessment.risk_level)
-  const riskLevelDescription = getRiskLevelDescription(assessment.risk_level, locale)
+  const riskLevel = assessment.ai_analysis?.overall_risk_level || "low"
+  const riskColor = getRiskLevelColor(riskLevel)
+  const riskLabel = getRiskLevelLabel(riskLevel, t)
 
-  // Safely get bilingual data - check if ai_analysis exists and has the expected structure
-  const aiAnalysis = assessment.ai_analysis || null
-
-  // Helper function to safely get bilingual arrays
-  const getSafeRiskFactors = () => {
-    if (aiAnalysis && aiAnalysis.riskFactors) {
-      return getBilingualArray(aiAnalysis.riskFactors, locale)
-    }
-    // Fallback to legacy risk_factors array
-    if (Array.isArray(assessment.risk_factors)) {
-      return assessment.risk_factors
-    }
-    return []
-  }
-
-  const getSafeRecommendations = () => {
-    if (aiAnalysis && aiAnalysis.recommendations) {
-      return getBilingualArray(aiAnalysis.recommendations, locale)
-    }
-    // Fallback to legacy recommendations array
-    if (Array.isArray(assessment.recommendations)) {
-      return assessment.recommendations
-    }
-    return []
-  }
-
-  const getSafeSummary = () => {
-    if (aiAnalysis && aiAnalysis.summary) {
-      return getBilingualText(aiAnalysis.summary, locale)
-    }
-    return null
-  }
-
-  const riskFactors = getSafeRiskFactors()
-  const recommendations = getSafeRecommendations()
-  const summary = getSafeSummary()
-
-  const completedDate = new Date(assessment.completed_at)
-  const formattedDate =
-    locale === "en"
-      ? completedDate.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : completedDate.toLocaleDateString("th-TH", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+  const IconComponent = categoryIcons[category as keyof typeof categoryIcons] || User
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Button variant="ghost" onClick={handleBack} className="mb-4 hover:bg-white/80">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back")}
-          </Button>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t("assessment_results")}</h1>
-              <p className="text-gray-600 dark:text-gray-400">{assessment.category_title}</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" onClick={handleShare}>
+          <div className="flex items-center justify-between mb-4">
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t.common.back}
+              </Button>
+            </Link>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+                <Download className="mr-2 h-4 w-4" />
+                {t.common.download_pdf}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleShareResults}>
                 <Share2 className="mr-2 h-4 w-4" />
-                {t("share_results")}
+                {t.common.share_results}
               </Button>
             </div>
           </div>
+
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t.assessment.results_title}</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400">{getCategoryTitle(category)}</p>
+          </div>
         </div>
 
-        {/* Main Results Card */}
-        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80 dark:border-border">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
-                  <IconComponent className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <CardTitle className="text-2xl dark:text-foreground">{assessment.category_title}</CardTitle>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">{formattedDate}</span>
-                  </div>
-                </div>
-              </div>
-              <Badge className={`px-4 py-2 text-sm font-medium ${riskLevelBadgeClass}`}>{riskLevelText}</Badge>
-            </div>
+        {/* Assessment Overview */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              {t.common.summary_overview}
+            </CardTitle>
           </CardHeader>
-
-          <CardContent className="space-y-6">
-            {/* Score Display */}
-            <div className="text-center py-6">
-              <div className="relative inline-flex items-center justify-center">
-                <div className="w-32 h-32">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      fill="none"
-                      className="text-gray-200 dark:text-gray-700"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      fill="none"
-                      strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - assessment.percentage / 100)}`}
-                      className={riskLevelColor}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className={`text-3xl font-bold ${riskLevelColor}`}>{assessment.percentage}%</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{t("score")}</div>
-                    </div>
-                  </div>
-                </div>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600 mb-1">{assessment.score || 0}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t.common.overall_score}</p>
               </div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-md mx-auto">{riskLevelDescription}</p>
+
+              <div className="text-center">
+                <Badge variant="secondary" className={`${riskColor} text-white mb-2`}>
+                  {riskLabel}
+                </Badge>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t.common.overall_risk_level}</p>
+              </div>
+
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {new Date(assessment.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t.common.assessment_date}</p>
+              </div>
             </div>
-
-            <Separator />
-
-            {/* Summary (if available from AI analysis) */}
-            {summary && (
-              <>
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center dark:text-foreground">
-                    <TrendingUp className="mr-2 h-5 w-5 text-blue-600" />
-                    {t("ai_summary")}
-                  </h3>
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{summary}</p>
-                  </div>
-                </div>
-                <Separator />
-              </>
-            )}
-
-            {/* Risk Factors */}
-            {riskFactors.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-3 flex items-center dark:text-foreground">
-                  <AlertTriangle className="mr-2 h-5 w-5 text-orange-600" />
-                  {t("risk_factors")}
-                </h3>
-                <div className="grid gap-2">
-                  {riskFactors.map((factor, index) => (
-                    <div key={index} className="flex items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                      <AlertTriangle className="h-4 w-4 text-orange-600 mr-3 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">{factor}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Recommendations */}
-            {recommendations.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-3 flex items-center dark:text-foreground">
-                  <Lightbulb className="mr-2 h-5 w-5 text-green-600" />
-                  {t("recommendations")}
-                </h3>
-                <div className="grid gap-2">
-                  {recommendations.map((recommendation, index) => (
-                    <div key={index} className="flex items-start p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <CheckCircle className="h-4 w-4 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 dark:text-gray-300">{recommendation}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button
-            onClick={() => router.push("/")}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back")}
-          </Button>
+        {/* AI Analysis */}
+        {assessment.ai_analysis && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>{t.common.ai_summary}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {assessment.ai_analysis.summary && (
+                  <div>
+                    <h4 className="font-semibold mb-2">{t.assessment.summary}</h4>
+                    <p className="text-gray-700 dark:text-gray-300">{assessment.ai_analysis.summary}</p>
+                  </div>
+                )}
 
-          <Button variant="outline" onClick={handleShare}>
-            <Share2 className="mr-2 h-4 w-4" />
-            {t("share_results")}
-          </Button>
+                {assessment.ai_analysis.risk_factors && assessment.ai_analysis.risk_factors.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2">{t.assessment.risk_factors}</h4>
+                    <ul className="list-disc list-inside space-y-1">
+                      {assessment.ai_analysis.risk_factors.map((factor, index) => (
+                        <li key={index} className="text-gray-700 dark:text-gray-300">
+                          {factor}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {assessment.ai_analysis.recommendations && assessment.ai_analysis.recommendations.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2">{t.assessment.recommendations}</h4>
+                    <ul className="list-disc list-inside space-y-1">
+                      {assessment.ai_analysis.recommendations.map((rec, index) => (
+                        <li key={index} className="text-gray-700 dark:text-gray-300">
+                          {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Detailed Results */}
+        <AssessmentResults assessment={assessment} />
+
+        {/* Actions */}
+        <div className="mt-8 text-center">
+          <Link href="/">
+            <Button size="lg">{t.assessment.back_to_dashboard}</Button>
+          </Link>
         </div>
       </div>
     </div>
