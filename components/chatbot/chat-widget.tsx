@@ -80,7 +80,8 @@ export function ChatWidget() {
 
       const data = await response.json()
       return data.response
-    } catch {
+    } catch (err) {
+      console.log("Error sharing:", err)
       return "ขอโทษครับ เกิดข้อผิดพลาดชั่วคราว กรุณาลองใหม่อีกครั้งนะครับ 😅"
     }
   }
@@ -259,7 +260,7 @@ export function ChatWidget() {
                                 "rounded-2xl px-5 py-4 text-sm leading-relaxed shadow-md",
                                 message.sender === "user"
                                   ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-blue-200 dark:shadow-blue-900/50"
-                                  : "bg-gray-100 text-gray-800 dark:bg-[#1e1e2f] dark:text-gray-100 border border-gray-700/60"
+                                  : "bg-gray-100 text-gray-800 dark:bg-[#1e1e2f] dark:text-gray-100 border border-gray-700/60",
                               )}
                             >
                               <div className="whitespace-pre-wrap font-medium">{message.content}</div>

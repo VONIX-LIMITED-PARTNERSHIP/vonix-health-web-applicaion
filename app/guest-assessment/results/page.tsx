@@ -96,6 +96,7 @@ export default function GuestAssessmentResultsPage() {
       localStorage.removeItem(`guest-assessment-temp-answers`)
     } catch (err: any) {
       setError(err.message || t("error_loading_analysis"))
+      console.error("Error:", err)
     } finally {
       setLoading(false)
       setAnalyzing(false) // End analyzing state

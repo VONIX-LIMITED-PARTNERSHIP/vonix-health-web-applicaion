@@ -187,12 +187,11 @@ export class AssessmentService {
     userId: string,
     categoryId: string,
   ): Promise<{ data: any; error: any }> {
+    console.log("🔍 AssessmentService: Fetching latest assessment for user:", userId, "category:", categoryId)
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
       }
-
-      console.log("🔍 AssessmentService: Fetching latest assessment for user:", userId, "category:", categoryId)
 
       const { data, error } = await supabaseClient
         .from("assessments")
