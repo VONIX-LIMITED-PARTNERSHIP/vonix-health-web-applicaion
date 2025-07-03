@@ -95,14 +95,9 @@ export default function ResultsPage() {
         console.log("📊 ResultsPage: โหลดข้อมูลแบบประเมินสำเร็จ:")
         console.log("  - รหัส:", resultData.id)
         console.log("  - หมวดหมู่:", resultData.category_id)
-        console.log("  - ชื่อ (ไทย):", resultData.category_title_th)
-        console.log("  - ชื่อ (อังกฤษ):", resultData.category_title_en)
+        console.log("  - ชื่อ:", resultData.category_title)
         console.log("  - คะแนน:", resultData.percentage + "%")
         console.log("  - ระดับความเสี่ยง:", resultData.risk_level)
-        console.log("  - ปัจจัยเสี่ยง (ไทย):", resultData.risk_factors_th?.length || 0, "รายการ")
-        console.log("  - ปัจจัยเสี่ยง (อังกฤษ):", resultData.risk_factors_en?.length || 0, "รายการ")
-        console.log("  - คำแนะนำ (ไทย):", resultData.recommendations_th?.length || 0, "รายการ")
-        console.log("  - คำแนะนำ (อังกฤษ):", resultData.recommendations_en?.length || 0, "รายการ")
         console.log("  - จำนวนคำตอบ:", resultData.answers?.length || 0)
         console.log("  - เสร็จสิ้นเมื่อ:", resultData.completed_at)
 
@@ -177,19 +172,15 @@ export default function ResultsPage() {
     maxScore: assessmentData.max_score,
     percentage: assessmentData.percentage,
     riskLevel: assessmentData.risk_level,
-    riskFactors: assessmentData.risk_factors_th || assessmentData.risk_factors || [],
-    recommendations: assessmentData.recommendations_th || assessmentData.recommendations || [],
+    riskFactors: assessmentData.risk_factors || [],
+    recommendations: assessmentData.recommendations || [],
   }
 
   const aiAnalysis = {
     score: assessmentData.percentage,
     riskLevel: assessmentData.risk_level,
-    riskFactors_th: assessmentData.risk_factors_th || assessmentData.risk_factors || [],
-    riskFactors_en: assessmentData.risk_factors_en || [],
-    recommendations_th: assessmentData.recommendations_th || assessmentData.recommendations || [],
-    recommendations_en: assessmentData.recommendations_en || [],
-    summary_th: assessmentData.summary_th || "",
-    summary_en: assessmentData.summary_en || "",
+    riskFactors: assessmentData.risk_factors || [],
+    recommendations: assessmentData.recommendations || [],
   }
 
   return (
@@ -198,7 +189,6 @@ export default function ResultsPage() {
       assessmentResult={assessmentResult}
       answers={assessmentData.answers || []}
       aiAnalysis={aiAnalysis}
-      assessmentData={assessmentData}
     />
   )
 }

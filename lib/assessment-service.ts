@@ -60,7 +60,7 @@ export class AssessmentService {
     answers: AssessmentAnswer[],
     aiAnalysis?: any,
   ): Promise<{ data: any; error: any }> {
-    console.log("💾 AssessmentService: Starting save bilingual assessment process...")
+    console.log("💾 AssessmentService: Starting save assessment process...")
 
     try {
       if (!userId) {
@@ -86,33 +86,18 @@ export class AssessmentService {
           maxScore: 100,
           percentage: aiAnalysis.score,
           riskLevel: aiAnalysis.riskLevel,
-          riskFactors: aiAnalysis.riskFactors_th || [],
-          recommendations: aiAnalysis.recommendations_th || [],
+          riskFactors: aiAnalysis.riskFactors || [],
+          recommendations: aiAnalysis.recommendations || [],
         }
       } else {
         throw new Error("AI analysis required for non-basic assessments")
       }
 
-      // Get category titles in both languages
-      const categoryTitles = {
-        basic: { th: "ข้อมูลส่วนตัว", en: "Personal Information" },
-        mental: { th: "สุขภาพจิต", en: "Mental Health" },
-        physical: { th: "สุขภาพกาย", en: "Physical Health" },
-        lifestyle: { th: "ไลฟ์สไตล์และโภชนาการ", en: "Lifestyle & Nutrition" },
-        sleep: { th: "คุณภาพการนอน", en: "Sleep Quality" },
-        heart: { th: "หัวใจและหลอดเลือด", en: "Heart & Cardiovascular" },
-        nutrition: { th: "โภชนาการ", en: "Nutrition" },
-      }
-
-      const categoryTitleMap = categoryTitles[categoryId as keyof typeof categoryTitles] || categoryTitles.lifestyle
-
-      // เตรียมข้อมูลสำหรับบันทึกแบบ bilingual
+      // เตรียมข้อมูลสำหรับบันทึก
       const assessmentData = {
         user_id: userId,
         category_id: categoryId,
         category_title: categoryTitle,
-        category_title_th: categoryTitleMap.th,
-        category_title_en: categoryTitleMap.en,
         answers: answers,
         total_score: Math.round(result.totalScore),
         max_score: Math.round(result.maxScore),
@@ -120,17 +105,10 @@ export class AssessmentService {
         risk_level: result.riskLevel,
         risk_factors: result.riskFactors || [],
         recommendations: result.recommendations || [],
-        // Bilingual data from AI analysis
-        risk_factors_th: aiAnalysis?.riskFactors_th || result.riskFactors || [],
-        risk_factors_en: aiAnalysis?.riskFactors_en || [],
-        recommendations_th: aiAnalysis?.recommendations_th || result.recommendations || [],
-        recommendations_en: aiAnalysis?.recommendations_en || [],
-        summary_th: aiAnalysis?.summary_th || "",
-        summary_en: aiAnalysis?.summary_en || "",
         completed_at: new Date().toISOString(),
       }
 
-      console.log("💾 AssessmentService: Inserting bilingual assessment data to Supabase...")
+      console.log("💾 AssessmentService: Inserting assessment data to Supabase...")
       const { data: insertedData, error } = await supabaseClient
         .from("assessments")
         .insert(assessmentData)
@@ -146,7 +124,7 @@ export class AssessmentService {
         throw new Error("No data returned from insert operation")
       }
 
-      console.log("✅ AssessmentService: Bilingual assessment saved successfully with ID:", insertedData.id)
+      console.log("✅ AssessmentService: Assessment saved successfully with ID:", insertedData.id)
 
       return { data: insertedData, error: null }
     } catch (error) {
