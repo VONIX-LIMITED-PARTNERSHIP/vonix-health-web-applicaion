@@ -56,7 +56,7 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
   const router = useRouter()
   const { user } = useAuth()
   const { locale } = useLanguage()
-  const { t } = useTranslation()
+  const { t } = useTranslation(["common"])
   const supabase = createClientComponentClient()
 
   const [assessment, setAssessment] = useState<any>(null)
