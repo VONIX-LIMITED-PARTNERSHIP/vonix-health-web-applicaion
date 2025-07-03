@@ -88,8 +88,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const createMissingProfile = useCallback(
     async (userId: string) => {
       if (!user) {
+        console.warn("createMissingProfile called without a user.")
         return
       }
+      console.log(`Attempting to create missing profile for user: ${userId}`)
       try {
         const response = await fetch("/api/auth/create-profile", {
           method: "POST",
@@ -103,10 +105,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }),
         })
         if (response.ok) {
-          await loadUserProfile(userId)
+          const responseData = await response.json()
+          if (response.ok) {
+            console.log("Missing profile created successfully via API:", responseData)
+            await loadUserProfile(userId) // Reload profile after creation
+          } else {
+            console.error("Error creating missing profile via API:", response.status, responseData)
+          }
         }
       } catch (profileError) {
-        // console.error("Error creating missing profile:", profileError);
+        console.error("Error during fetch to create missing profile API:", profileError)
       }
     },
     [user, loadUserProfile],
