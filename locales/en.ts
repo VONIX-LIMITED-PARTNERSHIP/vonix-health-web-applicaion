@@ -302,6 +302,7 @@ const en: Dictionary = {
     step_3_wait_for_contact: "Wait for Contact",
     step_3_wait_for_contact_desc: "A doctor will contact you within 24 hours",
     understood: "Understood",
+    profile_link_text: "Profile", // Added this key
   },
   assessment: {
     basic_info: "Basic Information",
