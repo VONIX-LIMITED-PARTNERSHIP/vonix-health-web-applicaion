@@ -38,6 +38,8 @@ import { HealthOverviewModal } from "@/components/health-overview-modal"
 import { ConsultDoctorSummaryModal } from "@/components/consult-doctor-summary-modal"
 import { useTranslation } from "@/hooks/use-translation"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
+import { useLanguage } from "@/contexts/language-context"
+import { getAssessmentCategories } from "@/data/assessment-questions"
 
 export default function HomePage() {
   const { user, profile, loading } = useAuth()
@@ -58,6 +60,7 @@ export default function HomePage() {
 
   const { t } = useTranslation(["common"])
   const { getRiskLevelLabel } = useRiskLevelTranslation()
+  const { locale } = useLanguage()
 
   const router = useRouter()
   const { toast } = useToast()
@@ -191,96 +194,96 @@ export default function HomePage() {
   const getUpdatedCategories = () => {
     const latestAssessments = getLatestAssessments(assessments)
 
-    const assessmentCategories = [
+    // Get assessment categories based on current language
+    const assessmentCategories = getAssessmentCategories(locale)
+
+    const categoryMappings = [
       {
         id: "basic",
-        title: "ข้อมูลส่วนตัว",
-        description: "ข้อมูลสำคัญที่แพทย์ต้องการเพื่อการวินิจฉัยและรักษา",
         icon: User,
         required: true,
-        status: "กรอกข้อมูล",
-        progress: 0,
         gradient: "from-blue-500 to-cyan-500",
         bgGradient: "from-blue-50 to-cyan-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
         id: "heart",
-        title: "ประเมินหัวใจและหลอดเลือด",
-        description: "ตรวจสอบความเสี่ยงหัวใจ ความดันโลหิต และสุขภาพหลอดเลือด",
         icon: Heart,
         required: true,
-        status: t("start_assessment"),
-        progress: 0,
         gradient: "from-red-500 to-pink-500",
         bgGradient: "from-red-50 to-pink-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
         id: "nutrition",
-        title: "ประเมินไลฟ์สไตล์และโภชนาการ",
-        description: "ตรวจสอบพฤติกรรมการกิน การออกกำลังกาย และการดูแลสุขภาพ",
         icon: Apple,
         required: true,
-        status: t("start_assessment"),
-        progress: 0,
         gradient: "from-green-500 to-emerald-500",
         bgGradient: "from-green-50 to-green-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
         id: "mental",
-        title: "ประเมินสุขภาพจิต",
-        description: "การตรวจสุขภาพจิต ความเครียด และสุขภาพทางอารมณ์",
         icon: Brain,
         required: false,
-        status: "ยังไม่ได้ประเมิน",
-        progress: 0,
         gradient: "from-purple-500 to-violet-500",
         bgGradient: "from-purple-50 to-purple-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
         id: "physical",
-        title: "ประเมินสุขภาพกาย",
-        description: "ตรวจสอบสุขภาพกาย ความแข็งแรง และความสามารถทางกาย",
         icon: Dumbbell,
         required: false,
-        status: "ยังไม่ได้ประเมิน",
-        progress: 0,
         gradient: "from-orange-500 to-amber-500",
         bgGradient: "from-orange-50 to-orange-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
         id: "sleep",
-        title: "ประเมินคุณภาพการนอน",
-        description: "วิเคราะห์รูปแบบการนอนและคุณภาพการพักผ่อน",
         icon: MoonIcon,
         required: false,
-        status: "ยังไม่ได้ประเมิน",
-        progress: 0,
         gradient: "from-indigo-500 to-blue-500",
         bgGradient: "from-indigo-50 to-indigo-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
     ]
 
-    return assessmentCategories.map((category) => {
-      const userAssessment = latestAssessments.find((a) => a.category_id === category.id)
+    return categoryMappings.map((mapping) => {
+      const assessmentCategory = assessmentCategories.find((cat) => cat.id === mapping.id)
+      const userAssessment = latestAssessments.find((a) => a.category_id === mapping.id)
+
+      const baseCategory = {
+        ...mapping,
+        title: assessmentCategory?.title || mapping.id,
+        description: assessmentCategory?.description || "",
+        status:
+          mapping.id === "basic"
+            ? locale === "th"
+              ? "กรอกข้อมูล"
+              : "Fill Information"
+            : locale === "th"
+              ? "เริ่มประเมิน"
+              : "Start Assessment",
+        progress: 0,
+      }
 
       if (userAssessment) {
         return {
-          ...category,
+          ...baseCategory,
           status: t("completed"),
           progress: 100,
-          lastCompleted: new Date(userAssessment.completed_at).toLocaleDateString("th-TH"),
+          lastCompleted: new Date(userAssessment.completed_at).toLocaleDateString(locale === "th" ? "th-TH" : "en-US"),
           riskLevel: userAssessment.risk_level,
           riskFactorsCount: userAssessment.risk_factors ? userAssessment.risk_factors.length : 0,
         }
       }
 
-      return category
+      // For non-completed assessments, set appropriate status
+      if (!userAssessment && !baseCategory.required) {
+        baseCategory.status = locale === "th" ? "ยังไม่ได้ประเมิน" : "Not Assessed Yet"
+      }
+
+      return baseCategory
     })
   }
 
