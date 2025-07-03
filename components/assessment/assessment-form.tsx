@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from "lucide-react"
 import { QuestionCard } from "./question-card"
-import { getAssessmentCategories, guestAssessmentCategory } from "@/data/assessment-questions" // Import guestAssessmentCategory
+import { getAssessmentCategories } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
 import { useAuth } from "@/hooks/use-auth"
 import { useLanguage } from "@/contexts/language-context"
@@ -84,32 +84,12 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     }
 
     if (isLastQuestion) {
-      setIsSubmitting(true)
-
-      // --- START: Guest Assessment Specific Logic ---
-      if (categoryId === guestAssessmentCategory.id) {
-        try {
-          // For guest assessment, save to localStorage and redirect
-          localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(finalAnswersToSave))
-          console.log("✅ Guest Assessment: บันทึกคำตอบชั่วคราวใน localStorage")
-          router.push(`/guest-assessment/results`)
-        } catch (error) {
-          console.error("❌ Guest Assessment: การบันทึกใน localStorage ล้มเหลว:", error)
-          alert(t("assessment.save_failed").replace("{{message}}", String(error)))
-        } finally {
-          setIsSubmitting(false)
-        }
-        return // Exit function after handling guest assessment
-      }
-      // --- END: Guest Assessment Specific Logic ---
-
-      // Original logic for logged-in users (or non-guest assessments)
       if (!user?.id) {
         alert(t("assessment.not_logged_in"))
-        setIsSubmitting(false) // Ensure submitting state is reset
         return
       }
 
+      setIsSubmitting(true)
       console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
 
       try {
@@ -170,24 +150,16 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   }
 
   const getSubmitButtonText = () => {
-    // For guest assessment, the button text should always be "View Results"
-    if (categoryId === guestAssessmentCategory.id) {
-      return {
-        full: t("common.view_results"),
-        short: locale === "en" ? "View Results" : "ดูผล",
-      }
-    }
-    // For basic assessment, it's "Save Data and View Overview"
     if (categoryId === "basic") {
       return {
         full: locale === "en" ? "Save Data and View Overview" : "บันทึกข้อมูลและดูภาพรวม",
         short: locale === "en" ? "Save" : "บันทึก",
       }
-    }
-    // For other assessments, it's "View Results"
-    return {
-      full: t("common.view_results"),
-      short: locale === "en" ? "View Results" : "ดูผล",
+    } else {
+      return {
+        full: t("common.view_results"),
+        short: locale === "en" ? "View Results" : "ดูผล",
+      }
     }
   }
 
@@ -207,22 +179,15 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-2xl mb-2 dark:text-foreground">
-                    {typeof category.title === "string" ? category.title : category.title[locale]}
-                  </CardTitle>
-                  <p className="text-gray-600 dark:text-muted-foreground">
-                    {typeof category.description === "string" ? category.description : category.description[locale]}
-                  </p>
+                  <CardTitle className="text-2xl mb-2 dark:text-foreground">{category.title}</CardTitle>
+                  <p className="text-gray-600 dark:text-muted-foreground">{category.description}</p>
                 </div>
                 <div className="flex items-center space-x-4">
                   {category.required && <Badge className="bg-red-500 text-white">{t("common.required")}</Badge>}
                   <div className="flex items-center text-gray-500 dark:text-gray-400">
                     <Clock className="w-4 h-4 mr-1" />
                     <span className="text-sm">
-                      {typeof category.estimatedTime === "string"
-                        ? category.estimatedTime
-                        : category.estimatedTime[locale]}{" "}
-                      {t("common.estimated_time")}
+                      {category.estimatedTime} {t("common.estimated_time")}
                     </span>
                   </div>
                 </div>
