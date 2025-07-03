@@ -1,44 +1,44 @@
--- Drop existing table if exists
+-- Drop existing table if exists and create new bilingual assessments table
 DROP TABLE IF EXISTS public.assessments CASCADE;
 
--- Create new bilingual assessments table
+-- Create new assessments table with bilingual support
 CREATE TABLE public.assessments (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     category_id TEXT NOT NULL,
-    
-    -- Bilingual category titles
-    category_title_th TEXT,
-    category_title_en TEXT,
-    
-    -- Assessment data
-    answers JSONB NOT NULL,
+    category_title_th TEXT NOT NULL,
+    category_title_en TEXT NOT NULL,
     total_score INTEGER NOT NULL DEFAULT 0,
     max_score INTEGER NOT NULL DEFAULT 100,
-    percentage INTEGER NOT NULL DEFAULT 0,
-    risk_level TEXT NOT NULL CHECK (risk_level IN ('low', 'medium', 'high', 'very-high')),
+    percentage DECIMAL(5,2) NOT NULL DEFAULT 0,
+    risk_level TEXT NOT NULL CHECK (risk_level IN ('low', 'medium', 'high', 'very_high')),
     
-    -- Thai results
+    -- Bilingual risk factors (arrays)
     risk_factors_th TEXT[] DEFAULT '{}',
-    recommendations_th TEXT[] DEFAULT '{}',
-    summary_th TEXT DEFAULT '',
-    
-    -- English results
     risk_factors_en TEXT[] DEFAULT '{}',
+    
+    -- Bilingual recommendations (arrays)
+    recommendations_th TEXT[] DEFAULT '{}',
     recommendations_en TEXT[] DEFAULT '{}',
+    
+    -- Bilingual summaries
+    summary_th TEXT DEFAULT '',
     summary_en TEXT DEFAULT '',
     
+    -- Assessment answers (JSONB for flexibility)
+    answers JSONB DEFAULT '[]',
+    
     -- Timestamps
-    completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create indexes for better performance
 CREATE INDEX idx_assessments_user_id ON public.assessments(user_id);
 CREATE INDEX idx_assessments_category_id ON public.assessments(category_id);
 CREATE INDEX idx_assessments_user_category ON public.assessments(user_id, category_id);
-CREATE INDEX idx_assessments_completed_at ON public.assessments(completed_at DESC);
+CREATE INDEX idx_assessments_created_at ON public.assessments(created_at DESC);
 CREATE INDEX idx_assessments_risk_level ON public.assessments(risk_level);
 
 -- Enable Row Level Security
@@ -63,11 +63,11 @@ CREATE POLICY "Users can update their own assessments" ON public.assessments
 CREATE POLICY "Users can delete their own assessments" ON public.assessments
     FOR DELETE USING (auth.uid() = user_id);
 
--- Grant necessary permissions
+-- Grant permissions
 GRANT ALL ON public.assessments TO authenticated;
-GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT ALL ON public.assessments TO service_role;
 
--- Create trigger for updated_at
+-- Create updated_at trigger
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -82,50 +82,12 @@ CREATE TRIGGER update_assessments_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Verify table creation
-SELECT 
-    table_name,
-    column_name,
-    data_type,
-    is_nullable
-FROM information_schema.columns 
-WHERE table_name = 'assessments' 
-    AND table_schema = 'public'
-ORDER BY ordinal_position;
-
--- Test insert (optional)
--- INSERT INTO public.assessments (
---     user_id, 
---     category_id, 
---     category_title_th, 
---     category_title_en,
---     answers, 
---     total_score, 
---     max_score, 
---     percentage, 
---     risk_level,
---     risk_factors_th,
---     recommendations_th,
---     summary_th,
---     risk_factors_en,
---     recommendations_en,
---     summary_en
--- ) VALUES (
---     auth.uid(),
---     'test',
---     'ทดสอบ',
---     'Test',
---     '[]'::jsonb,
---     50,
---     100,
---     50,
---     'medium',
---     ARRAY['ปัจจัยเสี่ยงทดสอบ'],
---     ARRAY['คำแนะนำทดสอบ'],
---     'สรุปทดสอบ',
---     ARRAY['Test risk factor'],
---     ARRAY['Test recommendation'],
---     'Test summary'
--- );
-
-COMMENT ON TABLE public.assessments IS 'Bilingual health assessments with Thai and English results';
+-- Insert some test data to verify the structure
+-- This will be replaced by actual assessment data
+COMMENT ON TABLE public.assessments IS 'Bilingual assessments table with Thai and English support';
+COMMENT ON COLUMN public.assessments.risk_factors_th IS 'Risk factors in Thai language (array)';
+COMMENT ON COLUMN public.assessments.risk_factors_en IS 'Risk factors in English language (array)';
+COMMENT ON COLUMN public.assessments.recommendations_th IS 'Recommendations in Thai language (array)';
+COMMENT ON COLUMN public.assessments.recommendations_en IS 'Recommendations in English language (array)';
+COMMENT ON COLUMN public.assessments.summary_th IS 'Summary in Thai language';
+COMMENT ON COLUMN public.assessments.summary_en IS 'Summary in English language';
