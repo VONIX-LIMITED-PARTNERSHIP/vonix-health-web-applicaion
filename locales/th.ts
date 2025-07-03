@@ -276,6 +276,19 @@ const th = {
     score_label: "คะแนน",
     recommendations_label: "คำแนะนำ",
     no_risk_factors_found: "ไม่พบปัจจัยเสี่ยงที่สำคัญ",
+    // --- Health level labels -----------------
+    health_level_excellent: "ดีเยี่ยม",
+    health_level_very_good: "ดีมาก",
+    health_level_good: "ดี",
+    health_level_fair: "ปานกลาง",
+    health_level_poor: "แย่",
+    health_level_very_poor: "แย่มาก",
+    // Risk level translations
+    low_risk: "ความเสี่ยงต่ำ",
+    medium_risk: "ความเสี่ยงปานกลาง",
+    high_risk: "ความเสี่ยงสูง",
+    very_high_risk: "ความเสี่ยงสูงมาก",
+    unspecified_risk: "ไม่ระบุ",
   },
   assessment: {
     basic_info: "ข้อมูลพื้นฐาน",

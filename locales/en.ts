@@ -1,6 +1,6 @@
-export type Dictionary = typeof en
+import type { Dictionary } from "./th"
 
-const en = {
+const en: Dictionary = {
   common: {
     home: "Home",
     back: "Back",
@@ -279,60 +279,25 @@ const en = {
     score_label: "Score",
     recommendations_label: "Recommendations",
     no_risk_factors_found: "No significant risk factors found",
-  },
-  assessment: {
-    basic_info: "Basic Information",
-    basic_info_description: "General information about you",
-    heart_health: "Heart Health",
-    heart_health_description: "Assess cardiovascular disease risk",
-    nutrition: "Nutrition",
-    nutrition_description: "Assess eating habits and nutrition",
-    mental_health: "Mental Health",
-    mental_health_description: "Assess mental state and stress levels",
-    physical_activity: "Physical Activity",
-    physical_activity_description: "Assess exercise and physical activities",
-    sleep_health: "Sleep Health",
-    sleep_health_description: "Assess sleep quality and rest patterns",
-    question: "Question",
-    of: "of",
-    select_answer: "Select Answer",
-    other_specify: "Other (please specify)",
-    next_question: "Next Question",
-    previous_question: "Previous Question",
-    submit_assessment: "Submit Assessment",
-    submitting: "Submitting...",
-    assessment_submitted: "Assessment submitted successfully",
-    assessment_failed: "Assessment submission failed",
-    please_select_answer: "Please select an answer",
-    assessment_progress: "Progress",
-    results_title: "Assessment Results",
-    score: "Score",
-    summary: "Summary",
-    risk_factors: "Risk Factors",
-    recommendations: "Recommendations",
-    back_to_dashboard: "Back to Dashboard",
-    share_result: "Share Results",
-  },
-  risk_level: {
-    low: "Low Risk",
-    medium: "Medium Risk",
-    high: "High Risk",
-    very_high: "Very High Risk",
-    low_description: "Your health is in good condition. Continue maintaining good health behaviors.",
-    medium_description: "There are some risk factors. You should modify behaviors and monitor symptoms.",
-    high_description: "There are multiple risk factors. You should consult a doctor and seriously modify behaviors.",
-    very_high_description: "Very high risk. You should see a doctor immediately for examination and treatment.",
-  },
-  chatbot: {
-    title: "AI Doctor Consultation",
-    subtitle: "Ask health questions 24/7",
-    placeholder: "Type your question...",
-    send: "Send",
-    thinking: "Thinking...",
-    error_message: "Sorry, there was an error processing your request. Please try again.",
-    welcome_message: "Hello! I'm an AI doctor ready to provide health consultations. How can I help you?",
-    disclaimer:
-      "Advice from this AI doctor is for informational purposes only and cannot replace diagnosis from a real doctor. If you have severe symptoms or emergencies, please contact a doctor or hospital immediately.",
+    // Health level translations - เพิ่มส่วนนี้
+    health_level_excellent: "Excellent",
+    health_level_very_good: "Very Good",
+    health_level_good: "Good",
+    health_level_fair: "Fair",
+    health_level_poor: "Poor",
+    health_level_very_poor: "Very Poor",
+    // --- Health level labels -----------------
+    health_level_excellent: "Excellent",
+    health_level_very_good: "Very Good",
+    health_level_good: "Good",
+    health_level_fair: "Fair",
+    health_level_poor: "Poor",
+    health_level_very_poor: "Very Poor",
+    // Risk level translations
+    low_risk: "Low Risk",
+    medium_risk: "Medium Risk",
+    high_risk: "High Risk",
+    very_high_risk: "Very High Risk",
   },
 }
 

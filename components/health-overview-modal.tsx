@@ -24,6 +24,7 @@ import {
   CheckCircle,
   XCircle,
   Info,
+  X,
 } from "lucide-react"
 import { AssessmentService } from "@/lib/assessment-service"
 import { createClientComponentClient } from "@/lib/supabase"
@@ -34,7 +35,9 @@ import { getRiskLevelBadgeClass, getBilingualArray, getBilingualText } from "@/u
 
 interface HealthOverviewModalProps {
   isOpen: boolean
-  onClose: () => void
+  onOpenChange: (open: boolean) => void
+  targetAssessmentId?: string | null
+  onTargetAssessmentIdChange?: (id: string | null) => void
 }
 
 interface AssessmentData {
@@ -64,7 +67,12 @@ const categoryIcons = {
   sleep: Moon,
 }
 
-export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProps) {
+export function HealthOverviewModal({
+  isOpen,
+  onOpenChange,
+  targetAssessmentId,
+  onTargetAssessmentIdChange,
+}: HealthOverviewModalProps) {
   const { user } = useAuth()
   const { t } = useTranslation()
   const { locale } = useLanguage()
@@ -101,6 +109,24 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
     return null
   }
 
+  // Function to get only the latest assessment for each category
+  const getLatestAssessmentsByCategory = (allAssessments: AssessmentData[]): AssessmentData[] => {
+    const latestByCategory = new Map<string, AssessmentData>()
+
+    allAssessments.forEach((assessment) => {
+      const categoryId = assessment.category_id
+      const currentLatest = latestByCategory.get(categoryId)
+
+      if (!currentLatest || new Date(assessment.completed_at) > new Date(currentLatest.completed_at)) {
+        latestByCategory.set(categoryId, assessment)
+      }
+    })
+
+    return Array.from(latestByCategory.values()).sort(
+      (a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime(),
+    )
+  }
+
   useEffect(() => {
     if (isOpen && user?.id) {
       fetchHealthOverview()
@@ -126,7 +152,12 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
 
       if (data && data.length > 0) {
         console.log("✅ HealthOverview: โหลดข้อมูลสำเร็จ จำนวน:", data.length, "รายการ")
-        setAssessments(data)
+
+        // Get only the latest assessment for each category
+        const latestAssessments = getLatestAssessmentsByCategory(data)
+        console.log("📊 HealthOverview: การประเมินล่าสุดแต่ละประเภท:", latestAssessments.length, "รายการ")
+
+        setAssessments(latestAssessments)
       } else {
         console.log("ℹ️ HealthOverview: ไม่พบข้อมูลการประเมิน")
         setAssessments([])
@@ -190,7 +221,7 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
     })
   }
 
-  // Calculate dashboard statistics using bilingual data
+  // Calculate dashboard statistics using latest assessments only
   const calculateStats = () => {
     if (assessments.length === 0) {
       return {
@@ -227,14 +258,22 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
 
   if (!user) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{t("not_logged_in")}</DialogTitle>
             <DialogDescription>{t("login_to_view_health_overview")}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-center pt-4">
-            <Button onClick={onClose}>{t("close")}</Button>
+            <Button
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onOpenChange(false)
+              }}
+            >
+              {t("close")}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -242,14 +281,29 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-blue-600" />
-            {t("health_overview_modal_title")}
-          </DialogTitle>
-          <DialogDescription>{t("health_overview_modal_description")}</DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-blue-600" />
+                {t("health_overview_modal_title")}
+              </DialogTitle>
+              <DialogDescription>{t("health_overview_modal_description")}</DialogDescription>
+            </div>
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onOpenChange(false)
+              }}
+              className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </button>
+          </div>
         </DialogHeader>
 
         {loading ? (
@@ -440,7 +494,15 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
         )}
 
         <div className="flex justify-end pt-4 border-t">
-          <Button onClick={onClose}>{t("close")}</Button>
+          <Button
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onOpenChange(false)
+            }}
+          >
+            {t("close")}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
