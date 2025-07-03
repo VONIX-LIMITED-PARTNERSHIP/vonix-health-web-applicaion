@@ -62,21 +62,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUserProfile = useCallback(
     async (userId: string) => {
       if (!supabase) {
+        console.warn("loadUserProfile: Supabase client not available.")
         return
       }
       setIsProfileLoading(true)
       try {
+        console.log(`loadUserProfile: Attempting to fetch profile for user ${userId}.`)
         const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
         if (error) {
           if (error.code === "PGRST116") {
+            console.log(`loadUserProfile: Profile not found for user ${userId}. Attempting to create missing profile.`)
             await createMissingProfile(userId)
           } else {
+            console.error(`loadUserProfile: Database error fetching profile for user ${userId}:`, error.message)
             setProfile(null)
           }
           return
         }
+        console.log(`loadUserProfile: Profile loaded successfully for user ${userId}.`, data)
         setProfile(data || null)
       } catch (error) {
+        console.error(`loadUserProfile: Unexpected error fetching profile for user ${userId}:`, error)
         setProfile(null)
       } finally {
         setIsProfileLoading(false)
@@ -88,10 +94,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const createMissingProfile = useCallback(
     async (userId: string) => {
       if (!user) {
-        console.warn("createMissingProfile called without a user.")
+        console.warn("createMissingProfile called without a user object. Cannot create profile.")
         return
       }
-      console.log(`Attempting to create missing profile for user: ${userId}`)
+      console.log(`createMissingProfile: Attempting to create missing profile for user: ${userId} via API.`)
       try {
         const response = await fetch("/api/auth/create-profile", {
           method: "POST",
@@ -104,17 +110,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             pdpaConsent: user.user_metadata?.pdpa_consent || false,
           }),
         })
+        const responseData = await response.json()
         if (response.ok) {
-          const responseData = await response.json()
-          if (response.ok) {
-            console.log("Missing profile created successfully via API:", responseData)
-            await loadUserProfile(userId) // Reload profile after creation
-          } else {
-            console.error("Error creating missing profile via API:", response.status, responseData)
-          }
+          console.log("createMissingProfile: Missing profile created successfully via API:", responseData)
+          await loadUserProfile(userId) // Reload profile after successful creation
+        } else {
+          console.error(
+            "createMissingProfile: Error creating missing profile via API:",
+            response.status,
+            responseData.error || responseData,
+          )
         }
       } catch (profileError) {
-        console.error("Error during fetch to create missing profile API:", profileError)
+        console.error("createMissingProfile: Error during fetch to create missing profile API:", profileError)
       }
     },
     [user, loadUserProfile],
@@ -122,19 +130,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     if (user?.id) {
+      console.log(`refreshProfile: Refreshing profile for user ${user.id}.`)
       await loadUserProfile(user.id)
+    } else {
+      console.log("refreshProfile: No user ID found to refresh profile.")
     }
   }, [user, loadUserProfile])
 
   // Effect for initial session check and auth state changes
   useEffect(() => {
     if (!isSupabaseConfigured() || !supabase) {
+      console.warn("Auth Effect: Supabase not configured. Skipping auth initialization.")
       setIsAuthSessionLoading(false)
       setInitialized(true)
       return
     }
 
     let mounted = true
+    console.log("Auth Effect: Initializing Supabase auth listener.")
 
     const initializeAuth = async () => {
       setIsAuthSessionLoading(true)
@@ -147,19 +160,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!mounted) return
 
         if (error) {
+          console.error("Auth Effect: Error getting session:", error.message)
           if (error.message?.includes("invalid") || error.message?.includes("expired")) {
             clearAuthData()
           }
           setUser(null)
           setProfile(null)
         } else if (session?.user) {
+          console.log("Auth Effect: Initial session found for user:", session.user.id)
           setUser(session.user)
           // Profile loading will be handled by the separate useEffect below
         } else {
+          console.log("Auth Effect: No initial session found.")
           setUser(null)
           setProfile(null)
         }
       } catch (err) {
+        console.error("Auth Effect: Unexpected error during initial session check:", err)
         if (err instanceof Error && (err.message?.includes("invalid") || err.message?.includes("expired"))) {
           clearAuthData()
         }
@@ -181,22 +198,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
+      console.log("Auth State Change Event:", event, "User ID:", session?.user?.id)
 
       if (event === "SIGNED_OUT" || (event === "TOKEN_REFRESHED" && !session)) {
+        console.log("Auth State Change: User signed out or token refreshed without session.")
         clearAuthData()
         setUser(null)
         setProfile(null)
         setIsAuthSessionLoading(false)
         if (typeof window !== "undefined" && event === "SIGNED_OUT") {
-          window.location.href = "/"
+          window.location.href = "/" // Redirect to home on sign out
         }
       } else if (event === "SIGNED_IN" && session?.user) {
+        console.log("Auth State Change: User signed in.", session.user.id)
         setUser(session.user)
         setIsAuthSessionLoading(false)
       } else if (session?.user) {
+        console.log("Auth State Change: Session user updated.", session.user.id)
         setUser(session.user)
         setIsAuthSessionLoading(false)
       } else if (event === "INITIAL_SESSION" && !session) {
+        console.log("Auth State Change: Initial session, no user.")
         setUser(null)
         setProfile(null)
         setIsAuthSessionLoading(false)
@@ -205,6 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false
+      console.log("Auth Effect: Unsubscribing from auth state changes.")
       subscription.unsubscribe()
     }
   }, [supabase, initialized, clearAuthData])
@@ -212,8 +235,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Effect for loading user profile when user state changes
   useEffect(() => {
     if (user?.id) {
+      console.log(`Profile Effect: User ID changed to ${user.id}. Loading profile...`)
       loadUserProfile(user.id)
     } else {
+      console.log("Profile Effect: No user ID, clearing profile.")
       setProfile(null)
       setIsProfileLoading(false)
     }
@@ -221,16 +246,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     if (!supabase) {
+      console.error("signIn: Supabase not configured.")
       return { error: new Error("Supabase not configured") }
     }
     try {
       setIsAuthSessionLoading(true)
+      console.log(`signIn: Attempting to sign in user ${email}.`)
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
+        console.error("signIn: Error during sign in:", error.message)
         return { data, error }
       }
+      console.log("signIn: User signed in successfully.")
       return { data, error: null }
     } catch (error) {
+      console.error("signIn: Unexpected error during sign in:", error)
       return { error }
     } finally {
       setIsAuthSessionLoading(false)
@@ -239,20 +269,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     if (!supabase) {
+      console.error("signUp: Supabase not configured.")
       return { error: new Error("Supabase not configured") }
     }
     try {
       setIsAuthSessionLoading(true)
+      console.log(`signUp: Attempting to sign up user ${email}.`)
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: metadata },
       })
       if (error) {
+        console.error("signUp: Error during sign up:", error.message)
         return { data, error }
       }
+      console.log("signUp: User signed up successfully. Check email for confirmation.")
       return { data, error: null }
     } catch (error) {
+      console.error("signUp: Unexpected error during sign up:", error)
       return { error }
     } finally {
       setIsAuthSessionLoading(false)
@@ -261,16 +296,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     if (!supabase) {
+      console.error("signOut: Supabase not configured.")
       return
     }
     try {
       setIsAuthSessionLoading(true)
+      console.log("signOut: Attempting to sign out user.")
       const { error } = await supabase.auth.signOut()
       if (error) {
-        // console.error("Error signing out:", error);
+        console.error("signOut: Error signing out:", error.message)
+      } else {
+        console.log("signOut: User signed out successfully.")
       }
     } catch (error) {
-      // console.error("Unexpected error during sign out:", error);
+      console.error("signOut: Unexpected error during sign out:", error)
     } finally {
       setIsAuthSessionLoading(false)
     }
@@ -278,18 +317,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPasswordForEmail = async (email: string) => {
     if (!supabase) {
+      console.error("resetPasswordForEmail: Supabase not configured.")
       return { error: new Error("Supabase not configured") }
     }
     try {
       setIsAuthSessionLoading(true)
+      console.log(`resetPasswordForEmail: Sending password reset email to ${email}.`)
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/update-password`,
       })
       if (error) {
+        console.error("resetPasswordForEmail: Error sending reset email:", error.message)
         return { data, error }
       }
+      console.log("resetPasswordForEmail: Password reset email sent successfully.")
       return { data, error: null }
     } catch (error: any) {
+      console.error("resetPasswordForEmail: Unexpected error:", error)
       return { error: new Error(error.message || "An unexpected error occurred") }
     } finally {
       setIsAuthSessionLoading(false)
@@ -298,10 +342,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updatePassword = async (newPassword: string) => {
     if (!supabase) {
+      console.error("updatePassword: Supabase not configured.")
       return { error: new Error("Supabase not configured") }
     }
     try {
       setIsAuthSessionLoading(true)
+      console.log("updatePassword: Attempting to update user password.")
 
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Password update request timed out after 15 seconds.")), 15000),
@@ -310,10 +356,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await Promise.race([supabase.auth.updateUser({ password: newPassword }), timeoutPromise])
 
       if (error) {
+        console.error("updatePassword: Error updating password:", error.message)
         return { data, error }
       }
+      console.log("updatePassword: Password updated successfully.")
       return { data, error: null }
     } catch (error: any) {
+      console.error("updatePassword: Unexpected error during password update:", error)
       return { error: new Error(error.message || "An unexpected error occurred during password update.") }
     } finally {
       setIsAuthSessionLoading(false)
