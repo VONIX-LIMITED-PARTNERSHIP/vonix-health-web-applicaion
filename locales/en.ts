@@ -137,7 +137,7 @@ const en: Dictionary = {
     assessment_results: "Assessment Results",
     this_data_not_saved: "This data is not saved",
     assessment_date: "Assessment Date",
-    ai_summary: "AI Analysis Summary",
+    ai_summary: "AI Summary",
     overall_risk_level: "Overall Risk Level",
     score: "Score",
     questions_answered: "Questions Answered",
@@ -279,6 +279,8 @@ const en: Dictionary = {
     score_label: "Score",
     recommendations_label: "Recommendations",
     no_risk_factors_found: "No significant risk factors found",
+    unauthorized_access: "Unauthorized access. Please log in.",
+    assessment_not_found_or_unauthorized: "Assessment not found or you do not have permission to view it.",
     // --- Health level labels -----------------
     health_level_excellent: "Excellent",
     health_level_very_good: "Very Good",

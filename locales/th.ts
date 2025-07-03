@@ -3,7 +3,7 @@ export type Dictionary = typeof th
 const th = {
   common: {
     home: "หน้าหลัก",
-    back: "กลับ",
+    back: "ย้อนกลับ",
     login: "เข้าสู่ระบบ",
     register: "สมัครสมาชิก",
     start_free: "เริ่มต้นฟรี",
@@ -11,7 +11,7 @@ const th = {
     cancel: "ยกเลิก",
     save: "บันทึก",
     loading: "กำลังโหลด...",
-    error: "เกิดข้อผิดพลาด",
+    error: "ข้อผิดพลาด",
     success: "สำเร็จ",
     next: "ถัดไป",
     previous: "ก่อนหน้า",
@@ -235,7 +235,7 @@ const th = {
     contact_info: "10. การติดต่อ",
     contact_info_desc:
       "หากคุณมีคำถามเกี่ยวกับนโยบายความเป็นส่วนตัวนี้หรือต้องการใช้สิทธิของคุณ โปรดติดต่อเราที่ info@vonix.co.th หรือโทรศัพท์ 02-123-4567",
-    effective_date: "นโยบายนี้มีผลบังคับใช้ตั้งแต่วันที่ 1 มกราคม 2567",
+    effective_date: "นโยบายความเป็นส่วนตัวนี้มีผลบังคับใช้ตั้งแต่วันที่ 1 มกราคม 2567",
     profile_title: "โปรไฟล์ของฉัน",
     profile_description: "จัดการข้อมูลส่วนตัวและการตั้งค่าบัญชีของคุณ",
     personal_information: "ข้อมูลส่วนตัว",
@@ -300,6 +300,8 @@ const th = {
     step_3_wait_for_contact_desc: "แพทย์จะติดต่อกลับภายใน 24 ชั่วโมง",
     understood: "เข้าใจแล้ว",
     profile_link_text: "โปรไฟล์", // Added this key
+    unauthorized_access: "ไม่ได้รับอนุญาตให้เข้าถึง กรุณาเข้าสู่ระบบ",
+    assessment_not_found_or_unauthorized: "ไม่พบผลการประเมินหรือคุณไม่มีสิทธิ์เข้าถึง",
   },
   assessment: {
     basic_info: "ข้อมูลพื้นฐาน",
@@ -355,6 +357,6 @@ const th = {
     disclaimer:
       "คำแนะนำจากแพทย์ AI นี้เป็นเพียงข้อมูลเบื้องต้นเท่านั้น ไม่สามารถใช้แทนการตรวจวินิจฉัยจากแพทย์จริงได้ หากมีอาการรุนแรงหรือเป็นเหตุฉุกเฉิน กรุณาติดต่อแพทย์หรือโรงพยาบาลทันที",
   },
-}
+} as const
 
 export default th

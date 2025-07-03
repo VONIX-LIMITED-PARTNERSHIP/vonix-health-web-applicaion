@@ -54,7 +54,7 @@ interface AssessmentResultsPageProps {
 export default function AssessmentResultsPage({ params }: AssessmentResultsPageProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, loading: userLoading } = useAuth() // Get user and userLoading state
   const { locale } = useLanguage()
   const { t } = useTranslation(["common"])
   const supabase = createClientComponentClient()
@@ -68,6 +68,19 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
 
   useEffect(() => {
     const fetchAssessment = async () => {
+      if (userLoading) {
+        // Wait for user authentication state to be resolved
+        return
+      }
+
+      if (!user) {
+        // User is not logged in, redirect to login or show unauthorized error
+        setError(t("unauthorized_access"))
+        setLoading(false)
+        router.push("/login") // Redirect to login page
+        return
+      }
+
       if (!assessmentId) {
         setError("Assessment ID not provided")
         setLoading(false)
@@ -75,43 +88,26 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
       }
 
       try {
-        console.log("🔍 ResultsPage: กำลังโหลดข้อมูลแบบประเมิน รหัส:", assessmentId)
-
-        const { data, error } = await AssessmentService.getAssessmentById(supabase, assessmentId)
+        // Pass user.id to ensure only owned assessments are fetched
+        const { data, error } = await AssessmentService.getAssessmentById(supabase, assessmentId, user.id)
 
         if (error) {
-          console.error("❌ ResultsPage: เกิดข้อผิดพลาดในการโหลดข้อมูล:", error)
           setError(error)
         } else if (data) {
-          console.log("✅ ResultsPage: โหลดข้อมูลแบบประเมินสำเร็จ รหัส:", data.id)
-
-          // Log detailed assessment data for debugging
-          console.log("📊 ResultsPage: โหลดข้อมูลแบบประเมินสำเร็จ:")
-          console.log("  - รหัส:", data.id)
-          console.log("  - หมวดหมู่:", data.category_id)
-          console.log("  - ชื่อ:", data.category_title)
-          console.log("  - คะแนน:", data.percentage + "%")
-          console.log("  - ระดับความเสี่ยง:", data.risk_level)
-          console.log("  - จำนวนคำตอบ:", Array.isArray(data.answers) ? data.answers.length : "ไม่ทราบ")
-          console.log("  - เสร็จสิ้นเมื่อ:", data.completed_at)
-          console.log("  - มี AI Analysis:", data.ai_analysis ? "ใช่" : "ไม่")
-
           setAssessment(data)
         } else {
-          console.warn("⚠️ ResultsPage: ไม่พบข้อมูลแบบประเมิน")
-          setError("Assessment not found")
+          // If data is null, it means assessment not found or not owned by user
+          setError(t("assessment_not_found_or_unauthorized"))
         }
       } catch (err) {
-        console.error("❌ ResultsPage: เกิดข้อผิดพลาดที่ไม่คาดคิด:", err)
         setError("Failed to load assessment results")
       } finally {
-        console.log("📊 ResultsPage: เสร็จสิ้นการโหลดผลการประเมิน")
         setLoading(false)
       }
     }
 
     fetchAssessment()
-  }, [assessmentId, supabase])
+  }, [assessmentId, supabase, user, userLoading, router, t]) // Add user and userLoading to dependencies
 
   const handleBack = () => {
     router.push("/")
@@ -126,7 +122,7 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
           url: window.location.href,
         })
       } catch (err) {
-        console.log("Error sharing:", err)
+        // Error sharing, e.g., user cancelled
       }
     } else {
       // Fallback: copy to clipboard
@@ -135,7 +131,7 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
     }
   }
 
-  if (loading) {
+  if (loading || userLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

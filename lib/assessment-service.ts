@@ -62,7 +62,7 @@ export class AssessmentService {
   ): Promise<{ data: any; error: any }> {
     try {
       if (!userId) {
-        throw new new Error("User not authenticated")()
+        throw new Error("User not authenticated")
       }
 
       if (!Array.isArray(answers) || answers.length === 0) {
@@ -119,7 +119,7 @@ export class AssessmentService {
         category_title: categoryTitle,
         answers: answers, // Supabase will handle JSONB conversion
         total_score: Math.round(result.totalScore),
-        max_score: Math.round(result.maxScore),
+        max_score: Math.round(result.percentage), // Use percentage as total score for consistency with AI analysis
         percentage: Math.round(result.percentage),
         risk_level: result.riskLevel,
         risk_factors: riskFactorsForDb, // Direct array, Supabase handles JSONB
@@ -196,15 +196,28 @@ export class AssessmentService {
   static async getAssessmentById(
     supabaseClient: SupabaseClient,
     assessmentId: string,
+    userId: string, // Add userId parameter
   ): Promise<{ data: any; error: any }> {
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
       }
+      if (!userId) {
+        throw new Error("User ID is required for fetching assessment by ID.")
+      }
 
-      const { data, error } = await supabaseClient.from("assessments").select("*").eq("id", assessmentId).single()
+      const { data, error } = await supabaseClient
+        .from("assessments")
+        .select("*")
+        .eq("id", assessmentId)
+        .eq("user_id", userId) // Crucial: Filter by user_id
+        .single()
 
       if (error) {
+        // If error.code is 'PGRST116' (No rows found), it means no assessment for this ID and user
+        if (error.code === "PGRST116") {
+          return { data: null, error: "Assessment not found or you do not have permission to view it." }
+        }
         throw error
       }
 
