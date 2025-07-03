@@ -73,6 +73,7 @@ export function ConsultDoctorIntroModal({ isOpen, onOpenChange, onProceed }: Con
           <Button
             onClick={handleUnderstood}
             className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg"
+            disabled
           >
             <CheckCircle className="mr-2 h-4 w-4" />
             {t("understood")}
