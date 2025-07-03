@@ -554,7 +554,6 @@ const en: Dictionary = {
     health_level_fair: "Fair",
     health_level_poor: "Poor",
     health_level_very_poor: "Very Poor",
-    language: "Language",
     theme: "Theme",
     light: "Light",
     dark: "Dark",
@@ -693,6 +692,48 @@ const en: Dictionary = {
     ai_analysis_failed: "AI analysis failed: {{message}}",
     save_failed: "Failed to save assessment: {{message}}",
     not_logged_in_redirect: "Not authenticated, redirecting to login.",
+    disclaimer: "Disclaimer",
+    assessmentDisclaimer:
+      "This assessment result is preliminary information only and cannot replace medical diagnosis. If you have any concerns or worrying symptoms, it is recommended to consult a doctor or specialist for appropriate examination and treatment.",
+  },
+  navigation: {
+    home: "Home",
+    assessments: "Assessments",
+    profile: "Profile",
+    settings: "Settings",
+    logout: "Logout",
+    login: "Login",
+    register: "Register",
+  },
+  assessmentCategories: {
+    basicInfo: "Personal Information",
+    heartHealth: "Heart and Blood Vessels",
+    nutrition: "Lifestyle and Nutrition",
+    mentalHealth: "Mental Health",
+    physicalHealth: "Physical Health",
+    sleepQuality: "Sleep Quality",
+    guestAssessment: "Basic Health Assessment",
+  },
+  time: {
+    minutes: "minutes",
+    estimatedTime: "Estimated time",
+  },
+  questions: {
+    required: "Required",
+    optional: "Optional",
+    selectOption: "Select option",
+    selectMultiple: "Select multiple",
+    enterText: "Enter text",
+  },
+  assessmentStatus: {
+    notStarted: "Not Started",
+    inProgress: "In Progress",
+    completed: "Completed",
+  },
+  language: {
+    language: "Language",
+    thai: "Thai",
+    english: "English",
   },
 }
 

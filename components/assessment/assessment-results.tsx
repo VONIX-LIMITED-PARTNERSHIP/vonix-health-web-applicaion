@@ -20,20 +20,43 @@ import {
   Share2,
   RefreshCw,
 } from "lucide-react"
-import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
+import type { AssessmentAnswer, AssessmentResult, BilingualArray, BilingualText } from "@/types/assessment"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
+import { useLanguage } from "@/contexts/language-context"
 
 interface AssessmentResultsProps {
   categoryId: string
   assessmentResult: AssessmentResult
   answers: AssessmentAnswer[]
-  aiAnalysis?: any
+  aiAnalysis?: {
+    riskLevel: string
+    riskFactors: BilingualArray
+    recommendations: BilingualArray
+    summary: BilingualText
+    score: number
+  }
 }
 
 export function AssessmentResults({ categoryId, assessmentResult, answers, aiAnalysis }: AssessmentResultsProps) {
   const router = useRouter()
   const [showDetails, setShowDetails] = useState(false)
   const { getRiskLevelLabel, getRiskLevelDescription } = useRiskLevelTranslation()
+  const { locale } = useLanguage()
+
+  // Helper function to get text based on current language
+  const getLocalizedText = (text: BilingualArray | string[]): string[] => {
+    if (Array.isArray(text)) {
+      return text // Legacy format
+    }
+    return text[locale] || text.th || []
+  }
+
+  const getLocalizedSummary = (summary: BilingualText | string): string => {
+    if (typeof summary === "string") {
+      return summary // Legacy format
+    }
+    return summary[locale] || summary.th || ""
+  }
 
   const getRiskLevelInfo = (riskLevel: string) => {
     const label = getRiskLevelLabel(riskLevel)
@@ -93,26 +116,99 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
     }
   }
 
-  const riskInfo = getRiskLevelInfo(assessmentResult.riskLevel)
+  // Use AI analysis if available, otherwise fall back to assessment result
+  const displayRiskLevel = aiAnalysis?.riskLevel || assessmentResult.riskLevel
+  const displayRiskFactors = aiAnalysis
+    ? getLocalizedText(aiAnalysis.riskFactors)
+    : getLocalizedText(assessmentResult.riskFactors)
+  const displayRecommendations = aiAnalysis
+    ? getLocalizedText(aiAnalysis.recommendations)
+    : getLocalizedText(assessmentResult.recommendations)
+  const displaySummary = aiAnalysis ? getLocalizedSummary(aiAnalysis.summary) : ""
+
+  const riskInfo = getRiskLevelInfo(displayRiskLevel)
   const RiskIcon = riskInfo.icon
 
   // แปลงชื่อหมวดหมู่
   const getCategoryTitle = (categoryId: string) => {
-    switch (categoryId) {
-      case "basic":
-        return "ข้อมูลส่วนตัว"
-      case "mental":
-        return "สุขภาพจิต"
-      case "physical":
-        return "สุขภาพกาย"
-      case "lifestyle":
-        return "วิถีชีวิต"
-      default:
-        return "แบบประเมิน"
+    const titles = {
+      th: {
+        basic: "ข้อมูลส่วนตัว",
+        heart: "หัวใจและหลอดเลือด",
+        nutrition: "ไลฟ์สไตล์และโภชนาการ",
+        mental: "สุขภาพจิต",
+        physical: "สุขภาพกาย",
+        sleep: "คุณภาพการนอน",
+        "guest-assessment": "ประเมินสุขภาพเบื้องต้น",
+      },
+      en: {
+        basic: "Personal Information",
+        heart: "Heart and Blood Vessels",
+        nutrition: "Lifestyle and Nutrition",
+        mental: "Mental Health",
+        physical: "Physical Health",
+        sleep: "Sleep Quality",
+        "guest-assessment": "Basic Health Assessment",
+      },
     }
+    return (
+      titles[locale][categoryId as keyof typeof titles.th] ||
+      titles.th[categoryId as keyof typeof titles.th] ||
+      "Assessment"
+    )
   }
 
   const categoryTitle = getCategoryTitle(categoryId)
+
+  const getUIText = (key: string) => {
+    const texts = {
+      th: {
+        backToHome: "กลับหน้าหลัก",
+        shareResults: "แชร์ผลลัพธ์",
+        downloadPDF: "ดาวน์โหลด PDF",
+        assessmentResults: "ผลการประเมิน",
+        riskFactorsFound: "ปัจจัยเสี่ยงที่พบ",
+        recommendations: "คำแนะนำ",
+        assessmentDate: "วันที่ทำแบบประเมิน",
+        numberOfQuestions: "จำนวนคำถาม",
+        questions: "ข้อ",
+        retakeAssessment: "ทำแบบประเมินใหม่",
+        viewDetails: "ดูรายละเอียดคำตอบ",
+        hideDetails: "ซ่อนรายละเอียด",
+        answerDetails: "รายละเอียดคำตอบ",
+        question: "คำถามที่",
+        answer: "คำตอบ",
+        score: "คะแนน",
+        note: "หมายเหตุ",
+        disclaimer:
+          "ผลการประเมินนี้เป็นเพียงข้อมูลเบื้องต้นเท่านั้น ไม่สามารถใช้แทนการวินิจฉัยทางการแพทย์ได้ หากมีข้อสงสัยหรือมีอาการที่น่ากังวล แนะนำให้ปรึกษาแพทย์หรือผู้เชี่ยวชาญเพื่อการตรวจสอบและรักษาที่เหมาะสม",
+        summary: "สรุปผลการประเมิน",
+      },
+      en: {
+        backToHome: "Back to Home",
+        shareResults: "Share Results",
+        downloadPDF: "Download PDF",
+        assessmentResults: "Assessment Results",
+        riskFactorsFound: "Risk Factors Found",
+        recommendations: "Recommendations",
+        assessmentDate: "Assessment Date",
+        numberOfQuestions: "Number of Questions",
+        questions: "questions",
+        retakeAssessment: "Retake Assessment",
+        viewDetails: "View Answer Details",
+        hideDetails: "Hide Details",
+        answerDetails: "Answer Details",
+        question: "Question",
+        answer: "Answer",
+        score: "Score",
+        note: "Note",
+        disclaimer:
+          "This assessment result is preliminary information only and cannot replace medical diagnosis. If you have any concerns or worrying symptoms, it is recommended to consult a doctor or specialist for appropriate examination and treatment.",
+        summary: "Assessment Summary",
+      },
+    }
+    return texts[locale][key as keyof typeof texts.th] || texts.th[key as keyof typeof texts.th] || key
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
@@ -121,16 +217,16 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => router.push("/")} className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
-            กลับหน้าหลัก
+            {getUIText("backToHome")}
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
               <Share2 className="h-4 w-4 mr-2" />
-              แชร์ผลลัพธ์
+              {getUIText("shareResults")}
             </Button>
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
-              ดาวน์โหลด PDF
+              {getUIText("downloadPDF")}
             </Button>
           </div>
         </div>
@@ -143,7 +239,10 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
                 <RiskIcon className={`h-12 w-12 ${riskInfo.color}`} />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-800">ผลการประเมิน{categoryTitle}</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-800">
+              {getUIText("assessmentResults")}
+              {categoryTitle}
+            </CardTitle>
             <p className="text-gray-600">{riskInfo.description}</p>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -155,29 +254,40 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
               </Badge>
 
               {/* แสดงจำนวนปัจจัยเสี่ยงที่พบ */}
-              {assessmentResult.riskFactors && assessmentResult.riskFactors.length > 0 && (
+              {displayRiskFactors && displayRiskFactors.length > 0 && (
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600 mb-1">{assessmentResult.riskFactors.length}</div>
-                  <div className="text-sm text-gray-600">ปัจจัยเสี่ยงที่พบ</div>
+                  <div className="text-2xl font-bold text-orange-600 mb-1">{displayRiskFactors.length}</div>
+                  <div className="text-sm text-gray-600">{getUIText("riskFactorsFound")}</div>
                 </div>
               )}
             </div>
 
             <Separator />
 
+            {/* AI Summary */}
+            {displaySummary && (
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-500" />
+                  {getUIText("summary")}
+                </h3>
+                <p className="text-sm text-gray-700 leading-relaxed">{displaySummary}</p>
+              </div>
+            )}
+
             {/* ปัจจัยเสี่ยงและคำแนะนำ */}
-            {(assessmentResult.riskFactors?.length > 0 || assessmentResult.recommendations?.length > 0) && (
+            {(displayRiskFactors?.length > 0 || displayRecommendations?.length > 0) && (
               <div className="grid md:grid-cols-2 gap-6">
                 {/* ปัจจัยเสี่ยง */}
-                {assessmentResult.riskFactors?.length > 0 && (
+                {displayRiskFactors?.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                       <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                      ปัจจัยเสี่ยงที่พบ
+                      {getUIText("riskFactorsFound")}
                     </h3>
                     <ScrollArea className="h-32">
                       <ul className="space-y-2">
-                        {assessmentResult.riskFactors.map((factor, index) => (
+                        {displayRiskFactors.map((factor, index) => (
                           <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
                             <span className="text-yellow-500 mt-1">•</span>
                             {factor}
@@ -189,15 +299,15 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
                 )}
 
                 {/* คำแนะนำ */}
-                {assessmentResult.recommendations?.length > 0 && (
+                {displayRecommendations?.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                       <TrendingUp className="h-5 w-5 text-blue-500" />
-                      คำแนะนำ
+                      {getUIText("recommendations")}
                     </h3>
                     <ScrollArea className="h-32">
                       <ul className="space-y-2">
-                        {assessmentResult.recommendations.map((recommendation, index) => (
+                        {displayRecommendations.map((recommendation, index) => (
                           <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
                             <span className="text-blue-500 mt-1">•</span>
                             {recommendation}
@@ -215,29 +325,32 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600 flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  วันที่ทำแบบประเมิน
+                  {getUIText("assessmentDate")}
                 </span>
-                <span className="font-medium">{new Date().toLocaleDateString("th-TH")}</span>
+                <span className="font-medium">
+                  {new Date().toLocaleDateString(locale === "th" ? "th-TH" : "en-US")}
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600 flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  จำนวนคำถาม
+                  {getUIText("numberOfQuestions")}
                 </span>
-                <span className="font-medium">{answers.length} ข้อ</span>
+                <span className="font-medium">
+                  {answers.length} {getUIText("questions")}
+                </span>
               </div>
-              {/* เอาการแสดงคะแนนออก */}
             </div>
 
             {/* ปุ่มดำเนินการ */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button onClick={() => router.push(`/assessment/${categoryId}`)} className="flex-1">
                 <RefreshCw className="h-4 w-4 mr-2" />
-                ทำแบบประเมินใหม่
+                {getUIText("retakeAssessment")}
               </Button>
               <Button variant="outline" onClick={() => setShowDetails(!showDetails)} className="flex-1">
                 <FileText className="h-4 w-4 mr-2" />
-                {showDetails ? "ซ่อนรายละเอียด" : "ดูรายละเอียดคำตอบ"}
+                {showDetails ? getUIText("hideDetails") : getUIText("viewDetails")}
               </Button>
             </div>
 
@@ -245,19 +358,22 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
             {showDetails && answers.length > 0 && (
               <div className="mt-6 space-y-4">
                 <Separator />
-                <h3 className="font-semibold text-gray-800">รายละเอียดคำตอบ</h3>
+                <h3 className="font-semibold text-gray-800">{getUIText("answerDetails")}</h3>
                 <ScrollArea className="h-64">
                   <div className="space-y-3">
                     {answers.map((answer, index) => (
                       <div key={answer.questionId} className="bg-gray-50 rounded-lg p-3">
                         <div className="text-sm font-medium text-gray-800 mb-1">
-                          คำถามที่ {index + 1}: {answer.questionId}
+                          {getUIText("question")} {index + 1}: {answer.questionId}
                         </div>
                         <div className="text-sm text-gray-600">
-                          คำตอบ: {Array.isArray(answer.value) ? answer.value.join(", ") : answer.value}
+                          {getUIText("answer")}:{" "}
+                          {Array.isArray(answer.answer) ? answer.answer.join(", ") : answer.answer}
                         </div>
                         {answer.score !== undefined && (
-                          <div className="text-xs text-gray-500 mt-1">คะแนน: {answer.score}</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {getUIText("score")}: {answer.score}
+                          </div>
                         )}
                       </div>
                     ))}
@@ -272,8 +388,7 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            <strong>หมายเหตุ:</strong> ผลการประเมินนี้เป็นเพียงข้อมูลเบื้องต้นเท่านั้น ไม่สามารถใช้แทนการวินิจฉัยทางการแพทย์ได้
-            หากมีข้อสงสัยหรือมีอาการที่น่ากังวล แนะนำให้ปรึกษาแพทย์หรือผู้เชี่ยวชาญเพื่อการตรวจสอบและรักษาที่เหมาะสม
+            <strong>{getUIText("note")}:</strong> {getUIText("disclaimer")}
           </AlertDescription>
         </Alert>
       </div>

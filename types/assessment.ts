@@ -31,14 +31,36 @@ export type AssessmentAnswer = {
   isValid: boolean // เพิ่ม property นี้เพื่อเก็บสถานะความถูกต้อง
 }
 
+// Bilingual text types
+export type BilingualText = {
+  th: string
+  en: string
+}
+
+export type BilingualArray = {
+  th: string[]
+  en: string[]
+}
+
+// Updated AssessmentResult interface with bilingual support
 export interface AssessmentResult {
   categoryId: string
   totalScore: number
   maxScore: number
   percentage: number
   riskLevel: "low" | "medium" | "high" | "very-high"
-  recommendations: string[]
-  riskFactors: string[]
+  recommendations: BilingualArray
+  riskFactors: BilingualArray
+  summary?: BilingualText
+}
+
+// AI Analysis result type
+export interface AIAnalysisResult {
+  riskLevel: "low" | "medium" | "high" | "very-high"
+  riskFactors: BilingualArray
+  recommendations: BilingualArray
+  summary: BilingualText
+  score: number
 }
 
 // Guest assessment (for non-logged-in users)
@@ -119,7 +141,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
       id: "guest_q7",
       type: "multiple-choice",
       question: "ความดันโลหิตของคุณเป็นอย่างไร?",
-      options: ["ปกติ (น้อยกว่า 120/80)", "สูงเล็กน���อย (120-139/80-89)", "สูง (140/90 ขึ้นไป)", "ไม่ทราบ"],
+      options: ["ปกติ (น้อยกว่า 120/80)", "สูงเล็กน้อย (120-139/80-89)", "สูง (140/90 ขึ้นไป)", "ไม่ทราบ"],
       required: true,
       category: "guest",
       weight: 4,
