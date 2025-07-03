@@ -117,25 +117,33 @@ export class AssessmentService {
       console.log("🔍 AssessmentService: Data to save:", {
         riskFactorsForDb,
         recommendationsForDb,
-        aiAnalysis: aiAnalysis ? "present" : "null",
+        riskFactorsType: typeof riskFactorsForDb,
+        recommendationsType: typeof recommendationsForDb,
+        isRiskFactorsArray: Array.isArray(riskFactorsForDb),
+        isRecommendationsArray: Array.isArray(recommendationsForDb),
       })
 
-      // เตรียมข้อมูลสำหรับบันทึก
+      // เตรียมข้อมูลสำหรับบันทึก - ใช้ JSONB arrays โดยตรง
       const assessmentData = {
         user_id: userId,
         category_id: categoryId,
         category_title: categoryTitle,
-        answers: answers,
+        answers: answers, // Supabase will handle JSONB conversion
         total_score: Math.round(result.totalScore),
         max_score: Math.round(result.maxScore),
         percentage: Math.round(result.percentage),
         risk_level: result.riskLevel,
-        risk_factors: riskFactorsForDb,
-        recommendations: recommendationsForDb,
+        risk_factors: riskFactorsForDb, // Direct array, Supabase handles JSONB
+        recommendations: recommendationsForDb, // Direct array, Supabase handles JSONB
         completed_at: new Date().toISOString(),
-        // Store full bilingual data in a separate field for future use
-        ai_analysis: aiAnalysis || null,
+        ai_analysis: aiAnalysis || null, // Store full bilingual data
       }
+
+      console.log("💾 AssessmentService: Final data structure:", {
+        risk_factors: assessmentData.risk_factors,
+        recommendations: assessmentData.recommendations,
+        ai_analysis: assessmentData.ai_analysis ? "present" : "null",
+      })
 
       console.log("💾 AssessmentService: Inserting assessment data to Supabase...")
       const { data: insertedData, error } = await supabaseClient
