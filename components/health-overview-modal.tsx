@@ -35,7 +35,8 @@ import { useTranslation } from "@/hooks/use-translation"
 import { AssessmentService } from "@/lib/assessment-service"
 import { isSupabaseConfigured, createClientComponentClient } from "@/lib/supabase"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
-import { getRiskLevelBadgeClass } from "@/utils/risk-level"
+import { getRiskLevelBadgeClass, getBilingualArray, getBilingualText } from "@/utils/risk-level"
+import { useLanguage } from "@/contexts/language-context"
 
 interface HealthOverviewModalProps {
   isOpen: boolean
@@ -63,6 +64,7 @@ export function HealthOverviewModal({
 }: HealthOverviewModalProps) {
   const { t } = useTranslation(["common"])
   const { user, loading: authLoading } = useAuth()
+  const { locale } = useLanguage()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -222,6 +224,34 @@ export function HealthOverviewModal({
      Helpers
   ──────────────────────────────────────────────────────────────────── */
 
+  // Helper functions to get bilingual data
+  const getSafeRiskFactors = (assessment: any): string[] => {
+    // First try to get from AI analysis with current language
+    if (assessment.ai_analysis?.riskFactors) {
+      return getBilingualArray(assessment.ai_analysis.riskFactors, locale)
+    }
+    // Fallback to legacy risk_factors array
+    return assessment.risk_factors || []
+  }
+
+  const getSafeRecommendations = (assessment: any): string[] => {
+    // First try to get from AI analysis with current language
+    if (assessment.ai_analysis?.recommendations) {
+      return getBilingualArray(assessment.ai_analysis.recommendations, locale)
+    }
+    // Fallback to legacy recommendations array
+    return assessment.recommendations || []
+  }
+
+  const getSafeSummary = (assessment: any): string => {
+    // First try to get from AI analysis with current language
+    if (assessment.ai_analysis?.summary) {
+      return getBilingualText(assessment.ai_analysis.summary, locale)
+    }
+    // No fallback for summary as it's not in legacy data
+    return ""
+  }
+
   // ฟังก์ชันแปลงเปอร์เซ็นต์เป็นระดับคุณภาพ
   const getHealthLevel = (percentage: number): string => {
     if (percentage >= 81) return t("health_level_excellent")
@@ -258,7 +288,8 @@ export function HealthOverviewModal({
     const totalScore = latestAssessments.reduce((sum, a) => sum + a.percentage, 0)
     const avgScore = Math.round(totalScore / latestAssessments.length)
 
-    const allRiskFactors = latestAssessments.flatMap((a) => a.risk_factors ?? [])
+    // Count unique risk factors from all assessments (using bilingual-aware function)
+    const allRiskFactors = latestAssessments.flatMap((assessment) => getSafeRiskFactors(assessment))
     const uniqueRiskFactors = new Set(allRiskFactors).size
 
     const required = ["basic", "heart", "nutrition"]
@@ -279,15 +310,15 @@ export function HealthOverviewModal({
       case "basic":
         return t("personal_information")
       case "heart":
-        return "ประเมินหัวใจและหลอดเลือด"
+        return locale === "th" ? "ประเมินหัวใจและหลอดเลือด" : "Heart and Cardiovascular Assessment"
       case "nutrition":
-        return "ประเมินไลฟ์สไตล์และโภชนาการ"
+        return locale === "th" ? "ประเมินไลฟ์สไตล์และโภชนาการ" : "Lifestyle and Nutrition Assessment"
       case "mental":
-        return "ประเมินสุขภาพจิต"
+        return locale === "th" ? "ประเมินสุขภาพจิต" : "Mental Health Assessment"
       case "physical":
-        return "ประเมินสุขภาพกาย"
+        return locale === "th" ? "ประเมินสุขภาพกาย" : "Physical Health Assessment"
       case "sleep":
-        return "ประเมินคุณภาพการนอน"
+        return locale === "th" ? "ประเมินคุณภาพการนอน" : "Sleep Quality Assessment"
       default:
         return t("not_available")
     }
@@ -418,6 +449,10 @@ export function HealthOverviewModal({
   }
 
   function DetailedAssessmentView({ data }: { data: any }) {
+    const riskFactors = getSafeRiskFactors(data)
+    const recommendations = getSafeRecommendations(data)
+    const summary = getSafeSummary(data)
+
     return (
       <ScrollArea className="flex-1 pr-4">
         <div className="py-4 space-y-6">
@@ -432,18 +467,40 @@ export function HealthOverviewModal({
             <CardContent className="space-y-4">
               <StatRow label={t("risk_factors_found")}>
                 <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200">
-                  {data.risk_factors ? data.risk_factors.length : 0} {t("risk_factors")}
+                  {riskFactors.length} {t("risk_factors")}
                 </Badge>
               </StatRow>
               <StatRow label={t("risk_level_label")}>{getRiskLevelBadge(data.risk_level)}</StatRow>
               <StatRow label={t("assessment_date_label")}>
-                {new Date(data.completed_at).toLocaleDateString("th-TH")}
+                {new Date(data.completed_at).toLocaleDateString(locale === "th" ? "th-TH" : "en-US")}
               </StatRow>
+              {data.percentage && (
+                <StatRow label={t("score")}>
+                  <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+                    {data.percentage}%
+                  </Badge>
+                </StatRow>
+              )}
             </CardContent>
           </Card>
 
+          {/* ---------- Summary ---------- */}
+          {summary && (
+            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                  <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  {locale === "th" ? "สรุปผลการประเมิน" : "Assessment Summary"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700 dark:text-gray-200 leading-relaxed">{summary}</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* ---------- Risk factors ---------- */}
-          {data.risk_factors?.length > 0 && (
+          {riskFactors.length > 0 && (
             <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
@@ -453,7 +510,7 @@ export function HealthOverviewModal({
               </CardHeader>
               <CardContent>
                 <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-200">
-                  {data.risk_factors.map((factor: string, idx: number) => (
+                  {riskFactors.map((factor: string, idx: number) => (
                     <li key={idx}>{factor}</li>
                   ))}
                 </ul>
@@ -462,7 +519,7 @@ export function HealthOverviewModal({
           )}
 
           {/* ---------- Recommendations ---------- */}
-          {data.recommendations?.length > 0 && (
+          {recommendations.length > 0 && (
             <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg rounded-xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
@@ -472,7 +529,7 @@ export function HealthOverviewModal({
               </CardHeader>
               <CardContent>
                 <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-200">
-                  {data.recommendations.map((rec: string, idx: number) => (
+                  {recommendations.map((rec: string, idx: number) => (
                     <li key={idx}>{rec}</li>
                   ))}
                 </ul>
@@ -616,7 +673,7 @@ export function HealthOverviewModal({
             <div className="font-semibold">{getCategoryTitle(assessment.category_id)}</div>
             <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
-              {new Date(assessment.completed_at).toLocaleDateString("th-TH")}
+              {new Date(assessment.completed_at).toLocaleDateString(locale === "th" ? "th-TH" : "en-US")}
             </div>
           </div>
         </div>
