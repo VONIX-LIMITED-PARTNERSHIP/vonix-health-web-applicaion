@@ -24,7 +24,7 @@ export class AssessmentService {
         const question = category.questions.find((q) => q.id === answer.questionId)
         return {
           ...answer,
-          question: question?.question || "ไม่ระบุคำถาม",
+          question: question?.question || "No question specified",
         }
       })
 
@@ -60,7 +60,7 @@ export class AssessmentService {
     answers: AssessmentAnswer[],
     aiAnalysis?: any,
   ): Promise<{ data: any; error: any }> {
-    console.log("💾 AssessmentService: Starting save assessment process...")
+    console.log("💾 AssessmentService: Starting save bilingual assessment process...")
 
     try {
       if (!userId) {
@@ -75,7 +75,7 @@ export class AssessmentService {
         throw new Error("Database connection not available")
       }
 
-      // คำนวณผลลัพธ์
+      // Calculate results
       let result: AssessmentResult
       if (categoryId === "basic") {
         result = this.calculateBasicAssessmentResult(answers)
@@ -86,29 +86,39 @@ export class AssessmentService {
           maxScore: 100,
           percentage: aiAnalysis.score,
           riskLevel: aiAnalysis.riskLevel,
-          riskFactors: aiAnalysis.riskFactors || [],
-          recommendations: aiAnalysis.recommendations || [],
+          riskFactors: aiAnalysis.riskFactors_th || [], // Default to Thai for backward compatibility
+          recommendations: aiAnalysis.recommendations_th || [], // Default to Thai for backward compatibility
         }
       } else {
         throw new Error("AI analysis required for non-basic assessments")
       }
 
-      // เตรียมข้อมูลสำหรับบันทึก
+      // Prepare bilingual data for saving
       const assessmentData = {
         user_id: userId,
         category_id: categoryId,
-        category_title: categoryTitle,
+        category_title_th: typeof categoryTitle === "string" ? categoryTitle : categoryTitle,
+        category_title_en: typeof categoryTitle === "string" ? categoryTitle : categoryTitle, // For now, use same title
         answers: answers,
         total_score: Math.round(result.totalScore),
         max_score: Math.round(result.maxScore),
         percentage: Math.round(result.percentage),
         risk_level: result.riskLevel,
-        risk_factors: result.riskFactors || [],
-        recommendations: result.recommendations || [],
+
+        // Thai results
+        risk_factors_th: aiAnalysis?.riskFactors_th || result.riskFactors || [],
+        recommendations_th: aiAnalysis?.recommendations_th || result.recommendations || [],
+        summary_th: aiAnalysis?.summary_th || "",
+
+        // English results
+        risk_factors_en: aiAnalysis?.riskFactors_en || [],
+        recommendations_en: aiAnalysis?.recommendations_en || [],
+        summary_en: aiAnalysis?.summary_en || "",
+
         completed_at: new Date().toISOString(),
       }
 
-      console.log("💾 AssessmentService: Inserting assessment data to Supabase...")
+      console.log("💾 AssessmentService: Inserting bilingual assessment data to Supabase...")
       const { data: insertedData, error } = await supabaseClient
         .from("assessments")
         .insert(assessmentData)
@@ -124,7 +134,7 @@ export class AssessmentService {
         throw new Error("No data returned from insert operation")
       }
 
-      console.log("✅ AssessmentService: Assessment saved successfully with ID:", insertedData.id)
+      console.log("✅ AssessmentService: Bilingual assessment saved successfully with ID:", insertedData.id)
 
       return { data: insertedData, error: null }
     } catch (error) {
