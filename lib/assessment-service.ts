@@ -2,6 +2,51 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/database"
 
 export class AssessmentService {
+  // Analyze assessment with AI and save to database
+  static async analyzeAndSaveAssessment(
+    supabase: SupabaseClient<Database>,
+    assessmentData: {
+      userId: string
+      categoryId: string
+      answers: any[]
+      totalScore: number
+      maxScore: number
+    },
+  ) {
+    console.log("🤖 AssessmentService: Starting AI analysis and save process...")
+    console.log("📊 Assessment data:", assessmentData)
+
+    try {
+      // Call the API to analyze and save
+      const response = await fetch("/api/assessment/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          answers: assessmentData.answers,
+          categoryId: assessmentData.categoryId,
+          totalScore: assessmentData.totalScore,
+          maxScore: assessmentData.maxScore,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to analyze assessment")
+      }
+
+      const result = await response.json()
+      console.log("✅ AssessmentService: Analysis and save completed")
+      console.log("📋 Result:", result)
+
+      return { data: result, error: null }
+    } catch (error: any) {
+      console.error("❌ AssessmentService: Analysis failed:", error)
+      return { data: null, error: error.message }
+    }
+  }
+
   static async saveAssessment(
     supabase: SupabaseClient<Database>,
     assessmentData: {
