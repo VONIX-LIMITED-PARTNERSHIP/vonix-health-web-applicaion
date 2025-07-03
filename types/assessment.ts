@@ -1,96 +1,87 @@
-// Define the AssessmentCategory type
-export interface AssessmentCategory {
-  id: string
-  title: string
-  description: string
-  icon: string
-  questions: AssessmentQuestion[]
-  estimatedTime: number
-}
+export type RiskLevel = "low" | "medium" | "high" | "very-high"
 
-// Define the AssessmentQuestion type
-export interface AssessmentQuestion {
-  id: string
-  question: string
-  type:
-    | "single"
-    | "multiple"
-    | "text"
-    | "number"
-    | "scale"
-    | "yes-no"
-    | "rating"
-    | "multiple-choice"
-    | "checkbox"
-    | "multi-select-combobox-with-other"
-  options?: string[]
-  required?: boolean
-  validation?: {
-    min?: number
-    max?: number
-    pattern?: string
-  }
-  category?: string // Added category to question type
-  weight?: number // Added weight to question type
-  description?: string // Added description to question type
-  riskFactors?: string[] // Added riskFactors to question type
-}
-
-// Define the AssessmentAnswer type to allow null for answer
-export interface AssessmentAnswer {
-  questionId: string
-  answer: string | string[] | number
-  score: number
-}
-
-// Bilingual text types
-export interface BilingualText {
+export type BilingualText = {
   th: string
   en: string
 }
 
-export interface BilingualArray {
+export type BilingualArray = {
   th: string[]
   en: string[]
 }
 
-// Updated AssessmentResult interface with bilingual support
-export interface AssessmentResult {
-  categoryId: string
-  totalScore: number
-  maxScore: number
-  percentage: number
-  riskLevel: "low" | "medium" | "high" | "very-high"
-  riskFactors: string[] | BilingualArray
-  recommendations: string[] | BilingualArray
-  summary?: string | BilingualText
+export type QuestionOption = {
+  value: string
+  label: BilingualText
+  score: number
 }
 
-// AI Analysis result type
-export interface AIAnalysisResult {
+export type ScoreMapping = {
+  range: [number, number]
   score: number
-  riskLevel: "low" | "medium" | "high" | "very-high"
+}
+
+export type AssessmentQuestion = {
+  id: string
+  question: BilingualText
+  type: "text" | "number" | "single-choice" | "multiple-choice" | "rating" | "date"
+  required: boolean
+  options: QuestionOption[]
+  scoreMapping?: ScoreMapping[]
+  placeholder?: BilingualText
+  min?: number
+  max?: number
+}
+
+export type AssessmentCategory = {
+  id: string
+  title: BilingualText
+  description: BilingualText
+  estimatedTime: BilingualText
+  required: boolean
+  questions: AssessmentQuestion[]
+}
+
+export type AssessmentAnswer = {
+  questionId: string
+  answer: string | number | string[] | null
+  score: number
+  isValid: boolean
+  question?: string // Optional: for AI analysis context
+}
+
+export type AIAnalysisResult = {
+  score: number
+  riskLevel: RiskLevel
   riskFactors: BilingualArray
   recommendations: BilingualArray
   summary: BilingualText
 }
 
-// Saved assessment type
-export interface SavedAssessment {
+export type AssessmentResult = {
+  categoryId: string
+  totalScore: number
+  maxScore: number
+  percentage: number
+  riskLevel: RiskLevel
+  riskFactors: BilingualArray | string[] // Allow both for flexibility
+  recommendations: BilingualArray | string[] // Allow both for flexibility
+  summary?: BilingualText
+  totalQuestions?: number
+}
+
+export type UserAssessment = {
   id: string
   user_id: string
-  guest_session_id?: string
   category_id: string
   category_title: string
   answers: AssessmentAnswer[]
   total_score: number
   max_score: number
   percentage: number
-  risk_level: "low" | "medium" | "high" | "very-high"
-  risk_factors: string[]
-  recommendations: string[]
-  ai_analysis?: AIAnalysisResult
+  risk_level: RiskLevel
+  risk_factors: string[] // Stored as simple array in DB
+  recommendations: string[] // Stored as simple array in DB
   completed_at: string
-  created_at: string
-  updated_at: string
+  ai_analysis?: AIAnalysisResult | null // Stored as JSONB
 }
