@@ -289,16 +289,6 @@ const th = {
     high_risk: "ความเสี่ยงสูง",
     very_high_risk: "ความเสี่ยงสูงมาก",
     unspecified_risk: "ไม่ระบุ",
-    // Consult doctor modal translations
-    consult_doctor_modal_title: "ปรึกษาแพทย์ออนไลน์",
-    consult_doctor_modal_description: "เตรียมข้อมูลสุขภาพของคุณเพื่อปรึกษาแพทย์ผู้เชี่ยวชาญ",
-    step_1_prepare_data: "เตรียมข้อมูลสุขภาพ",
-    step_1_prepare_data_desc: "รวบรวมผลการประเมินสุขภาพและข้อมูลที่เกี่ยวข้อง",
-    step_2_add_details: "เพิ่มรายละเอียดอาการ",
-    step_2_add_details_desc: "อธิบายอาการหรือข้อกังวลเพิ่มเติมที่ต้องการปรึกษา",
-    step_3_wait_for_contact: "รอการติดต่อกลับ",
-    step_3_wait_for_contact_desc: "แพทย์จะติดต่อกลับภายใน 24 ชั่วโมง",
-    understood: "เข้าใจแล้ว",
   },
   assessment: {
     basic_info: "ข้อมูลพื้นฐาน",
