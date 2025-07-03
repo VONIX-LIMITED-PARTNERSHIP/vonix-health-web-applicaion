@@ -41,7 +41,7 @@ export const createClientComponentClient = () => {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true,
+      detectSessionInUrl: false, // Changed to false to prevent auto-login after email confirmation
       flowType: "pkce",
       storage: typeof window !== "undefined" ? window.localStorage : undefined,
       storageKey: "sb-hybtdrtuyovowhzinbbu-auth-token",
