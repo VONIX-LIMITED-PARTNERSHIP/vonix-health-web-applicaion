@@ -1,4 +1,4 @@
--- Drop existing table if exists (be careful in production!)
+-- Drop existing table if exists
 DROP TABLE IF EXISTS public.assessments CASCADE;
 
 -- Create new bilingual assessments table
@@ -37,12 +37,18 @@ CREATE TABLE public.assessments (
 -- Create indexes for better performance
 CREATE INDEX idx_assessments_user_id ON public.assessments(user_id);
 CREATE INDEX idx_assessments_category_id ON public.assessments(category_id);
-CREATE INDEX idx_assessments_completed_at ON public.assessments(completed_at DESC);
 CREATE INDEX idx_assessments_user_category ON public.assessments(user_id, category_id);
+CREATE INDEX idx_assessments_completed_at ON public.assessments(completed_at DESC);
 CREATE INDEX idx_assessments_risk_level ON public.assessments(risk_level);
 
 -- Enable Row Level Security
 ALTER TABLE public.assessments ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view their own assessments" ON public.assessments;
+DROP POLICY IF EXISTS "Users can insert their own assessments" ON public.assessments;
+DROP POLICY IF EXISTS "Users can update their own assessments" ON public.assessments;
+DROP POLICY IF EXISTS "Users can delete their own assessments" ON public.assessments;
 
 -- Create RLS policies
 CREATE POLICY "Users can view their own assessments" ON public.assessments
@@ -57,7 +63,11 @@ CREATE POLICY "Users can update their own assessments" ON public.assessments
 CREATE POLICY "Users can delete their own assessments" ON public.assessments
     FOR DELETE USING (auth.uid() = user_id);
 
--- Create updated_at trigger
+-- Grant necessary permissions
+GRANT ALL ON public.assessments TO authenticated;
+GRANT ALL ON public.assessments TO service_role;
+
+-- Create trigger for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -71,17 +81,46 @@ CREATE TRIGGER update_assessments_updated_at
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
--- Grant permissions
-GRANT ALL ON public.assessments TO authenticated;
-GRANT ALL ON public.assessments TO service_role;
+-- Insert some test data to verify the structure
+-- (This will be removed in production)
+-- INSERT INTO public.assessments (
+--     user_id, 
+--     category_id, 
+--     category_title_th, 
+--     category_title_en,
+--     answers,
+--     total_score,
+--     max_score,
+--     percentage,
+--     risk_level,
+--     risk_factors_th,
+--     recommendations_th,
+--     summary_th,
+--     risk_factors_en,
+--     recommendations_en,
+--     summary_en
+-- ) VALUES (
+--     auth.uid(),
+--     'test',
+--     'ทดสอบ',
+--     'Test',
+--     '[]'::jsonb,
+--     75,
+--     100,
+--     75,
+--     'high',
+--     ARRAY['ปัจจัยเสี่ยงที่ 1', 'ปัจจัยเสี่ยงที่ 2'],
+--     ARRAY['คำแนะนำที่ 1', 'คำแนะนำที่ 2'],
+--     'สรุปผลการประเมิน',
+--     ARRAY['Risk factor 1', 'Risk factor 2'],
+--     ARRAY['Recommendation 1', 'Recommendation 2'],
+--     'Assessment summary'
+-- );
 
--- Add helpful comments
 COMMENT ON TABLE public.assessments IS 'Bilingual health assessments with Thai and English results';
-COMMENT ON COLUMN public.assessments.category_title_th IS 'Assessment category title in Thai';
-COMMENT ON COLUMN public.assessments.category_title_en IS 'Assessment category title in English';
 COMMENT ON COLUMN public.assessments.risk_factors_th IS 'Risk factors in Thai language';
 COMMENT ON COLUMN public.assessments.risk_factors_en IS 'Risk factors in English language';
 COMMENT ON COLUMN public.assessments.recommendations_th IS 'Recommendations in Thai language';
 COMMENT ON COLUMN public.assessments.recommendations_en IS 'Recommendations in English language';
-COMMENT ON COLUMN public.assessments.summary_th IS 'Assessment summary in Thai language';
-COMMENT ON COLUMN public.assessments.summary_en IS 'Assessment summary in English language';
+COMMENT ON COLUMN public.assessments.summary_th IS 'Summary in Thai language';
+COMMENT ON COLUMN public.assessments.summary_en IS 'Summary in English language';

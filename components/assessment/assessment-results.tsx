@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -43,6 +43,16 @@ export function AssessmentResults({
   const [showDetails, setShowDetails] = useState(false)
   const { getRiskLevelLabel, getRiskLevelDescription } = useRiskLevelTranslation()
   const { locale } = useLanguage()
+
+  // Debug logging
+  useEffect(() => {
+    console.log("🔍 AssessmentResults Debug Info:")
+    console.log("categoryId:", categoryId)
+    console.log("assessmentResult:", assessmentResult)
+    console.log("aiAnalysis:", aiAnalysis)
+    console.log("assessmentData:", assessmentData)
+    console.log("locale:", locale)
+  }, [categoryId, assessmentResult, aiAnalysis, assessmentData, locale])
 
   // Define category titles mapping
   const categoryTitles = useMemo(
@@ -127,33 +137,63 @@ export function AssessmentResults({
     categoryTitles.th[categoryId as keyof typeof categoryTitles.th] ||
     "Assessment"
 
-  // Get bilingual data based on current language
+  // Get bilingual data based on current language and available sources
   const bilingualData = useMemo(() => {
-    if (!assessmentData) {
-      return {
-        riskFactors: assessmentResult.riskFactors || [],
-        recommendations: assessmentResult.recommendations || [],
-        summary: "",
-        categoryTitle,
+    console.log("🔍 Processing bilingual data...")
+
+    // Priority 1: Use assessmentData from database (new bilingual format)
+    if (assessmentData) {
+      console.log("📊 Using assessmentData from database")
+      const isEnglish = locale === "en"
+      const result = {
+        riskFactors: isEnglish
+          ? assessmentData.risk_factors_en || assessmentData.risk_factors_th || []
+          : assessmentData.risk_factors_th || assessmentData.risk_factors_en || [],
+        recommendations: isEnglish
+          ? assessmentData.recommendations_en || assessmentData.recommendations_th || []
+          : assessmentData.recommendations_th || assessmentData.recommendations_en || [],
+        summary: isEnglish
+          ? assessmentData.summary_en || assessmentData.summary_th || ""
+          : assessmentData.summary_th || assessmentData.summary_en || "",
+        categoryTitle: isEnglish
+          ? assessmentData.category_title_en || assessmentData.category_title_th || categoryTitle
+          : assessmentData.category_title_th || assessmentData.category_title_en || categoryTitle,
       }
+      console.log("📊 Database result:", result)
+      return result
     }
 
-    const isEnglish = locale === "en"
-    return {
-      riskFactors: isEnglish
-        ? assessmentData.risk_factors_en || assessmentData.risk_factors_th || []
-        : assessmentData.risk_factors_th || [],
-      recommendations: isEnglish
-        ? assessmentData.recommendations_en || assessmentData.recommendations_th || []
-        : assessmentData.recommendations_th || [],
-      summary: isEnglish
-        ? assessmentData.summary_en || assessmentData.summary_th || ""
-        : assessmentData.summary_th || "",
-      categoryTitle: isEnglish
-        ? assessmentData.category_title_en || assessmentData.category_title_th || categoryTitle
-        : assessmentData.category_title_th || categoryTitle,
+    // Priority 2: Use aiAnalysis (new bilingual format)
+    if (aiAnalysis) {
+      console.log("🤖 Using aiAnalysis data")
+      const isEnglish = locale === "en"
+      const result = {
+        riskFactors: isEnglish
+          ? aiAnalysis.riskFactors_en || aiAnalysis.riskFactors_th || aiAnalysis.riskFactors || []
+          : aiAnalysis.riskFactors_th || aiAnalysis.riskFactors || [],
+        recommendations: isEnglish
+          ? aiAnalysis.recommendations_en || aiAnalysis.recommendations_th || aiAnalysis.recommendations || []
+          : aiAnalysis.recommendations_th || aiAnalysis.recommendations || [],
+        summary: isEnglish
+          ? aiAnalysis.summary_en || aiAnalysis.summary_th || aiAnalysis.summary || ""
+          : aiAnalysis.summary_th || aiAnalysis.summary || "",
+        categoryTitle,
+      }
+      console.log("🤖 AI Analysis result:", result)
+      return result
     }
-  }, [assessmentData, assessmentResult, categoryId, locale])
+
+    // Priority 3: Fallback to assessmentResult (old format)
+    console.log("📋 Using fallback assessmentResult")
+    const result = {
+      riskFactors: assessmentResult.riskFactors || [],
+      recommendations: assessmentResult.recommendations || [],
+      summary: "",
+      categoryTitle,
+    }
+    console.log("📋 Fallback result:", result)
+    return result
+  }, [assessmentData, aiAnalysis, assessmentResult, categoryId, locale, categoryTitle])
 
   // Get risk level information
   const riskInfo = useMemo(() => {
@@ -225,6 +265,21 @@ export function AssessmentResults({
           </div>
         </div>
 
+        {/* Debug Information (remove in production) */}
+        {process.env.NODE_ENV === "development" && (
+          <Card className="bg-yellow-50 border-yellow-200">
+            <CardHeader>
+              <CardTitle className="text-sm text-yellow-800">Debug Information</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xs text-yellow-700">
+              <div>Risk Factors: {JSON.stringify(bilingualData.riskFactors)}</div>
+              <div>Recommendations: {JSON.stringify(bilingualData.recommendations)}</div>
+              <div>Summary: {bilingualData.summary}</div>
+              <div>Locale: {locale}</div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Main Assessment Results */}
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
           <CardHeader className="text-center pb-4">
@@ -263,50 +318,56 @@ export function AssessmentResults({
 
             <Separator />
 
-            {/* Risk Factors and Recommendations */}
-            {(bilingualData.riskFactors?.length > 0 || bilingualData.recommendations?.length > 0) && (
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Risk Factors */}
-                {bilingualData.riskFactors?.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                      {t.riskFactorsFound}
-                    </h3>
-                    <ScrollArea className="h-32">
-                      <ul className="space-y-2">
-                        {bilingualData.riskFactors.map((factor, index) => (
-                          <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-                            <span className="text-yellow-500 mt-1 flex-shrink-0">•</span>
-                            <span>{factor}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </ScrollArea>
-                  </div>
-                )}
-
-                {/* Recommendations */}
-                {bilingualData.recommendations?.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-blue-500" />
-                      {t.recommendations}
-                    </h3>
-                    <ScrollArea className="h-32">
-                      <ul className="space-y-2">
-                        {bilingualData.recommendations.map((recommendation, index) => (
-                          <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-                            <span className="text-blue-500 mt-1 flex-shrink-0">•</span>
-                            <span>{recommendation}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </ScrollArea>
+            {/* Risk Factors and Recommendations - Always show if data exists */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Risk Factors */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                  {t.riskFactorsFound}
+                </h3>
+                {bilingualData.riskFactors && bilingualData.riskFactors.length > 0 ? (
+                  <ScrollArea className="h-32">
+                    <ul className="space-y-2">
+                      {bilingualData.riskFactors.map((factor, index) => (
+                        <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                          <span className="text-yellow-500 mt-1 flex-shrink-0">•</span>
+                          <span>{factor}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </ScrollArea>
+                ) : (
+                  <div className="text-sm text-gray-500 italic">
+                    {locale === "en" ? "No specific risk factors identified" : "ไม่พบปัจจัยเสี่ยงเฉพาะ"}
                   </div>
                 )}
               </div>
-            )}
+
+              {/* Recommendations */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                  {t.recommendations}
+                </h3>
+                {bilingualData.recommendations && bilingualData.recommendations.length > 0 ? (
+                  <ScrollArea className="h-32">
+                    <ul className="space-y-2">
+                      {bilingualData.recommendations.map((recommendation, index) => (
+                        <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1 flex-shrink-0">•</span>
+                          <span>{recommendation}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </ScrollArea>
+                ) : (
+                  <div className="text-sm text-gray-500 italic">
+                    {locale === "en" ? "No specific recommendations available" : "ไม่มีคำแนะนำเฉพาะ"}
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Additional Information */}
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">

@@ -28,6 +28,12 @@ export class AssessmentService {
         }
       })
 
+      console.log("🤖 Sending to AI analysis:", {
+        categoryId,
+        categoryTitle: category.title,
+        answersCount: enrichedAnswers.length,
+      })
+
       const response = await fetch("/api/assessment/analyze", {
         method: "POST",
         headers: {
@@ -46,8 +52,10 @@ export class AssessmentService {
       }
 
       const result = await response.json()
+      console.log("🤖 AI analysis result:", result)
       return { data: result.analysis, error: null }
     } catch (error) {
+      console.error("❌ AI analysis failed:", error)
       return { data: null, error }
     }
   }
@@ -61,6 +69,7 @@ export class AssessmentService {
     aiAnalysis?: any,
   ): Promise<{ data: any; error: any }> {
     console.log("💾 AssessmentService: Starting save bilingual assessment process...")
+    console.log("💾 AI Analysis data:", aiAnalysis)
 
     try {
       if (!userId) {
@@ -82,10 +91,10 @@ export class AssessmentService {
       } else if (aiAnalysis) {
         result = {
           categoryId,
-          totalScore: aiAnalysis.score,
+          totalScore: aiAnalysis.score || 0,
           maxScore: 100,
-          percentage: aiAnalysis.score,
-          riskLevel: aiAnalysis.riskLevel,
+          percentage: aiAnalysis.score || 0,
+          riskLevel: aiAnalysis.riskLevel || "medium",
           riskFactors: aiAnalysis.riskFactors_th || [], // Default to Thai for backward compatibility
           recommendations: aiAnalysis.recommendations_th || [], // Default to Thai for backward compatibility
         }
@@ -118,6 +127,11 @@ export class AssessmentService {
         completed_at: new Date().toISOString(),
       }
 
+      console.log("💾 Assessment data to save:", {
+        ...assessmentData,
+        answers: `[${assessmentData.answers.length} answers]`, // Don't log full answers
+      })
+
       console.log("💾 AssessmentService: Inserting bilingual assessment data to Supabase...")
       const { data: insertedData, error } = await supabaseClient
         .from("assessments")
@@ -135,6 +149,13 @@ export class AssessmentService {
       }
 
       console.log("✅ AssessmentService: Bilingual assessment saved successfully with ID:", insertedData.id)
+      console.log("✅ Saved data preview:", {
+        id: insertedData.id,
+        risk_factors_th: insertedData.risk_factors_th,
+        risk_factors_en: insertedData.risk_factors_en,
+        recommendations_th: insertedData.recommendations_th,
+        recommendations_en: insertedData.recommendations_en,
+      })
 
       return { data: insertedData, error: null }
     } catch (error) {
@@ -186,7 +207,13 @@ export class AssessmentService {
         return { data: null, error: null }
       }
 
-      console.log("✅ AssessmentService: Found latest assessment:", data.id)
+      console.log("✅ AssessmentService: Found latest assessment:", {
+        id: data.id,
+        risk_factors_th: data.risk_factors_th,
+        risk_factors_en: data.risk_factors_en,
+        recommendations_th: data.recommendations_th,
+        recommendations_en: data.recommendations_en,
+      })
       return { data, error: null }
     } catch (error) {
       console.error("❌ AssessmentService: Get latest assessment failed:", error)
