@@ -60,11 +60,9 @@ export class AssessmentService {
     answers: AssessmentAnswer[],
     aiAnalysis?: AIAnalysisResult,
   ): Promise<{ data: any; error: any }> {
-    console.log("💾 AssessmentService: Starting save assessment process...")
-
     try {
       if (!userId) {
-        throw new Error("User not authenticated")
+        throw new new Error("User not authenticated")()
       }
 
       if (!Array.isArray(answers) || answers.length === 0) {
@@ -114,15 +112,6 @@ export class AssessmentService {
         }
       }
 
-      console.log("🔍 AssessmentService: Data to save:", {
-        riskFactorsForDb,
-        recommendationsForDb,
-        riskFactorsType: typeof riskFactorsForDb,
-        recommendationsType: typeof recommendationsForDb,
-        isRiskFactorsArray: Array.isArray(riskFactorsForDb),
-        isRecommendationsArray: Array.isArray(recommendationsForDb),
-      })
-
       // เตรียมข้อมูลสำหรับบันทึก - ใช้ JSONB arrays โดยตรง
       const assessmentData = {
         user_id: userId,
@@ -139,13 +128,6 @@ export class AssessmentService {
         ai_analysis: aiAnalysis || null, // Store full bilingual data
       }
 
-      console.log("💾 AssessmentService: Final data structure:", {
-        risk_factors: assessmentData.risk_factors,
-        recommendations: assessmentData.recommendations,
-        ai_analysis: assessmentData.ai_analysis ? "present" : "null",
-      })
-
-      console.log("💾 AssessmentService: Inserting assessment data to Supabase...")
       const { data: insertedData, error } = await supabaseClient
         .from("assessments")
         .insert(assessmentData)
@@ -153,7 +135,6 @@ export class AssessmentService {
         .single()
 
       if (error) {
-        console.error("❌ AssessmentService: Supabase insert error:", error)
         throw new Error(`Database error: ${error.message}`)
       }
 
@@ -161,11 +142,8 @@ export class AssessmentService {
         throw new Error("No data returned from insert operation")
       }
 
-      console.log("✅ AssessmentService: Assessment saved successfully with ID:", insertedData.id)
-
       return { data: insertedData, error: null }
     } catch (error) {
-      console.error("❌ AssessmentService: Save assessment failed:", error)
       let errorMessage = "เกิดข้อผิดพลาดในการบันทึก"
 
       if (error instanceof Error) {
@@ -187,7 +165,6 @@ export class AssessmentService {
     userId: string,
     categoryId: string,
   ): Promise<{ data: any; error: any }> {
-    console.log("🔍 AssessmentService: Fetching latest assessment for user:", userId, "category:", categoryId)
     try {
       if (!supabaseClient) {
         throw new Error("Database connection not available")
@@ -203,19 +180,15 @@ export class AssessmentService {
         .single()
 
       if (error && error.code !== "PGRST116") {
-        console.error("❌ AssessmentService: Supabase fetch error:", error)
         throw error
       }
 
       if (!data) {
-        console.log("⚠️ AssessmentService: No assessment found for user and category")
         return { data: null, error: null }
       }
 
-      console.log("✅ AssessmentService: Found latest assessment:", data.id)
       return { data, error: null }
     } catch (error) {
-      console.error("❌ AssessmentService: Get latest assessment failed:", error)
       return { data: null, error: (error as Error).message || "Failed to retrieve latest assessment" }
     }
   }
@@ -229,19 +202,14 @@ export class AssessmentService {
         throw new Error("Database connection not available")
       }
 
-      console.log("🔍 AssessmentService: Fetching assessment by ID:", assessmentId)
-
       const { data, error } = await supabaseClient.from("assessments").select("*").eq("id", assessmentId).single()
 
       if (error) {
-        console.error("❌ AssessmentService: Supabase fetch by ID error:", error)
         throw error
       }
 
-      console.log("✅ AssessmentService: Found assessment by ID:", data.id)
       return { data, error: null }
     } catch (error) {
-      console.error("❌ AssessmentService: Get assessment by ID failed:", error)
       return { data: null, error: (error as Error).message || "Failed to retrieve assessment" }
     }
   }
@@ -406,7 +374,6 @@ export class AssessmentService {
       const { data, error } = await supabaseClient.from("profiles").select("id").limit(1)
       return !error
     } catch (error) {
-      console.error("AssessmentService.testConnection: Failed to test connection:", error)
       return false
     }
   }

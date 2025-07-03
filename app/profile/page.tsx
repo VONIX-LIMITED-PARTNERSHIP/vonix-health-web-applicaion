@@ -10,13 +10,25 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Separator } from "@/components/ui/separator"
-import { PencilIcon, CheckIcon, XIcon, Loader2, ArrowLeft } from "lucide-react" // Import CalendarIcon
+import { PencilIcon, CheckIcon, XIcon, Loader2, ArrowLeft } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { format } from "date-fns" // Import format from date-fns
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select" // Import Select components
+import { format, parseISO } from "date-fns"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { DatePicker } from "@/components/ui/date-picker" // Import the new DatePicker
 
 // Define validation schema for profile fields
 const profileFormSchema = z.object({
@@ -138,7 +150,7 @@ export default function ProfilePage() {
           userId: user.id,
           fullName: data.full_name,
           phone: data.phone,
-          dateOfBirth: data.date_of_birth, // Already formatted as string
+          dateOfBirth: data.date_of_birth, // Already formatted as string YYYY-MM-DD
           gender: data.gender,
         }),
       })
@@ -179,7 +191,7 @@ export default function ProfilePage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4 dark:bg-gray-950">
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-2xl shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
@@ -249,66 +261,11 @@ export default function ProfilePage() {
                     <FormItem>
                       <FormLabel htmlFor="dateOfBirth">{t("date_of_birth")}</FormLabel>
                       <FormControl>
-                        <Input
-                          id="dateOfBirth"
-                          readOnly={!isEditing}
-                          placeholder="DD/MM/YYYY"
-                          value={(() => {
-                            if (!field.value) return ""
-
-                            try {
-                              // If it's in YYYY-MM-DD format, convert to DD/MM/YYYY
-                              if (field.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                                return format(new Date(field.value), "dd/MM/yyyy")
-                              } else {
-                                // Return raw value if it's not a valid date format
-                                return field.value
-                              }
-                            } catch (error) {
-                              // If date parsing fails, return the raw value
-                              return field.value || ""
-                            }
-                          })()}
-                          onChange={(e) => {
-                            const value = e.target.value
-
-                            // Store the raw input value for display
-                            if (isEditing) {
-                              // Allow typing but validate format
-                              if (value === "") {
-                                field.onChange("")
-                              } else if (value.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-                                // Only convert when format is complete and valid
-                                try {
-                                  const [day, month, year] = value.split("/")
-                                  const dayNum = Number.parseInt(day, 10)
-                                  const monthNum = Number.parseInt(month, 10)
-                                  const yearNum = Number.parseInt(year, 10)
-
-                                  // Basic validation
-                                  if (
-                                    dayNum >= 1 &&
-                                    dayNum <= 31 &&
-                                    monthNum >= 1 &&
-                                    monthNum <= 12 &&
-                                    yearNum >= 1900 &&
-                                    yearNum <= new Date().getFullYear()
-                                  ) {
-                                    field.onChange(`${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`)
-                                  } else {
-                                    // Invalid date, keep as is for user to see their input
-                                    field.onChange(value)
-                                  }
-                                } catch (error) {
-                                  // If parsing fails, keep the raw value
-                                  field.onChange(value)
-                                }
-                              } else {
-                                // Allow partial typing (incomplete format)
-                                field.onChange(value)
-                              }
-                            }
-                          }}
+                        <DatePicker
+                          value={field.value ? parseISO(field.value) : null}
+                          onChange={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : null)}
+                          disabled={!isEditing}
+                          placeholder="YYYY-MM-DD"
                         />
                       </FormControl>
                       <FormMessage />
@@ -365,7 +322,7 @@ export default function ProfilePage() {
                       setIsEditing(false)
                       form.reset() // Reset form to original profile values
                     }}
-                    className="w-full sm:w-auto" // Make button full width on small screens
+                    className="w-full sm:w-auto"
                   >
                     <XIcon className="h-4 w-4 mr-2" />
                     {t("cancel_edit")}
@@ -373,19 +330,23 @@ export default function ProfilePage() {
                   <Button
                     type="submit"
                     disabled={form.formState.isSubmitting || !form.formState.isDirty}
-                    className="w-full sm:w-auto" // Make button full width on small screens
+                    className="w-full sm:w-auto"
                   >
-                    {form.formState.isSubmitting ? t("common.saving") : <CheckIcon className="h-4 w-4 mr-2" />}
-                    {form.formState.isSubmitting ? "" : t("save_changes")}
+                    {form.formState.isSubmitting ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckIcon className="h-4 w-4 mr-2" />
+                    )}
+                    {form.formState.isSubmitting ? t("common.saving") : t("save_changes")}
                   </Button>
                 </div>
               )}
             </form>
           </Form>
 
-          <Separator />
+          <Separator className="my-6" />
 
-          {/* <div className="space-y-4">
+          <div className="space-y-4">
             <h2 className="text-lg font-semibold">{t("data_management")}</h2>
             <div className="space-y-2">
               <Label>{t("withdraw_consent")}</Label>
@@ -393,7 +354,11 @@ export default function ProfilePage() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" disabled={isWithdrawingConsent || !profile?.pdpa_consent || isEditing}>
-                    {isWithdrawingConsent ? t("common.loading") : t("withdraw_consent_button")}
+                    {isWithdrawingConsent ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      t("withdraw_consent_button")
+                    )}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -415,7 +380,11 @@ export default function ProfilePage() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" disabled={isDeletingAssessments || isEditing}>
-                    {isDeletingAssessments ? t("common.loading") : t("delete_assessment_data")}
+                    {isDeletingAssessments ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      t("delete_assessment_data")
+                    )}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -430,7 +399,7 @@ export default function ProfilePage() {
                 </AlertDialogContent>
               </AlertDialog>
             </div>
-          </div> */}
+          </div>
         </CardContent>
       </Card>
     </main>

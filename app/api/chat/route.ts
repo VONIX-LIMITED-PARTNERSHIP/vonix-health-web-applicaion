@@ -40,7 +40,7 @@ const INTENT_CLASSIFICATION_PROMPT = `คุณคือผู้ช่วยท
 
 **กฎสำคัญ:**
 1.  **ให้ความสำคัญกับ "สุขภาพ" เป็นอันดับแรก:** หากมีคำที่เกี่ยวข้องกับสุขภาพแม้เพียงเล็กน้อย หรือคำถามมีความกำกวม ให้จัดประเภทเป็น "สุขภาพ" เสมอ
-2.  หากคำถามล่าสุดเกี่ยวข้องกับการใช้งานแอป VONIX (เช่น วิธีใช้, สมัครสมาชิก, เข้าสู���ระบบ, แบบประเมิน, ผลลัพธ์, บันทึก, แก้ไข, ปัญหา, ข้อมูล, ความปลอดภัย) ให้ระบุว่าเป็น "แอป VONIX"
+2.  หากคำถามล่าสุดเกี่ยวข้องกับการใช้งานแอป VONIX (เช่น วิธีใช้, สมัครสมาชิก, เข้าสู่ระบบ, แบบประเมิน, ผลลัพธ์, บันทึก, แก้ไข, ปัญหา, ข้อมูล, ความปลอดภัย) ให้ระบุว่าเป็น "แอป VONIX"
 3.  หากคำถามล่าสุดไม่เกี่ยวข้องกับทั้งสองประเภทข้างต้น และไม่เข้าข่ายสุขภาพ ให้ระบุว่าเป็น "อื่นๆ"
 
 ตัวอย่าง:
@@ -185,7 +185,7 @@ const CRITICAL_HEALTH_KEYWORDS = [
   "ขี้ลืม",
   "มือสั่น",
   "เท้าชา",
-  "หายใจไม่อิ่���",
+  "หายใจไม่อิ่ม",
   "หายใจลำบาก",
   "หน้ามืด",
   "เป็นลม",
@@ -264,17 +264,26 @@ const getRiskLevelLabel = (riskLevel: string): string => {
 export async function POST(req: Request) {
   try {
     // Expect an array of messages, userName, and userId from the client
-    const {
-      messages: clientMessages,
-      userName,
-      userId,
-    } = (await req.json()) as {
+    const { messages: clientMessages, userName } = (await req.json()) as {
       messages: AIMessage[]
       userName?: string
-      userId?: string
+      userId?: string // userId is now optional from client, will be derived from session
     }
 
-    console.log("🔍 Chat API: Received request with userId:", userId)
+    // Get user session from cookies on the server side
+    const supabaseServerClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          persistSession: false, // Do not persist session on server
+        },
+      },
+    )
+    const {
+      data: { user },
+    } = await supabaseServerClient.auth.getUser()
+    const userId = user?.id || null
 
     // The last message is the current user's query
     const userMessageContent = clientMessages[clientMessages.length - 1].content.toLowerCase()
@@ -290,31 +299,19 @@ export async function POST(req: Request) {
     let healthDataSummary = ""
     let hasPersonalizedHealthData = false
 
-    // Create a server-side Supabase client for this request
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-
     // --- Fetch personalized health data if user is logged in ---
     if (userId) {
-      console.log("👤 Chat API: User is logged in, fetching health data...")
       try {
         // Pass the supabase client to the service method
         const { data: latestAssessments, error: fetchError } = await AssessmentService.getLatestUserAssessments(
-          supabase,
+          supabaseServerClient, // Use the server-side client
           userId,
         )
 
-        console.log("📊 Chat API: Assessment fetch result:", {
-          error: fetchError,
-          dataLength: latestAssessments?.length || 0,
-          assessments: latestAssessments?.map((a) => ({ id: a.id, category: a.category_title, risk: a.risk_level })),
-        })
-
         if (fetchError) {
-          console.error("❌ Chat API: Error fetching user assessments:", fetchError)
           // Continue without personalized data if there's an error
         } else if (latestAssessments && latestAssessments.length > 0) {
           hasPersonalizedHealthData = true
-          console.log("✅ Chat API: Found health data, creating summary...")
 
           healthDataSummary = latestAssessments
             .map((assessment) => {
@@ -339,17 +336,13 @@ export async function POST(req: Request) {
             .join("\n\n")
 
           healthDataSummary = `นี่คือข้อมูลสรุปผลการประเมินสุขภาพล่าสุดของคุณ:\n\n${healthDataSummary}\n\nโปรดใช้ข้อมูลนี้เพื่อตอบคำถามเกี่ยวกับสุขภาพของผู้ใช้`
-          console.log("📝 Chat API: Health data summary created, length:", healthDataSummary.length)
         } else {
-          console.log("⚠️ Chat API: No assessment data found for user")
           healthDataSummary = "ผู้ใช้ยังไม่มีข้อมูลการประเมินสุขภาพล่าสุดในระบบ"
         }
       } catch (error) {
-        console.error("❌ Chat API: Error in health data fetching:", error)
         healthDataSummary = "เกิดข้อผิดพลาดในการดึงข้อมูลสุขภาพ"
       }
     } else {
-      console.log("🚫 Chat API: User not logged in")
       healthDataSummary = "ผู้ใช้ไม่ได้ล็อกอิน จึงไม่สามารถเข้าถึงข้อมูลสุขภาพส่วนตัวได้"
     }
 
@@ -358,7 +351,6 @@ export async function POST(req: Request) {
     for (const keyword of CRITICAL_HEALTH_KEYWORDS) {
       if (userMessageContent.includes(keyword)) {
         isCriticalHealthQuery = true
-        console.log("🎯 Chat API: Critical health keyword detected:", keyword)
         break
       }
     }
@@ -376,25 +368,20 @@ export async function POST(req: Request) {
       intentCategory = intentClassification.category
     }
 
-    console.log("🏷️ Chat API: Intent category:", intentCategory)
-
     if (intentCategory === "สุขภาพ") {
       // If it's a health-related question, generate a health advice
       let systemPromptToUse = HEALTH_SYSTEM_PROMPT
 
       // Always use personalized health prompt if data is available
       if (hasPersonalizedHealthData) {
-        console.log("✅ Chat API: Using personalized health prompt")
         systemPromptToUse = PERSONALIZED_HEALTH_SYSTEM_PROMPT(userName || "คุณ", healthDataSummary)
       } else {
         // If no data, inform them
-        console.log("⚠️ Chat API: User asking about health but no data found")
         botResponse = `ขออภัยครับ ${userName || "คุณ"} ผมไม่พบข้อมูลการประเมินสุขภาพล่าสุดของคุณในระบบ คุณสามารถทำแบบประเมินสุขภาพเพื่อรับคำแนะนำส่วนบุคคลได้นะครับ 😊`
       }
 
       if (!botResponse) {
         // Only generate if botResponse hasn't been set by the "no data" case
-        console.log("🤖 Chat API: Generating AI response...")
         const { text: healthResponse } = await generateText({
           model: openai("gpt-4o"),
           system: systemPromptToUse,
@@ -432,10 +419,8 @@ export async function POST(req: Request) {
       botResponse = otherResponse
     }
 
-    console.log("✅ Chat API: Response generated successfully")
     return NextResponse.json({ response: botResponse })
   } catch (error) {
-    console.error("❌ Chat API: Error in /api/chat:", error)
     return NextResponse.json(
       { error: "ขอโทษครับ เกิดข้อผิดพลาดในการประมวลผลคำถามของคุณ กรุณาลองใหม่อีกครั้งนะครับ 😅" },
       { status: 500 },

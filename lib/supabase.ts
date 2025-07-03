@@ -65,8 +65,6 @@ export const isSupabaseConfigured = () => {
 // Helper function to clear all auth data (only call on explicit sign out)
 export const clearAuthData = () => {
   if (typeof window !== "undefined") {
-    console.log("Clearing auth data from lib/supabase.ts")
-
     // Clear Supabase auth tokens
     localStorage.removeItem("sb-hybtdrtuyovowhzinbbu-auth-token")
     localStorage.removeItem("supabase.auth.token")

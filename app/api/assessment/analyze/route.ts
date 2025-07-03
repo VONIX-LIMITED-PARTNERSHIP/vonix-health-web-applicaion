@@ -67,8 +67,6 @@ ${questionsAndAnswers}`
 
 ให้คำแนะนำที่เป็นประโยชน์และปฏิบัติได้จริง`
 
-    console.log("🤖 Generating AI analysis for category:", categoryId)
-
     const { object: analysis } = await generateObject({
       model: openai("gpt-4o"),
       schema: BilingualAssessmentAnalysisSchema,
@@ -77,14 +75,11 @@ ${questionsAndAnswers}`
       temperature: 0.3,
     })
 
-    console.log("✅ AI analysis generated successfully")
-
     return NextResponse.json({
       success: true,
       analysis,
     })
   } catch (error) {
-    console.error("❌ Assessment analysis error:", error)
     return NextResponse.json(
       {
         error: "Failed to analyze assessment",
