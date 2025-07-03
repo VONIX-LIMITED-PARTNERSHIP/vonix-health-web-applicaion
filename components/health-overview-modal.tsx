@@ -35,6 +35,7 @@ import { useTranslation } from "@/hooks/use-translation"
 import { AssessmentService } from "@/lib/assessment-service"
 import { isSupabaseConfigured, createClientComponentClient } from "@/lib/supabase"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
+import { getRiskLevelBadgeClass } from "@/utils/risk-level"
 
 interface HealthOverviewModalProps {
   isOpen: boolean
@@ -80,7 +81,7 @@ export function HealthOverviewModal({
   const [loadingDetailedAssessment, setLoadingDetailedAssessment] = useState(false)
   const [detailedAssessmentError, setDetailedAssessmentError] = useState<string | null>(null)
 
-  const { getRiskLevelLabel, getRiskLevelBadgeClass } = useRiskLevelTranslation()
+  const { getRiskLevelLabel } = useRiskLevelTranslation()
 
   /* ────────────────────────────────────────────────────────────────────
      Lifecycle
@@ -482,7 +483,6 @@ export function HealthOverviewModal({
       </ScrollArea>
     )
   }
-
 
   function StatRow({ label, children }: { label: string; children: React.ReactNode }) {
     return (
