@@ -278,10 +278,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: metadata,
-          redirectTo: `${window.location.origin}/login`, // Redirect to login page after email confirmation
-        },
+        options: { data: metadata },
       })
       if (error) {
         console.error("signUp: Error during sign up:", error.message)
