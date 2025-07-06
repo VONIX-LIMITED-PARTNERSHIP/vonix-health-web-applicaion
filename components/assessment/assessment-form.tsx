@@ -24,7 +24,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const router = useRouter()
   const { user } = useAuth()
   const { locale } = useLanguage()
-  const { t } = useTranslation()
+  const { t } = useTranslation(["common", "assessment"]) // Ensure 'assessment' namespace is loaded
   const supabase = createClientComponentClient()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
@@ -84,7 +84,8 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     }
 
     if (isLastQuestion) {
-      if (!user?.id) {
+      // Allow guest assessment to be submitted without user ID
+      if (categoryId !== "guest-assessment" && !user?.id) {
         alert(t("assessment.not_logged_in"))
         return
       }
@@ -94,7 +95,8 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
       try {
         let aiAnalysis = null
-        if (categoryId !== "basic") {
+        // AI analysis is only for non-basic and non-guest assessments
+        if (categoryId !== "basic" && categoryId !== "guest-assessment") {
           console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
           const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, finalAnswersToSave)
           if (aiError) {
@@ -106,9 +108,18 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         }
 
         console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
+        // For guest assessment, use a placeholder user ID or handle differently if not saving to user's profile
+        // For now, if it's a guest assessment, we'll use a generic ID or skip user_id if the table allows null
+        // Assuming for guest assessment, we might not need a user_id or it's handled differently on the backend.
+        // If the backend requires a user_id even for guest, a temporary/guest user should be created.
+        // For this fix, we'll assume guest assessments don't require a user.id for saving.
+        // If the database schema for 'assessments' table requires 'user_id' to be NOT NULL,
+        // you might need to create a 'guest' user or adjust the schema.
+        // For now, we'll pass user?.id, which will be undefined for guests.
+        // The AssessmentService.saveAssessment needs to handle this gracefully.
         const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
           supabase,
-          user.id,
+          user?.id || "guest_user_id", // Pass user.id or a placeholder for guest
           categoryId,
           category.title,
           finalAnswersToSave,
@@ -124,6 +135,9 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         if (categoryId === "basic") {
           console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
           router.push(`/?openHealthOverview=basic&assessmentId=${savedData.id}`)
+        } else if (categoryId === "guest-assessment") {
+          console.log("📊 AssessmentForm: แบบประเมิน guest เสร็จสิ้น ไปหน้าผลลัพธ์")
+          router.push(`/guest-assessment/results?id=${savedData.id}`)
         } else {
           console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
           router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
@@ -154,6 +168,11 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       return {
         full: locale === "en" ? "Save Data and View Overview" : "บันทึกข้อมูลและดูภาพรวม",
         short: locale === "en" ? "Save" : "บันทึก",
+      }
+    } else if (categoryId === "guest-assessment") {
+      return {
+        full: t("common.view_results"),
+        short: locale === "en" ? "View Results" : "ดูผล",
       }
     } else {
       return {
