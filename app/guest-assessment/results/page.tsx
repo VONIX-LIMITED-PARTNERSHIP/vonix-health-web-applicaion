@@ -26,16 +26,18 @@ import {
 } from "lucide-react"
 import { guestAssessmentCategory } from "@/data/assessment-questions"
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
-import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
+import { useTranslation } from "@/hooks/use-translation"
+import { useLanguage } from "@/contexts/language-context" // Import useLanguage
 
 export default function GuestAssessmentResultsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [analyzing, setAnalyzing] = useState(false) // New state for AI analysis
+  const [analyzing, setAnalyzing] = useState(false)
   const [result, setResult] = useState<AssessmentResult | null>(null)
   const [aiAnalysis, setAiAnalysis] = useState<any>(null) // To store raw AI analysis
   const [error, setError] = useState<string | null>(null)
-  const { t } = useTranslation() // Use translation hook
+  const { t } = useTranslation()
+  const { locale } = useLanguage() // Get current locale
 
   useEffect(() => {
     loadAndAnalyzeGuestAssessmentData()
@@ -44,7 +46,7 @@ export default function GuestAssessmentResultsPage() {
   const loadAndAnalyzeGuestAssessmentData = async () => {
     try {
       setLoading(true)
-      setAnalyzing(true) // Start analyzing state
+      setAnalyzing(true)
       setError(null)
 
       const savedAnswers = localStorage.getItem(`guest-assessment-temp-answers`)
@@ -75,20 +77,20 @@ export default function GuestAssessmentResultsPage() {
         throw new Error(errorData.error || t("error_loading_analysis"))
       }
 
-      const { analysis } = await response.json() // Destructure analysis from response
+      const { analysis } = await response.json()
       setAiAnalysis(analysis) // Store raw AI analysis
 
       // Map AI analysis to AssessmentResult format for display
       const mappedResult: AssessmentResult = {
         categoryId: guestAssessmentCategory.id,
-        totalScore: analysis.score, // AI score is the main score
-        maxScore: 100, // AI score is out of 100
-        percentage: analysis.score, // AI score is also the percentage
+        totalScore: analysis.score,
+        maxScore: 100,
+        percentage: analysis.score,
         riskLevel: analysis.riskLevel,
-        riskFactors: analysis.riskFactors,
-        recommendations: analysis.recommendations,
-        summary: analysis.summary, // Include summary in mapped result
-        totalQuestions: parsedAnswers.length, // Number of questions answered
+        riskFactors: analysis.riskFactors, // This is now a BilingualStringArray
+        recommendations: analysis.recommendations, // This is now a BilingualStringArray
+        summary: analysis.summary, // This is now a BilingualText
+        totalQuestions: parsedAnswers.length,
       }
       setResult(mappedResult)
 
@@ -99,7 +101,7 @@ export default function GuestAssessmentResultsPage() {
       console.error("Error:", err)
     } finally {
       setLoading(false)
-      setAnalyzing(false) // End analyzing state
+      setAnalyzing(false)
     }
   }
 
@@ -267,7 +269,7 @@ export default function GuestAssessmentResultsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{aiAnalysis.summary}</p>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{aiAnalysis.summary[locale]}</p>
             </CardContent>
           </Card>
         )}
@@ -286,7 +288,7 @@ export default function GuestAssessmentResultsPage() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-1">{result.percentage}%</div>
+                <div className="text-4xl font-bold text-gray-800 dark:text-gray-200">{result.percentage}%</div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   {t("score")} {result.totalScore}/{result.maxScore}
                 </div>
@@ -303,13 +305,15 @@ export default function GuestAssessmentResultsPage() {
               </div>
               <div className="text-center p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
                 <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">{result.riskFactors.length}</div>
+                <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                  {result.riskFactors[locale].length}
+                </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">{t("risk_factors")}</div>
               </div>
               <div className="text-center p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
                 <FileText className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                 <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                  {result.recommendations.length}
+                  {result.recommendations[locale].length}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">{t("recommendations")}</div>
               </div>
@@ -327,9 +331,9 @@ export default function GuestAssessmentResultsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {result.riskFactors && result.riskFactors.length > 0 ? (
+              {result.riskFactors[locale] && result.riskFactors[locale].length > 0 ? (
                 <div className="space-y-3">
-                  {result.riskFactors.map((factor, index) => (
+                  {result.riskFactors[locale].map((factor, index) => (
                     <div
                       key={index}
                       className="flex items-center p-3 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800"
@@ -358,9 +362,9 @@ export default function GuestAssessmentResultsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {result.recommendations && result.recommendations.length > 0 ? (
+              {result.recommendations[locale] && result.recommendations[locale].length > 0 ? (
                 <div className="space-y-3">
-                  {result.recommendations.map((recommendation, index) => (
+                  {result.recommendations[locale].map((recommendation, index) => (
                     <div
                       key={index}
                       className="flex items-start p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800"

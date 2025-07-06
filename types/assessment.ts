@@ -39,8 +39,10 @@ export interface AssessmentQuestion {
 // Define the AssessmentAnswer type to allow null for answer
 export interface AssessmentAnswer {
   questionId: string
-  answer: string | string[] | number
+  question: string // Added for AI analysis context
+  answer: string | number | string[] | null
   score: number
+  isValid: boolean
 }
 
 // Bilingual text types
@@ -49,29 +51,35 @@ export interface BilingualText {
   en: string
 }
 
-export interface BilingualArray {
+export interface BilingualStringArray {
   th: string[]
   en: string[]
 }
 
 // Updated AssessmentResult interface with bilingual support
 export interface AssessmentResult {
+  id?: string
+  userId?: string
   categoryId: string
+  categoryTitle: string
   totalScore: number
   maxScore: number
   percentage: number
-  riskLevel: "low" | "medium" | "high" | "very-high"
-  riskFactors: string[] | BilingualArray
-  recommendations: string[] | BilingualArray
-  summary?: string | BilingualText
+  riskLevel: string
+  riskFactors: BilingualStringArray // Updated type
+  recommendations: BilingualStringArray // Updated type
+  summary?: BilingualText // Updated type
+  totalQuestions: number
+  createdAt?: string
+  aiAnalysis?: AiAnalysisResult // More specific type
 }
 
 // AI Analysis result type
-export interface AIAnalysisResult {
+export interface AiAnalysisResult {
   score: number
   riskLevel: "low" | "medium" | "high" | "very-high"
-  riskFactors: BilingualArray
-  recommendations: BilingualArray
+  riskFactors: BilingualStringArray
+  recommendations: BilingualStringArray
   summary: BilingualText
 }
 
@@ -89,7 +97,7 @@ export interface SavedAssessment {
   risk_level: "low" | "medium" | "high" | "very-high"
   risk_factors: string[]
   recommendations: string[]
-  ai_analysis?: AIAnalysisResult
+  ai_analysis?: AiAnalysisResult
   completed_at: string
   created_at: string
   updated_at: string
