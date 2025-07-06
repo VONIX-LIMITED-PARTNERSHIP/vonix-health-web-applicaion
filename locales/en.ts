@@ -92,7 +92,7 @@ const en: Dictionary = {
       "An intelligent health assessment system that helps you take better care of your health. No medical knowledge required. Easy to use, instantly understandable, with recommendations from medical experts.",
     start_health_assessment: "Start Health Assessment",
     consult_doctor_online: "Consult Doctor Online",
-    try_it_out: "Try It Out",
+    try_it_out: "Try it out",
     smart_ai: "Smart AI",
     analyze_with_openai: "Powered by OpenAI",
     secure: "100% Secure",
@@ -281,6 +281,8 @@ const en: Dictionary = {
     no_risk_factors_found: "No significant risk factors found",
     unauthorized_access: "Unauthorized access. Please log in.",
     assessment_not_found_or_unauthorized: "Assessment not found or you do not have permission to view it.",
+    yes: "Yes",
+    no: "No",
     // --- Health level labels -----------------
     health_level_excellent: "Excellent",
     health_level_very_good: "Very Good",
@@ -304,7 +306,10 @@ const en: Dictionary = {
     step_3_wait_for_contact: "Wait for Contact",
     step_3_wait_for_contact_desc: "A doctor will contact you within 24 hours",
     understood: "Understood",
-    profile_link_text: "Profile", // Added this key
+    profile_link_text: "Profile",
+    tryItOut: "Try it out",
+    fullHealthAssessment: "Full Health Assessment",
+    doctorConsultation: "Doctor Consultation",
   },
   assessment: {
     basic_info: "Basic Information",
@@ -338,6 +343,10 @@ const en: Dictionary = {
     recommendations: "Recommendations",
     back_to_dashboard: "Back to Dashboard",
     share_result: "Share Results",
+    guestAssessmentTitle: "Guest Health Assessment",
+    guestAssessmentDescription: "Take a quick health assessment without logging in.",
+    least: "Least",
+    most: "Most",
   },
   risk_level: {
     low: "Low Risk",
@@ -359,6 +368,19 @@ const en: Dictionary = {
     welcome_message: "Hello! I'm an AI doctor ready to provide health consultations. How can I help you?",
     disclaimer:
       "This AI doctor's advice is for informational purposes only and cannot replace diagnosis from a real doctor. If you have severe symptoms or emergencies, please contact a doctor or hospital immediately.",
+  },
+  placeholder: {
+    enterNumber: "Please enter a number",
+    enterAnswer: "Please enter your answer",
+    selectOrType: "Select or type to search",
+    specifyOther: "Specify other information here",
+  },
+  validation: {
+    required: "This question is required",
+    nonNegativeNumber: "Please enter a non-negative number",
+    invalidNumber: "Please enter a valid number",
+    specialCharacters: "Special characters are not allowed",
+    specialCharactersInOption: "Special characters are not allowed in options",
   },
 }
 
