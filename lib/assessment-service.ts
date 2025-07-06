@@ -61,6 +61,12 @@ export class AssessmentService {
     aiAnalysis?: AIAnalysisResult,
   ): Promise<{ data: any; error: any }> {
     try {
+      // Do not save guest assessments to the database
+      if (categoryId === "guest-assessment") {
+        console.warn("Skipping database save for guest assessment.")
+        return { data: { id: "guest-assessment-completed" }, error: null } // Return a dummy success
+      }
+
       if (!userId) {
         throw new Error("User not authenticated")
       }
@@ -89,6 +95,7 @@ export class AssessmentService {
           summary: aiAnalysis.summary,
         }
       } else {
+        // This error should ideally not be hit if logic in AssessmentForm is correct
         throw new Error("AI analysis required for non-basic assessments")
       }
 

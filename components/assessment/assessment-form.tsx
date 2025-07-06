@@ -24,7 +24,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const router = useRouter()
   const { user } = useAuth()
   const { locale } = useLanguage()
-  const { t } = useTranslation(["common", "assessment"]) // Ensure 'assessment' namespace is loaded
+  const { t } = useTranslation(["common", "assessment", "placeholder", "validation"])
   const supabase = createClientComponentClient()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
@@ -84,66 +84,66 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     }
 
     if (isLastQuestion) {
-      // Allow guest assessment to be submitted without user ID
-      if (categoryId !== "guest-assessment" && !user?.id) {
-        alert(t("assessment.not_logged_in"))
-        return
-      }
-
       setIsSubmitting(true)
-      console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
+      console.log("🚀 AssessmentForm: เริ่มประมวลผลแบบประเมิน...")
 
       try {
-        let aiAnalysis = null
-        // AI analysis is only for non-basic and non-guest assessments
-        if (categoryId !== "basic" && categoryId !== "guest-assessment") {
-          console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
-          const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(categoryId, finalAnswersToSave)
-          if (aiError) {
-            console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
+        if (categoryId === "guest-assessment") {
+          // For guest assessment, save answers to localStorage and redirect to results page
+          console.log("💾 AssessmentForm: กำลังบันทึกคำตอบชั่วคราวสำหรับผู้เยี่ยมชม...")
+          localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(finalAnswersToSave))
+          console.log("✅ AssessmentForm: บันทึกคำตอบชั่วคราวสำเร็จ")
+          console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์สำหรับผู้เยี่ยมชม")
+          router.push(`/guest-assessment/results`)
+        } else {
+          // Existing logic for logged-in users and basic assessments
+          if (!user?.id) {
+            alert(t("assessment.not_logged_in"))
+            return
+          }
+
+          let aiAnalysis = null
+          // AI analysis for non-basic assessments (guest assessment handles its own analysis on results page)
+          if (categoryId !== "basic") {
+            console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
+            const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(
+              categoryId,
+              finalAnswersToSave,
+            )
+            if (aiError) {
+              console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
+            } else {
+              aiAnalysis = aiData
+              console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
+            }
+          }
+
+          console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
+          const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
+            supabase,
+            user.id,
+            categoryId,
+            category.title,
+            finalAnswersToSave,
+            aiAnalysis,
+          )
+
+          if (saveError) {
+            throw new Error(saveError)
+          }
+
+          console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
+
+          if (categoryId === "basic") {
+            console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
+            router.push(`/?openHealthOverview=basic&assessmentId=${savedData.id}`)
           } else {
-            aiAnalysis = aiData
-            console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
+            console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
+            router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
           }
         }
-
-        console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
-        // For guest assessment, use a placeholder user ID or handle differently if not saving to user's profile
-        // For now, if it's a guest assessment, we'll use a generic ID or skip user_id if the table allows null
-        // Assuming for guest assessment, we might not need a user_id or it's handled differently on the backend.
-        // If the backend requires a user_id even for guest, a temporary/guest user should be created.
-        // For this fix, we'll assume guest assessments don't require a user.id for saving.
-        // If the database schema for 'assessments' table requires 'user_id' to be NOT NULL,
-        // you might need to create a 'guest' user or adjust the schema.
-        // For now, we'll pass user?.id, which will be undefined for guests.
-        // The AssessmentService.saveAssessment needs to handle this gracefully.
-        const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
-          supabase,
-          user?.id || "guest_user_id", // Pass user.id or a placeholder for guest
-          categoryId,
-          category.title,
-          finalAnswersToSave,
-          aiAnalysis,
-        )
-
-        if (saveError) {
-          throw new Error(saveError)
-        }
-
-        console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
-
-        if (categoryId === "basic") {
-          console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
-          router.push(`/?openHealthOverview=basic&assessmentId=${savedData.id}`)
-        } else if (categoryId === "guest-assessment") {
-          console.log("📊 AssessmentForm: แบบประเมิน guest เสร็จสิ้น ไปหน้าผลลัพธ์")
-          router.push(`/guest-assessment/results?id=${savedData.id}`)
-        } else {
-          console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
-          router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
-        }
       } catch (error) {
-        console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
+        console.error("❌ AssessmentForm: การประมวลผลล้มเหลว:", error)
         alert(t("assessment.save_failed").replace("{{message}}", String(error)))
       } finally {
         setIsSubmitting(false)
