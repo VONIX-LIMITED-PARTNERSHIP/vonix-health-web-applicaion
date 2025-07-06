@@ -1,5 +1,5 @@
 // Define the AssessmentCategory type
-export interface AssessmentCategory {
+export type AssessmentCategory = {
   id: string
   title: string
   description: string
@@ -9,35 +9,28 @@ export interface AssessmentCategory {
 }
 
 // Define the AssessmentQuestion type
-export interface AssessmentQuestion {
+export type AssessmentQuestion = {
   id: string
-  question: string
-  type:
-    | "single"
-    | "multiple"
-    | "text"
-    | "number"
-    | "scale"
-    | "yes-no"
-    | "rating"
-    | "multiple-choice"
-    | "checkbox"
-    | "multi-select-combobox-with-other"
-  options?: string[]
+  question: BilingualText // Changed to BilingualText
+  type: "text" | "number" | "radio" | "checkbox" | "rating" | "multiselect"
+  options?: { value: string; label: BilingualText }[] // Changed to BilingualText
+  min?: number
+  max?: number
+  step?: number
+  unit?: string
   required?: boolean
   validation?: {
     min?: number
     max?: number
+    minLength?: number
+    maxLength?: number
     pattern?: string
+    message?: BilingualText // Changed to BilingualText
   }
-  category?: string // Added category to question type
-  weight?: number // Added weight to question type
-  description?: string // Added description to question type
-  riskFactors?: string[] // Added riskFactors to question type
 }
 
 // Define the AssessmentAnswer type to allow null for answer
-export interface AssessmentAnswer {
+export type AssessmentAnswer = {
   questionId: string
   question: string // Added for AI analysis context
   answer: string | number | string[] | null
@@ -46,18 +39,18 @@ export interface AssessmentAnswer {
 }
 
 // Bilingual text types
-export interface BilingualText {
+export type BilingualText = {
   th: string
   en: string
 }
 
-export interface BilingualStringArray {
+export type BilingualStringArray = {
   th: string[]
   en: string[]
 }
 
 // Updated AssessmentResult interface with bilingual support
-export interface AssessmentResult {
+export type AssessmentResult = {
   id?: string
   userId?: string
   categoryId: string
@@ -65,17 +58,17 @@ export interface AssessmentResult {
   totalScore: number
   maxScore: number
   percentage: number
-  riskLevel: string
-  riskFactors: BilingualStringArray // Updated type
-  recommendations: BilingualStringArray // Updated type
-  summary?: BilingualText // Updated type
+  riskLevel: "low" | "medium" | "high" | "very-high" | "unspecified"
+  riskFactors: BilingualStringArray // Changed to BilingualStringArray
+  recommendations: BilingualStringArray // Changed to BilingualStringArray
+  summary?: BilingualText // Changed to BilingualText
   totalQuestions: number
   createdAt?: string
   aiAnalysis?: AiAnalysisResult // More specific type
 }
 
 // AI Analysis result type
-export interface AiAnalysisResult {
+export type AiAnalysisResult = {
   score: number
   riskLevel: "low" | "medium" | "high" | "very-high"
   riskFactors: BilingualStringArray
@@ -84,7 +77,7 @@ export interface AiAnalysisResult {
 }
 
 // Saved assessment type
-export interface SavedAssessment {
+export type SavedAssessment = {
   id: string
   user_id: string
   guest_session_id?: string

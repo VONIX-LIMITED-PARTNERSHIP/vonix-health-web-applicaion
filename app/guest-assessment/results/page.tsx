@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -18,8 +17,6 @@ import {
   TrendingUp,
   FileText,
   FlaskConical,
-  LogIn,
-  UserPlus,
   Loader2,
   Info,
   Brain,
@@ -27,7 +24,7 @@ import {
 import { guestAssessmentCategory } from "@/data/assessment-questions"
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
 import { useTranslation } from "@/hooks/use-translation"
-import { useLanguage } from "@/contexts/language-context" // Import useLanguage
+import { useLanguage } from "@/contexts/language-context"
 
 export default function GuestAssessmentResultsPage() {
   const router = useRouter()
@@ -37,7 +34,7 @@ export default function GuestAssessmentResultsPage() {
   const [aiAnalysis, setAiAnalysis] = useState<any>(null) // To store raw AI analysis
   const [error, setError] = useState<string | null>(null)
   const { t } = useTranslation()
-  const { locale } = useLanguage() // Get current locale
+  const { locale } = useLanguage()
 
   useEffect(() => {
     loadAndAnalyzeGuestAssessmentData()
@@ -239,9 +236,9 @@ export default function GuestAssessmentResultsPage() {
                 <div>
                   <CardTitle className="text-2xl mb-2 flex items-center">
                     <FlaskConical className="mr-3 h-6 w-6 text-purple-600" />
-                    {t("assessment_results")}: {guestAssessmentCategory.title}
+                    {t("assessment_results")}
                   </CardTitle>
-                  <p className="text-gray-600 dark:text-gray-400">{guestAssessmentCategory.description}</p>
+                  {/* Removed guestAssessmentCategory.description */}
                   <div className="flex items-center mt-2 text-sm text-blue-600 dark:text-blue-400">
                     <Info className="w-4 h-4 mr-1" />
                     {t("this_data_not_saved")}
@@ -385,34 +382,7 @@ export default function GuestAssessmentResultsPage() {
           </Card>
         </div>
 
-        {/* Call to Action for Login/Register */}
-        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{t("want_to_save_results")}</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{t("login_to_track_progress")}</p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <Button
-                asChild
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-6 sm:px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 text-sm sm:text-base"
-              >
-                <Link href="/login">
-                  <LogIn className="mr-2 h-4 w-4" />
-                  {t("login")}
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="w-full sm:w-auto border-2 border-gray-300 hover:border-gray-400 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold px-6 sm:px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
-              >
-                <Link href="/register">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  {t("register")}
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Removed Call to Action for Login/Register */}
       </div>
     </div>
   )

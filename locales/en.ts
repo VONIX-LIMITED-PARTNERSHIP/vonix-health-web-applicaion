@@ -132,7 +132,7 @@ const en: Dictionary = {
     start_guest_assessment: "Start Guest Assessment",
     guest_assessment_title: "Guest Health Assessment",
     guest_assessment_description: "Try our preliminary health assessment system",
-    no_guest_assessment_data: "No trial assessment data found. Please try again",
+    no_guest_assessment_data: "No guest assessment data found. Please complete the assessment first.",
     ai_analyzing_results: "AI is analyzing your results...",
     ai_analyzing_description:
       "Please wait a moment while our AI processes your assessment data to provide personalized insights.",
@@ -316,6 +316,7 @@ const en: Dictionary = {
     tryItOut: "Try it out",
     fullHealthAssessment: "Full Health Assessment",
     doctorConsultation: "Doctor Consultation",
+    logout: "Logout",
   },
   assessment: {
     basic_info: "Basic Information",
@@ -385,6 +386,10 @@ const en: Dictionary = {
     login_to_track_progress: "Log in or register to track your progress and get personalized insights.",
     login: "Login",
     register: "Register",
+    "guest-assessment-title": "Basic Health Assessment (Trial)",
+    "guest-assessment-description": "Take a quick assessment to see your results and recommendations.",
+    "min-rating": "Least",
+    "max-rating": "Most",
   },
   risk_level: {
     low: "Low Risk",
@@ -426,6 +431,7 @@ const en: Dictionary = {
     invalidEmail: "Please enter a valid email address.",
     invalidDate: "Please enter a valid date.",
     invalidSelection: "Please make a valid selection.",
+    pattern: "Invalid format",
   },
 }
 
