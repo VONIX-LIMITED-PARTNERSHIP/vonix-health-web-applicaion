@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Activity, Bell, LogOut, RefreshCw, Loader2, Settings, Sun, Moon, Languages } from "lucide-react"
+import { Activity, LogOut, RefreshCw, Loader2, Settings, Sun, Moon, Languages } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation"
 import { useLanguage } from "@/contexts/language-context"
 import { useTranslation } from "@/hooks/use-translation"
 import { useTheme } from "next-themes"
-import { useMaintenanceMode } from "@/contexts/maintenance-mode-context" // Import the new hook
 
 export function Header() {
   const { user, profile, isAuthSessionLoading, isProfileLoading, signOut, refreshProfile } = useAuth() // Destructure new states
@@ -21,7 +20,6 @@ export function Header() {
   const { locale, setLocale } = useLanguage()
   const { t } = useTranslation(["common", "profile"])
   const { setTheme, theme } = useTheme()
-  const { isMaintenanceMode } = useMaintenanceMode() // Use the new hook
 
   const getInitials = (name: string | null) => {
     if (!name) return "U"
@@ -38,8 +36,9 @@ export function Header() {
       case "patient":
         return t("patient")
       case "doctor":
+        return t("doctor")
       case "admin":
-        return t("admin") // Assuming doctor/admin are also "admin" for display purposes
+        return t("admin")
       default:
         return t("user")
     }
@@ -123,106 +122,23 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {isAuthSessionLoading ? ( // Use isAuthSessionLoading here
+          {user && (
             <div className="flex items-center space-x-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">{t("loading")}...</span>
-            </div>
-          ) : user && !isMaintenanceMode ? ( // Only show user dropdown if logged in AND not in maintenance mode
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <Button variant="ghost" size="sm" className="relative p-2">
-                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="absolute -top-1 -right-1 h-2 w-2 sm:h-3 sm:w-3 bg-red-500 rounded-full"></span>
+              <Button variant="ghost" size="sm" onClick={handleRefreshProfile} disabled={refreshing}>
+                {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                <span className="sr-only">{t("refreshProfile")}</span>
               </Button>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center space-x-2 sm:space-x-3 px-2 sm:px-4 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                    disabled={signingOut}
-                  >
-                    <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
-                      <AvatarImage src={profile?.avatar_url || ""} alt={profile?.full_name || ""} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white font-semibold text-sm">
-                        {getInitials(profile?.full_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-left hidden sm:block">
-                      <div className="font-medium text-sm text-gray-800 dark:text-gray-200">
-                        {profile?.full_name || t("user")}
-                        {!profile && user && !isProfileLoading && (
-                          <span className="text-red-500 text-xs ml-2">{t("no_profile")}</span>
-                        )}
-                        {isProfileLoading && (
-                          <span className="text-gray-500 text-xs ml-2">{t("loading_profile")}...</span>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {profile
-                          ? getRoleLabel(profile.role || "patient")
-                          : isProfileLoading
-                            ? "" // Don't show "loading_profile" here, as it's already above
-                            : t("user")}{" "}
-                        {/* Default to "user" if no profile and not loading */}
-                      </div>
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  {isProfileLoading && (
-                    <DropdownMenuItem disabled>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t("loading_profile")}...
-                    </DropdownMenuItem>
-                  )}
-                  {!profile && user && !isProfileLoading && (
-                    <DropdownMenuItem onClick={handleRefreshProfile} disabled={refreshing}>
-                      <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-                      {refreshing ? t("loading") : t("refresh_profile")}
-                    </DropdownMenuItem>
-                  )}
-                  {profile && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">👤 {t("common.profile_link_text")}</Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600" disabled={signingOut}>
-                    {signingOut ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("signing_out")}
-                      </>
-                    ) : (
-                      <>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        {t("sign_out")}
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div> // Show login/register buttons only if not in maintenance mode
-          ) : (
-            !isMaintenanceMode && (
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <Button variant="ghost" className="font-medium text-sm sm:text-base px-3 sm:px-4" asChild>
-                  <Link href="/login">
-                    <span className="hidden sm:inline">{t("login")}</span>
-                    <span className="sm:hidden">{t("login")}</span>
-                  </Link>
-                </Button>
-                <Button
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium px-3 sm:px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
-                  asChild
-                >
-                  <Link href="/register">
-                    <span className="hidden sm:inline">{t("start_free")}</span>
-                    <span className="sm:hidden">{t("register")}</span>
-                  </Link>
-                </Button>
-              </div>
-            )
+              <Button variant="ghost" size="sm" onClick={handleSignOut} disabled={signingOut}>
+                {signingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                <span className="sr-only">{t("signOut")}</span>
+              </Button>
+              <Avatar>
+                <AvatarImage src={profile?.avatarUrl || "/placeholder.svg"} alt={profile?.name || "User"} />
+                <AvatarFallback>{getInitials(profile?.name)}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium">{profile?.name}</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{getRoleLabel(profile?.role)}</span>
+            </div>
           )}
         </div>
       </div>

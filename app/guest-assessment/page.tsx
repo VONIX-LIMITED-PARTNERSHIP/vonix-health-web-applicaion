@@ -8,13 +8,23 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Info, FlaskConical } from "lucide-react"
 import { AssessmentForm } from "@/components/assessment/assessment-form"
-import { guestAssessmentCategory } from "@/data/assessment-questions"
-import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
+import { getAssessmentCategories } from "@/data/assessment-questions" // Import getAssessmentCategories
+import { useTranslation } from "@/hooks/use-translation"
+import { useLanguage } from "@/contexts/language-context" // Import useLanguage
 
 export default function GuestAssessmentPage() {
   const [agreedToDisclaimer, setAgreedToDisclaimer] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const { t } = useTranslation() // Use translation hook
+  const { t } = useTranslation()
+  const { locale } = useLanguage() // Get current locale
+
+  // Get guest assessment category based on current language
+  const assessmentCategories = getAssessmentCategories(locale)
+  const guestCategory = assessmentCategories.find((cat) => cat.id === "guest-assessment")
+
+  if (!guestCategory) {
+    return <div>{t("common.error_loading_details")}</div> // Fallback for error loading category
+  }
 
   const handleStartAssessment = () => {
     if (agreedToDisclaimer) {
@@ -23,7 +33,7 @@ export default function GuestAssessmentPage() {
   }
 
   if (showForm) {
-    return <AssessmentForm categoryId={guestAssessmentCategory.id} />
+    return <AssessmentForm categoryId={guestCategory.id} />
   }
 
   return (
@@ -33,25 +43,26 @@ export default function GuestAssessmentPage() {
           <Button variant="ghost" asChild className="mb-4 self-start hover:bg-white/80 dark:hover:bg-gray-700/80">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("home")}
+              {t("common.home")}
             </Link>
           </Button>
           <CardTitle className="text-3xl font-bold text-center flex items-center justify-center gap-3">
             <FlaskConical className="h-8 w-8 text-purple-600" />
-            {t("guest_assessment_title")}
+            {guestCategory.title} {/* Use translated title */}
           </CardTitle>
-          <p className="text-center text-gray-600 dark:text-gray-400 mt-2">{t("guest_assessment_description")}</p>
+          <p className="text-center text-gray-600 dark:text-gray-400 mt-2">{guestCategory.description}</p>{" "}
+          {/* Use translated description */}
         </CardHeader>
         <CardContent className="p-6">
           <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 p-4 rounded-lg flex items-start gap-3 mb-6">
             <Info className="h-5 w-5 mt-1 flex-shrink-0" />
             <div>
-              <h4 className="font-semibold text-lg mb-1">{t("guest_assessment_disclaimer_title")}</h4>
+              <h4 className="font-semibold text-lg mb-1">{t("common.guest_assessment_disclaimer_title")}</h4>
               <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>{t("guest_assessment_disclaimer_1")}</li>
-                <li>{t("guest_assessment_disclaimer_2")}</li>
-                <li>{t("guest_assessment_disclaimer_3")}</li>
-                <li>{t("guest_assessment_disclaimer_4")}</li>
+                <li>{t("common.guest_assessment_disclaimer_1")}</li>
+                <li>{t("common.guest_assessment_disclaimer_2")}</li>
+                <li>{t("common.guest_assessment_disclaimer_3")}</li>
+                <li>{t("common.guest_assessment_disclaimer_4")}</li>
               </ul>
             </div>
           </div>
@@ -64,7 +75,7 @@ export default function GuestAssessmentPage() {
               className="data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
             />
             <Label htmlFor="disclaimer-agree" className="text-base text-gray-700 dark:text-gray-300 cursor-pointer">
-              {t("i_understand_disclaimer")}
+              {t("common.i_understand_disclaimer")}
             </Label>
           </div>
 
@@ -73,7 +84,7 @@ export default function GuestAssessmentPage() {
             disabled={!agreedToDisclaimer}
             className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 text-lg"
           >
-            {t("start_guest_assessment")}
+            {t("common.start_guest_assessment")}
           </Button>
         </CardContent>
       </Card>

@@ -4,33 +4,11 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { AssessmentService } from "@/lib/assessment-service"
 import { isSupabaseConfigured, createClientComponentClient } from "@/lib/supabase"
-import {
-  Play,
-  Stethoscope,
-  User,
-  Heart,
-  Apple,
-  Brain,
-  MoonIcon,
-  ChevronRight,
-  FileText,
-  Activity,
-  Sparkles,
-  Shield,
-  Zap,
-  TrendingUp,
-  Clock,
-  Award,
-  FlaskConical,
-  BarChart2,
-  Dumbbell,
-} from "lucide-react"
+import { User, Heart, Apple, Brain, MoonIcon, Sparkles, Shield, Zap, FlaskConical, Dumbbell } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { ConsultDoctorIntroModal } from "@/components/consult-doctor-intro-modal"
@@ -40,7 +18,6 @@ import { useTranslation } from "@/hooks/use-translation"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
 import { useLanguage } from "@/contexts/language-context"
 import { getAssessmentCategories } from "@/data/assessment-questions"
-import { useMaintenanceMode } from "@/contexts/maintenance-mode-context" // Import the new hook
 
 export default function HomePage() {
   const { user, profile, loading } = useAuth()
@@ -62,7 +39,7 @@ export default function HomePage() {
   const { t } = useTranslation(["common"])
   const { getRiskLevelLabel } = useRiskLevelTranslation()
   const { locale } = useLanguage()
-  const { isMaintenanceMode } = useMaintenanceMode() // Use the new hook
+
   const router = useRouter()
   const { toast } = useToast()
 
@@ -89,10 +66,10 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
-    if (isLoggedIn && user?.id && isSupabaseConfigured() && !isMaintenanceMode) {
+    if (isLoggedIn && user?.id && isSupabaseConfigured()) {
       loadUserAssessments()
     }
-  }, [isLoggedIn, user?.id, isMaintenanceMode]) // Add isMaintenanceMode to dependency array
+  }, [isLoggedIn, user?.id])
 
   useEffect(() => {
     if (mounted && searchParams.get("openHealthOverview")) {
@@ -289,40 +266,17 @@ export default function HomePage() {
   }
 
   const handleStartAssessment = () => {
-    if (isMaintenanceMode) {
-      router.push("/guest-assessment")
-      return
-    }
-    if (!isLoggedIn) {
-      router.push("/login")
-      return
-    }
-
-    const assessmentSection = document.getElementById("assessment-section")
-    if (assessmentSection) {
-      assessmentSection.scrollIntoView({ behavior: "smooth" })
-    }
+    // This function will now only redirect to guest assessment, as other options are hidden
+    router.push("/guest-assessment")
   }
 
   const handleConsultDoctor = () => {
-    if (isMaintenanceMode) {
-      toast({
-        title: t("feature_unavailable"),
-        description: t("feature_unavailable_maintenance"),
-        variant: "destructive",
-      })
-      return
-    }
-    if (!isLoggedIn) {
-      toast({
-        title: t("please_login"),
-        description: t("login_to_consult"),
-        variant: "destructive",
-      })
-      router.push("/login")
-      return
-    }
-    setIsConsultIntroModalOpen(true)
+    // This function is now effectively disabled as the button is hidden
+    toast({
+      title: t("feature_unavailable"),
+      description: t("feature_unavailable_trial_mode"), // New translation key for clarity
+      variant: "destructive",
+    })
   }
 
   const handleProceedToSummary = () => {
@@ -330,24 +284,12 @@ export default function HomePage() {
   }
 
   const handleViewHealthOverview = () => {
-    if (isMaintenanceMode) {
-      toast({
-        title: t("feature_unavailable"),
-        description: t("feature_unavailable_maintenance"),
-        variant: "destructive",
-      })
-      return
-    }
-    if (!isLoggedIn) {
-      toast({
-        title: t("please_login"),
-        description: t("login_to_view_overview"),
-        variant: "destructive",
-      })
-      router.push("/login")
-      return
-    }
-    setIsHealthOverviewModalOpen(true)
+    // This function is now effectively disabled as the button is hidden
+    toast({
+      title: t("feature_unavailable"),
+      description: t("feature_unavailable_trial_mode"), // New translation key for clarity
+      variant: "destructive",
+    })
   }
 
   return (
@@ -387,46 +329,14 @@ export default function HomePage() {
               <Button
                 size="lg"
                 className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-                onClick={handleStartAssessment}
+                asChild // Make it a link directly
               >
-                <Play className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="hidden sm:inline">
-                  {isMaintenanceMode ? t("try_it_out") : t("start_health_assessment")}
-                </span>
-                <span className="sm:hidden">{isMaintenanceMode ? t("try_it_out") : t("start_health_assessment")}</span>
+                <Link href="/guest-assessment">
+                  <FlaskConical className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="hidden sm:inline">{t("try_it_out")}</span>
+                  <span className="sm:hidden">{t("try_it_out")}</span>
+                </Link>
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto
-                    border-2 border-gray-300 hover:border-blue-400
-                    bg-white/80 dark:bg-gray-800/80
-                    text-gray-700 dark:text-white
-                    backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700
-                    font-semibold rounded-2xl shadow-lg hover:shadow-xl
-                    transition-all duration-300"
-                onClick={handleConsultDoctor}
-                disabled={isMaintenanceMode} // Disable if in maintenance mode
-              >
-                <Stethoscope className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="hidden sm:inline">{t("consult_doctor_online")}</span>
-                <span className="sm:hidden">{t("consult_doctor")}</span>
-              </Button>
-              {/* Always show "Try it out" if in maintenance mode, otherwise show if not logged in */}
-              {(isMaintenanceMode || !isLoggedIn) && (
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto border-2 border-purple-300 hover:border-purple-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-                  asChild
-                >
-                  <Link href="/guest-assessment">
-                    <FlaskConical className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                    <span className="hidden sm:inline">{t("try_it_out")}</span>
-                    <span className="sm:hidden">{t("try_it_out")}</span>
-                  </Link>
-                </Button>
-              )}
             </div>
 
             {/* Features */}
@@ -460,232 +370,6 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-
-          {isLoggedIn && isSupabaseConfigured() && !isMaintenanceMode ? ( // Hide dashboard stats in maintenance mode
-            <>
-              {/* Dashboard Stats */}
-              <Card className="mb-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-2xl rounded-3xl overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1">
-                  <div className="bg-white dark:bg-gray-900 rounded-3xl">
-                    <CardHeader className="pb-6">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between">
-                        <div>
-                          <CardTitle className="flex items-center gap-3 text-2xl">
-                            <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                              <Activity className="h-6 w-6" />
-                            </div>
-                            {t("your_health_overview")}
-                          </CardTitle>
-                          <p className="text-gray-600 dark:text-gray-400 mt-2">{t("assessment_progress")}</p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-                          <Button
-                            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base"
-                            onClick={handleConsultDoctor}
-                          >
-                            <Stethoscope className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">{t("consult_doctor")}</span>
-                            <span className="sm:hidden">{t("consult_doctor")}</span>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="border-2 border-gray-300 hover:border-blue-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base
-                            dark:border-gray-700 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200"
-                            onClick={handleViewHealthOverview}
-                          >
-                            <BarChart2 className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">{t("health_overview")}</span>
-                            <span className="sm:hidden">{t("health_overview")}</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
-                          <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
-                          <div className="relative">
-                            <div
-                              className={`text-3xl font-bold mb-1 ${getHealthLevelColor(dashboardStats.overallScore)}`}
-                            >
-                              {loadingStats ? "..." : getHealthLevel(dashboardStats.overallScore)}
-                            </div>
-                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                              {t("overall_health_score")}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {dashboardStats.completedAssessments > 0 ? t("updated_at") : t("no_data")}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
-                          <div className="absolute top-0 right-0 w-20 h-20 bg-orange-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
-                          <div className="relative">
-                            <div className="text-3xl font-bold text-orange-600 mb-1">
-                              {loadingStats ? "..." : dashboardStats.riskFactors}
-                            </div>
-                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                              {t("risk_factors")}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                              <TrendingUp className="w-3 h-3 mr-1" />
-                              {t("identified")}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
-                          <div className="absolute top-0 right-0 w-20 h-20 bg-green-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
-                          <div className="relative">
-                            <div className="text-3xl font-bold text-green-600 mb-1">
-                              {loadingStats ? "..." : `${dashboardStats.completedAssessments}/6`}
-                            </div>
-                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                              {t("assessments")}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                              <Award className="w-3 h-3 mr-1" />
-                              {t("completed")}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
-                          <div className="absolute top-0 right-0 w-20 h-20 bg-purple-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
-                          <div className="relative">
-                            <div className="text-2xl font-bold text-purple-600 mb-1">
-                              {loadingStats
-                                ? "..."
-                                : dashboardStats.reportReady
-                                  ? t("report_ready")
-                                  : t("report_not_ready")}
-                            </div>
-                            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                              {t("health_report")}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center mb-1">
-                              <FileText className="w-3 h-3 mr-1" />
-                              {dashboardStats.reportReady ? t("can_generate_report") : t("can_generate_report")}
-                            </div>
-                            {!dashboardStats.reportReady && (
-                              <div className="text-xs text-gray-400">{t("must_complete_3_categories")}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Assessment Categories */}
-              <div className="mb-16" id="assessment-section">
-                <div className="text-center mb-12">
-                  <h2 className="text-4xl font-bold mb-4">
-                    <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text dark:bg-red-900 dark:text-red-200 text-transparent">
-                      {t("health_assessments")}
-                    </span>
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-lg">{t("choose_assessment_type")}</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {getUpdatedCategories().map((category, index) => (
-                    <Card
-                      key={category.id}
-                      className={`group relative overflow-hidden 
-                        bg-gradient-to-br ${category.bgGradient} ${category.darkBgGradient} 
-                        border-0 shadow-xl hover:shadow-2xl transition-all duration-500 
-                        transform hover:scale-105 cursor-pointer rounded-3xl`}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-black/30 dark:to-transparent"></div>
-                      <CardContent className="relative p-8">
-                        <div className="flex items-start justify-between mb-6">
-                          <div
-                            className={`p-4 rounded-2xl bg-gradient-to-br ${category.gradient} text-white shadow-lg group-hover:shadow-xl transition-all duration-300`}
-                          >
-                            <category.icon className="h-8 w-8" />
-                          </div>
-                          <div className="flex flex-col items-end space-y-2">
-                            {category.required ? (
-                              <Badge className="bg-red-500 text-white font-medium px-3 py-1 rounded-full dark:bg-red-700">
-                                {t("required")}
-                              </Badge>
-                            ) : (
-                              <Badge
-                                variant="secondary"
-                                className="bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full dark:bg-blue-800 dark:text-white"
-                              >
-                                {t("optional")}
-                              </Badge>
-                            )}
-                            {category.progress > 0 && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-                                <div className="font-medium">{t("completed")}</div>
-                                {category.id !== "basic" && category.riskLevel && (
-                                  <div
-                                    className={`font-semibold text-sm mt-1 ${
-                                      category.riskLevel === "low"
-                                        ? "text-green-600 dark:text-green-400"
-                                        : category.riskLevel === "medium"
-                                          ? "text-yellow-600 dark:text-yellow-400"
-                                          : category.riskLevel === "high"
-                                            ? "text-orange-600 dark:text-orange-400"
-                                            : category.riskLevel === "very-high"
-                                              ? "text-red-600 dark:text-red-400"
-                                              : "text-gray-600 dark:text-gray-300"
-                                    }`}
-                                  >
-                                    ({getRiskLevelLabel(category.riskLevel)})
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <h3 className="font-bold text-xl mb-3 text-gray-800 group-hover:text-gray-900 transition-colors dark:text-white dark:group-hover:text-gray-100">
-                          {category.title}
-                        </h3>
-                        <p className="text-gray-600 mb-4 leading-relaxed dark:text-gray-300">{category.description}</p>
-                        <p className="text-sm text-gray-500 mb-6 flex items-center dark:text-gray-400">
-                          <Clock className="w-4 h-4 mr-2" />
-                          {category.status}
-                          {category.lastCompleted && <span className="ml-2 text-xs">({category.lastCompleted})</span>}
-                        </p>
-
-                        <Button
-                          className={`w-full font-semibold py-3 rounded-xl transition-all duration-300 ${
-                            category.required
-                              ? `bg-gradient-to-r ${category.gradient} hover:shadow-lg text-white`
-                              : `bg-white/90 hover:bg-white text-gray-700 border border-gray-200 hover:border-gray-300 
-                                dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700 dark:hover:border-gray-600`
-                          }`}
-                          asChild
-                          disabled={isMaintenanceMode && category.id !== "basic"} // Disable all except basic in maintenance mode
-                        >
-                          <Link href={`/assessment/${category.id}`}>
-                            {category.progress > 0 ? t("re_assess") : t("start_assessment")}
-                            <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </> // Show a message when in maintenance mode
-          ) : (
-            isMaintenanceMode && (
-              <div className="text-center py-12 bg-yellow-50 dark:bg-yellow-950 rounded-xl border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 mb-16">
-                <h2 className="text-2xl font-bold mb-4">{t("maintenance_mode_title")}</h2>
-                <p className="text-lg">{t("maintenance_mode_description")}</p>
-                <p className="text-sm mt-2">{t("maintenance_mode_trial_only")}</p>
-              </div>
-            )
-          )}
         </div>
       </main>
       <ConsultDoctorIntroModal
