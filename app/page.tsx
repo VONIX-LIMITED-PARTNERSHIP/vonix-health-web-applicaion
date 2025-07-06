@@ -40,6 +40,7 @@ import { useTranslation } from "@/hooks/use-translation"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
 import { useLanguage } from "@/contexts/language-context"
 import { getAssessmentCategories } from "@/data/assessment-questions"
+import { useMaintenanceMode } from "@/contexts/maintenance-mode-context" // Import the new hook
 
 export default function HomePage() {
   const { user, profile, loading } = useAuth()
@@ -61,7 +62,7 @@ export default function HomePage() {
   const { t } = useTranslation(["common"])
   const { getRiskLevelLabel } = useRiskLevelTranslation()
   const { locale } = useLanguage()
-
+  const { isMaintenanceMode } = useMaintenanceMode() // Use the new hook
   const router = useRouter()
   const { toast } = useToast()
 
@@ -88,10 +89,10 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
-    if (isLoggedIn && user?.id && isSupabaseConfigured()) {
+    if (isLoggedIn && user?.id && isSupabaseConfigured() && !isMaintenanceMode) {
       loadUserAssessments()
     }
-  }, [isLoggedIn, user?.id])
+  }, [isLoggedIn, user?.id, isMaintenanceMode]) // Add isMaintenanceMode to dependency array
 
   useEffect(() => {
     if (mounted && searchParams.get("openHealthOverview")) {
@@ -288,6 +289,10 @@ export default function HomePage() {
   }
 
   const handleStartAssessment = () => {
+    if (isMaintenanceMode) {
+      router.push("/guest-assessment")
+      return
+    }
     if (!isLoggedIn) {
       router.push("/login")
       return
@@ -300,6 +305,14 @@ export default function HomePage() {
   }
 
   const handleConsultDoctor = () => {
+    if (isMaintenanceMode) {
+      toast({
+        title: t("feature_unavailable"),
+        description: t("feature_unavailable_maintenance"),
+        variant: "destructive",
+      })
+      return
+    }
     if (!isLoggedIn) {
       toast({
         title: t("please_login"),
@@ -317,6 +330,14 @@ export default function HomePage() {
   }
 
   const handleViewHealthOverview = () => {
+    if (isMaintenanceMode) {
+      toast({
+        title: t("feature_unavailable"),
+        description: t("feature_unavailable_maintenance"),
+        variant: "destructive",
+      })
+      return
+    }
     if (!isLoggedIn) {
       toast({
         title: t("please_login"),
@@ -369,8 +390,10 @@ export default function HomePage() {
                 onClick={handleStartAssessment}
               >
                 <Play className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="hidden sm:inline">{t("start_health_assessment")}</span>
-                <span className="sm:hidden">{t("start_health_assessment")}</span>
+                <span className="hidden sm:inline">
+                  {isMaintenanceMode ? t("try_it_out") : t("start_health_assessment")}
+                </span>
+                <span className="sm:hidden">{isMaintenanceMode ? t("try_it_out") : t("start_health_assessment")}</span>
               </Button>
               <Button
                 size="lg"
@@ -383,12 +406,14 @@ export default function HomePage() {
                     font-semibold rounded-2xl shadow-lg hover:shadow-xl
                     transition-all duration-300"
                 onClick={handleConsultDoctor}
+                disabled={isMaintenanceMode} // Disable if in maintenance mode
               >
                 <Stethoscope className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
                 <span className="hidden sm:inline">{t("consult_doctor_online")}</span>
                 <span className="sm:hidden">{t("consult_doctor")}</span>
               </Button>
-              {!isLoggedIn && (
+              {/* Always show "Try it out" if in maintenance mode, otherwise show if not logged in */}
+              {(isMaintenanceMode || !isLoggedIn) && (
                 <Button
                   size="lg"
                   variant="outline"
@@ -436,7 +461,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {isLoggedIn && isSupabaseConfigured() && (
+          {isLoggedIn && isSupabaseConfigured() && !isMaintenanceMode ? ( // Hide dashboard stats in maintenance mode
             <>
               {/* Dashboard Stats */}
               <Card className="mb-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-2xl rounded-3xl overflow-hidden">
@@ -639,6 +664,7 @@ export default function HomePage() {
                                 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700 dark:hover:border-gray-600`
                           }`}
                           asChild
+                          disabled={isMaintenanceMode && category.id !== "basic"} // Disable all except basic in maintenance mode
                         >
                           <Link href={`/assessment/${category.id}`}>
                             {category.progress > 0 ? t("re_assess") : t("start_assessment")}
@@ -650,7 +676,15 @@ export default function HomePage() {
                   ))}
                 </div>
               </div>
-            </>
+            </> // Show a message when in maintenance mode
+          ) : (
+            isMaintenanceMode && (
+              <div className="text-center py-12 bg-yellow-50 dark:bg-yellow-950 rounded-xl border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 mb-16">
+                <h2 className="text-2xl font-bold mb-4">{t("maintenance_mode_title")}</h2>
+                <p className="text-lg">{t("maintenance_mode_description")}</p>
+                <p className="text-sm mt-2">{t("maintenance_mode_trial_only")}</p>
+              </div>
+            )
           )}
         </div>
       </main>

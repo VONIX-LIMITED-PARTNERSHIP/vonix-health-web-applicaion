@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import { useLanguage } from "@/contexts/language-context"
 import { useTranslation } from "@/hooks/use-translation"
 import { useTheme } from "next-themes"
+import { useMaintenanceMode } from "@/contexts/maintenance-mode-context" // Import the new hook
 
 export function Header() {
   const { user, profile, isAuthSessionLoading, isProfileLoading, signOut, refreshProfile } = useAuth() // Destructure new states
@@ -20,6 +21,7 @@ export function Header() {
   const { locale, setLocale } = useLanguage()
   const { t } = useTranslation(["common", "profile"])
   const { setTheme, theme } = useTheme()
+  const { isMaintenanceMode } = useMaintenanceMode() // Use the new hook
 
   const getInitials = (name: string | null) => {
     if (!name) return "U"
@@ -36,9 +38,8 @@ export function Header() {
       case "patient":
         return t("patient")
       case "doctor":
-        return t("doctor")
       case "admin":
-        return t("admin")
+        return t("admin") // Assuming doctor/admin are also "admin" for display purposes
       default:
         return t("user")
     }
@@ -127,7 +128,7 @@ export function Header() {
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">{t("loading")}...</span>
             </div>
-          ) : user ? (
+          ) : user && !isMaintenanceMode ? ( // Only show user dropdown if logged in AND not in maintenance mode
             <div className="flex items-center space-x-2 sm:space-x-3">
               <Button variant="ghost" size="sm" className="relative p-2">
                 <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -201,25 +202,27 @@ export function Header() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
+            </div> // Show login/register buttons only if not in maintenance mode
           ) : (
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <Button variant="ghost" className="font-medium text-sm sm:text-base px-3 sm:px-4" asChild>
-                <Link href="/login">
-                  <span className="hidden sm:inline">{t("login")}</span>
-                  <span className="sm:hidden">{t("login")}</span>
-                </Link>
-              </Button>
-              <Button
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium px-3 sm:px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
-                asChild
-              >
-                <Link href="/register">
-                  <span className="hidden sm:inline">{t("start_free")}</span>
-                  <span className="sm:hidden">{t("register")}</span>
-                </Link>
-              </Button>
-            </div>
+            !isMaintenanceMode && (
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <Button variant="ghost" className="font-medium text-sm sm:text-base px-3 sm:px-4" asChild>
+                  <Link href="/login">
+                    <span className="hidden sm:inline">{t("login")}</span>
+                    <span className="sm:hidden">{t("login")}</span>
+                  </Link>
+                </Button>
+                <Button
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium px-3 sm:px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+                  asChild
+                >
+                  <Link href="/register">
+                    <span className="hidden sm:inline">{t("start_free")}</span>
+                    <span className="sm:hidden">{t("register")}</span>
+                  </Link>
+                </Button>
+              </div>
+            )
           )}
         </div>
       </div>

@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/use-auth"
 import { Toaster } from "@/components/ui/toaster"
 import { ChatWidget } from "@/components/chatbot/chat-widget"
 import { Footer } from "@/components/footer"
+import { MaintenanceModeProvider } from "@/contexts/maintenance-mode-context" // Import the new provider
 
 /**
  * Groups every client-side context / widget so the server layout
@@ -22,10 +23,12 @@ export default function Providers({ children }: { children: ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
       <LanguageProvider>
         <AuthProvider>
-          {children}
-          <Footer />
-          <Toaster />
-          <ChatWidget />
+          <MaintenanceModeProvider>
+            {children}
+            <Footer />
+            <Toaster />
+            <ChatWidget />
+          </MaintenanceModeProvider>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>

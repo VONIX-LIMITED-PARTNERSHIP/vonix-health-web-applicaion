@@ -281,6 +281,13 @@ const en: Dictionary = {
     no_risk_factors_found: "No significant risk factors found",
     unauthorized_access: "Unauthorized access. Please log in.",
     assessment_not_found_or_unauthorized: "Assessment not found or you do not have permission to view it.",
+    feature_unavailable: "Feature Unavailable",
+    feature_unavailable_maintenance:
+      "This feature is temporarily unavailable due to maintenance. Please try again later.",
+    maintenance_mode_title: "Website Under Maintenance",
+    maintenance_mode_description:
+      "We are currently performing essential maintenance to improve our services. Thank you for your patience.",
+    maintenance_mode_trial_only: "During this period, only guest assessment (trial mode) is available.",
     // --- Health level labels -----------------
     health_level_excellent: "Excellent",
     health_level_very_good: "Very Good",
@@ -359,6 +366,9 @@ const en: Dictionary = {
     welcome_message: "Hello! I'm an AI doctor ready to provide health consultations. How can I help you?",
     disclaimer:
       "This AI doctor's advice is for informational purposes only and cannot replace diagnosis from a real doctor. If you have severe symptoms or emergencies, please contact a doctor or hospital immediately.",
+  },
+  profile: {
+    // ... existing translations
   },
 }
 
