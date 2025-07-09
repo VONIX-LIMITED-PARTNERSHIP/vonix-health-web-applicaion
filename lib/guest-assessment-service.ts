@@ -1,136 +1,167 @@
-import type { AssessmentAnswer, AssessmentResult, AssessmentCategory } from "@/types/assessment"
-import { getAssessmentQuestions } from "@/data/assessment-questions"
-import { getRiskLevelTranslation } from "@/utils/risk-level"
+import type { AssessmentCategory, AssessmentResult, DashboardStats } from "@/types/assessment"
 
-interface GuestUser {
-  id: string
-  createdAt: string
+// This is a workaround to use useTranslation in a static class method.
+// In a real application, you might pass the `t` function as an argument
+// or use a different translation approach for non-React contexts.
+let t: (key: string) => string = (key) => key // Default fallback
+
+// This function should be called once, e.g., in a root layout or provider,
+// to set the translation function for the service.
+export const setGuestServiceTranslation = (translateFn: (key: string) => string) => {
+  t = translateFn
 }
 
-interface GuestAssessmentData {
-  [userId: string]: {
-    [category: string]: AssessmentResult
+export class GuestAssessmentService {
+  private static readonly STORAGE_KEY_PREFIX = "guest-assessment-"
+  private static readonly DASHBOARD_STATS_KEY = "guest-dashboard-stats"
+
+  static saveAssessment(category: AssessmentCategory, result: AssessmentResult) {
+    try {
+      const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
+      localStorage.setItem(key, JSON.stringify(result))
+      GuestAssessmentService.updateDashboardStats(category, result)
+    } catch (error) {
+      console.error("Error saving guest assessment:", error)
+    }
   }
-}
 
-// This is a mock in-memory storage for guest assessment data.
-// In a real application, this would be a database or a more persistent storage.
-const guestAssessmentData: GuestAssessmentData = {}
-
-export const GuestAssessmentService = {
-  /**
-   * Simulates submitting a guest assessment.
-   * Stores the assessment result in memory.
-   * @param userId The ID of the guest user.
-   * @param category The category of the assessment.
-   * @param answers The answers provided by the guest user.
-   * @returns The generated AssessmentResult.
-   */
-  submitGuestAssessment: (
-    userId: string,
-    category: AssessmentCategory,
-    answers: AssessmentAnswer[],
-  ): AssessmentResult => {
-    // Simulate AI analysis and score calculation
-    const score = Math.floor(Math.random() * 100) // Random score for demonstration
-    const riskLevels: Array<AssessmentResult["riskLevel"]> = ["low", "medium", "high", "very-high"]
-    const riskLevel = riskLevels[Math.floor(Math.random() * riskLevels.length)]
-
-    const aiAnalysis = GuestAssessmentService.generateMockAiAnalysis(category, answers, riskLevel)
-
-    const result: AssessmentResult = {
-      id: `guest-assessment-${userId}-${category}-${Date.now()}`,
-      userId: userId,
-      category: category,
-      completedAt: new Date().toISOString(),
-      answers: answers,
-      score: score,
-      riskLevel: riskLevel,
-      aiAnalysis: aiAnalysis,
+  static getAssessment(category: AssessmentCategory): AssessmentResult | null {
+    try {
+      const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
+      const stored = localStorage.getItem(key)
+      return stored ? JSON.parse(stored) : null
+    } catch (error) {
+      console.error("Error getting guest assessment:", error)
+      return null
     }
+  }
 
-    if (!guestAssessmentData[userId]) {
-      guestAssessmentData[userId] = {}
-    }
-    guestAssessmentData[userId][category] = result
-    return result
-  },
-
-  /**
-   * Retrieves a specific guest assessment by user ID and category.
-   * @param userId The ID of the guest user.
-   * @param category The category of the assessment.
-   * @returns The AssessmentResult if found, otherwise undefined.
-   */
-  getAssessmentByCategory: (category: AssessmentCategory): AssessmentResult | undefined => {
-    // For guest mode, we assume there's only one "guest user" session
-    // and we retrieve the latest assessment for the given category.
-    // In a real app, you'd pass the guestUser.id from the client.
-    // For simplicity, we'll just return the last submitted assessment for that category.
-    const guestUserId = "mock-guest-user-id" // This should ideally come from a guest session
-    return guestAssessmentData[guestUserId]?.[category]
-  },
-
-  /**
-   * Retrieves the latest assessment results for a given guest user across all categories.
-   * @param userId The ID of the guest user.
-   * @returns An array of the latest AssessmentResult for each category.
-   */
-  getLatestAssessments: (userId: string): AssessmentResult[] => {
-    const userAssessments = guestAssessmentData[userId]
-    if (!userAssessments) {
+  static getLatestAssessments(): { category: AssessmentCategory; result: AssessmentResult }[] {
+    try {
+      const assessments: { category: AssessmentCategory; result: AssessmentResult }[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX)) {
+          const category = key.replace(GuestAssessmentService.STORAGE_KEY_PREFIX, "") as AssessmentCategory
+          const result = GuestAssessmentService.getAssessment(category)
+          if (result) {
+            assessments.push({ category, result })
+          }
+        }
+      }
+      // Sort by timestamp to get the latest for each category if multiple exist (though typically only one per category)
+      return assessments.sort(
+        (a, b) => new Date(b.result.completedAt).getTime() - new Date(a.result.completedAt).getTime(),
+      )
+    } catch (error) {
+      console.error("Error getting latest guest assessments:", error)
       return []
     }
-    return Object.values(userAssessments)
-  },
+  }
 
-  /**
-   * Generates mock AI analysis based on the assessment category and risk level.
-   * @param category The assessment category.
-   * @param answers The answers provided.
-   * @param riskLevel The calculated risk level.
-   * @returns Mock AI analysis summary and recommendations.
-   */
-  generateMockAiAnalysis: (
-    category: AssessmentCategory,
-    answers: AssessmentAnswer[],
-    riskLevel: AssessmentResult["riskLevel"],
-  ) => {
-    const questions = getAssessmentQuestions("en")[category] // Use English for mock generation
-    const answeredQuestions = answers.map((answer) => {
-      const question = questions.find((q) => q.answers.some((a) => a.id === answer.id))
-      return {
-        questionText: question ? question.question.en : "Unknown question",
-        answerText:
-          answer.type === "other"
-            ? answer.value
-            : questions.find((q) => q.answers.some((a) => a.id === answer.id))?.answers.find((a) => a.id === answer.id)
-                ?.text.en || "No answer",
+  static updateDashboardStats(category: AssessmentCategory, result: AssessmentResult) {
+    try {
+      const currentStats = GuestAssessmentService.getDashboardStats()
+      const updatedStats = { ...currentStats }
+
+      // Update total assessments
+      const allLatest = GuestAssessmentService.getLatestAssessments()
+      updatedStats.totalAssessments = allLatest.length
+
+      // Update last assessment date
+      const latestOverallAssessment = allLatest.length > 0 ? allLatest[0].result : null
+      updatedStats.lastAssessmentDate = latestOverallAssessment?.completedAt
+        ? new Date(latestOverallAssessment.completedAt).toISOString().split("T")[0]
+        : null
+
+      // Update risk levels
+      updatedStats.riskLevels[category] = result.riskLevel
+
+      // Calculate overall risk based on all latest assessments
+      const riskOrder = ["low", "medium", "high", "very-high"]
+      let overallHighestRisk: AssessmentResult["riskLevel"] = "low"
+      allLatest.forEach((item) => {
+        if (riskOrder.indexOf(item.result.riskLevel) > riskOrder.indexOf(overallHighestRisk)) {
+          overallHighestRisk = item.result.riskLevel
+        }
+      })
+      updatedStats.overallRisk = overallHighestRisk
+
+      // Generate recommendations (simplified for guest)
+      updatedStats.recommendations = GuestAssessmentService.generateRecommendations(
+        allLatest.map((item) => item.result),
+      )
+
+      localStorage.setItem(GuestAssessmentService.DASHBOARD_STATS_KEY, JSON.stringify(updatedStats))
+    } catch (error) {
+      console.error("Error updating guest dashboard stats:", error)
+    }
+  }
+
+  static getDashboardStats(): DashboardStats {
+    try {
+      const storedStats = localStorage.getItem(GuestAssessmentService.DASHBOARD_STATS_KEY)
+      if (storedStats) {
+        return JSON.parse(storedStats)
       }
-    })
+    } catch (error) {
+      console.error("Error getting guest dashboard stats:", error)
+    }
 
-    let summary = `Based on your ${category} assessment, your overall health risk is ${getRiskLevelTranslation(riskLevel, "en").toLowerCase()}.`
+    // Default initial stats with translation
+    return {
+      totalAssessments: 0,
+      lastAssessmentDate: null,
+      riskLevels: {},
+      overallRisk: "unknown", // Default to unknown or low
+      recommendations: [],
+    }
+  }
+
+  static clearAllGuestData() {
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX)) {
+          localStorage.removeItem(key)
+        }
+      }
+      localStorage.removeItem(GuestAssessmentService.DASHBOARD_STATS_KEY)
+      console.log("All guest assessment data cleared.")
+    } catch (error) {
+      console.error("Error clearing all guest data:", error)
+    }
+  }
+
+  private static generateRecommendations(results: AssessmentResult[]): string[] {
     const recommendations: string[] = []
 
-    if (riskLevel === "low") {
-      summary += " Your responses indicate good health habits in this area."
-      recommendations.push("Continue maintaining your excellent health habits.")
-    } else if (riskLevel === "medium") {
-      summary += " There are some areas that could be improved."
-      recommendations.push("Consider improving your lifestyle and health behaviors.")
-    } else if (riskLevel === "high" || riskLevel === "very-high") {
-      summary += " This indicates a significant risk that requires attention."
-      recommendations.push("Consult a doctor for further examination.")
-      recommendations.push("Make serious lifestyle changes as advised by a medical professional.")
+    const highRiskCategories = results.filter((r) => r.riskLevel === "high" || r.riskLevel === "very-high")
+    const mediumRiskCategories = results.filter((r) => r.riskLevel === "medium")
+
+    if (highRiskCategories.length > 0) {
+      recommendations.push(t("recommendation_consult_doctor"))
     }
 
-    if (answeredQuestions.length > 0) {
-      summary += ` You answered ${answeredQuestions.length} questions.`
+    if (mediumRiskCategories.length > 0) {
+      recommendations.push(t("recommendation_improve_behavior"))
     }
 
-    return {
-      summary: summary,
-      recommendations: recommendations,
+    if (results.length < 6) {
+      // Assuming 6 categories total
+      recommendations.push(t("recommendation_complete_all_assessments"))
     }
-  },
+
+    if (recommendations.length === 0) {
+      recommendations.push(t("recommendation_maintain_health"))
+    }
+
+    return recommendations
+  }
+
+  // This method is needed by app/page.tsx to calculate dashboard stats for guest users
+  // It's a wrapper around getDashboardStats for compatibility with the old call signature
+  static calculateDashboardStats(): DashboardStats {
+    return GuestAssessmentService.getDashboardStats()
+  }
 }

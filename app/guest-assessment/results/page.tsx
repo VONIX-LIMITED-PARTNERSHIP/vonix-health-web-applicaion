@@ -1,197 +1,329 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Loader2, AlertCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ArrowLeft, Calendar, FileText, Loader2, AlertTriangle, CheckCircle, User, Shield } from "lucide-react"
 import { GuestAssessmentService } from "@/lib/guest-assessment-service"
-import { getAssessmentCategories } from "@/data/assessment-questions"
-import { useLanguage } from "@/contexts/language-context"
+import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { useTranslation } from "@/hooks/use-translation"
-import type { AssessmentResult, AssessmentCategory } from "@/types/assessment"
-import { getRiskLevelTranslation } from "@/utils/risk-level"
-import { format } from "date-fns"
-import { th as thLocale } from "date-fns/locale"
+import { useLanguage } from "@/contexts/language-context"
+import { getRiskLevelBadgeClass } from "@/utils/risk-level"
 
-interface GuestAssessmentResultsPageProps {
-  searchParams: {
-    category?: string
-  }
-}
-
-export default function GuestAssessmentResultsPage({ searchParams }: GuestAssessmentResultsPageProps) {
+export default function GuestAssessmentResultsPage() {
   const router = useRouter()
-  const { locale } = useLanguage()
+  const searchParams = useSearchParams()
+  const { guestUser } = useGuestAuth()
   const { t } = useTranslation()
-  const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null)
+  const { locale } = useLanguage()
+  const [assessment, setAssessment] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const categoryId = searchParams.category as AssessmentCategory | undefined
+  const categoryId = searchParams.get("category")
 
   useEffect(() => {
-    const loadAssessmentResults = async () => {
-      if (!categoryId) {
-        setError(t("common.error_no_category_specified"))
+    if (!guestUser) {
+      router.push("/guest-login")
+      return
+    }
+
+    if (!categoryId) {
+      setError(locale === "th" ? "ไม่พบข้อมูลการประเมิน" : "Assessment data not found")
+      setLoading(false)
+      return
+    }
+
+    loadAssessmentResults()
+  }, [guestUser, categoryId])
+
+  const loadAssessmentResults = () => {
+    try {
+      const assessmentData = GuestAssessmentService.getAssessmentByCategory(categoryId!)
+
+      if (!assessmentData) {
+        setError(locale === "th" ? "ไม่พบผลการประเมิน" : "Assessment results not found")
         setLoading(false)
         return
       }
 
-      try {
-        const result = GuestAssessmentService.getAssessmentByCategory(categoryId)
-        if (result) {
-          setAssessmentResult(result)
-        } else {
-          setError(t("common.no_guest_assessment_data"))
-        }
-      } catch (err) {
-        console.error("Error loading guest assessment results:", err)
-        setError(t("common.error_loading_analysis"))
-      } finally {
-        setLoading(false)
-      }
+      setAssessment(assessmentData)
+    } catch (err) {
+      console.error("Error loading guest assessment results:", err)
+      setError(locale === "th" ? "เกิดข้อผิดพลาดในการโหลดผลการประเมิน" : "Error loading assessment results")
+    } finally {
+      setLoading(false)
     }
+  }
 
-    loadAssessmentResults()
-  }, [categoryId, t])
+  const getRiskLevelLabel = (riskLevel: string) => {
+    switch (riskLevel?.toLowerCase()) {
+      case "low":
+        return locale === "th" ? "ความเสี่ยงต่ำ" : "Low Risk"
+      case "medium":
+        return locale === "th" ? "ความเสี่ยงปานกลาง" : "Medium Risk"
+      case "high":
+        return locale === "th" ? "ความเสี่ยงสูง" : "High Risk"
+      case "very-high":
+      case "very_high":
+        return locale === "th" ? "ความเสี่ยงสูงมาก" : "Very High Risk"
+      default:
+        return locale === "th" ? "ไม่ระบุ" : "Unspecified"
+    }
+  }
 
-  const assessmentCategories = getAssessmentCategories(locale)
-  const category = assessmentCategories.find((cat) => cat.id === categoryId)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    if (locale === "th") {
+      return date.toLocaleDateString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    }
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
 
-  const handleBackToHome = () => {
-    router.push("/")
+  if (!guestUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-bold mb-4">{t("not_logged_in")}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              {locale === "th" ? "กรุณาเข้าสู่ระบบเพื่อดูผลการประเมิน" : "Please log in to view assessment results"}
+            </p>
+            <Button asChild>
+              <Link href="/guest-login">{t("login")}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-lg text-muted-foreground">{t("common.processing_results")}</p>
-          <p className="text-sm text-muted-foreground">{t("common.ai_analyzing_description")}</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <AlertCircle className="h-12 w-12 text-destructive" />
-          <h2 className="text-2xl font-bold text-destructive">{t("common.error")}</h2>
-          <p className="text-muted-foreground">{error}</p>
-          <Button onClick={handleBackToHome}>{t("common.back_to_dashboard")}</Button>
-        </div>
-      </div>
-    )
-  }
-
-  if (!assessmentResult || !category) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <AlertCircle className="h-12 w-12 text-destructive" />
-          <h2 className="text-2xl font-bold text-destructive">{t("common.error")}</h2>
-          <p className="text-muted-foreground">{t("common.no_guest_assessment_data")}</p>
-          <Button onClick={handleBackToHome}>{t("common.back_to_dashboard")}</Button>
-        </div>
-      </div>
-    )
-  }
-
-  const formattedDate = assessmentResult.completedAt
-    ? format(new Date(assessmentResult.completedAt), "PPP", { locale: locale === "th" ? thLocale : undefined })
-    : t("common.not_available")
-
-  const riskLevelTranslation = getRiskLevelTranslation(assessmentResult.riskLevel, locale)
-
-  return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="container mx-auto px-6">
-        <Button variant="ghost" onClick={handleBackToHome} className="mb-4 hover:bg-white/80">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          {t("common.back_to_dashboard")}
-        </Button>
-
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80 dark:border-border">
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center mb-2 dark:text-foreground">
-              {t("common.assessment_results")}
-            </CardTitle>
-            <p className="text-center text-gray-600 dark:text-muted-foreground">{t("common.this_data_not_saved")}</p>
-          </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg shadow-sm">
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t("common.assessment_date")}</p>
-                <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">{formattedDate}</p>
-              </div>
-              <div className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg shadow-sm">
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t("common.overall_risk_level")}</p>
-                <Badge
-                  className={`text-lg font-bold px-4 py-2 rounded-full ${
-                    assessmentResult.riskLevel === "low"
-                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                      : assessmentResult.riskLevel === "medium"
-                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                        : assessmentResult.riskLevel === "high"
-                          ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-                          : assessmentResult.riskLevel === "very-high"
-                            ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-                  }`}
-                >
-                  {riskLevelTranslation}
-                </Badge>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold dark:text-foreground">{t("common.ai_summary")}</h3>
-              <Card className="bg-gray-50 dark:bg-gray-900 border-0 shadow-sm">
-                <CardContent className="p-4 text-gray-700 dark:text-gray-300">
-                  {assessmentResult.aiAnalysis?.summary || t("common.no_significant_risk_factors")}
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold dark:text-foreground">{t("common.recommendations")}</h3>
-              <Card className="bg-gray-50 dark:bg-gray-900 border-0 shadow-sm">
-                <CardContent className="p-4 text-gray-700 dark:text-gray-300">
-                  {assessmentResult.aiAnalysis?.recommendations &&
-                  assessmentResult.aiAnalysis.recommendations.length > 0 ? (
-                    <ul className="list-disc pl-5 space-y-2">
-                      {assessmentResult.aiAnalysis.recommendations.map((rec, index) => (
-                        <li key={index}>{rec}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>{t("common.no_additional_recommendations")}</p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="flex flex-col items-center justify-center space-y-4 pt-4">
-              <p className="text-lg font-medium text-gray-700 dark:text-gray-300">{t("common.want_to_save_results")}</p>
-              <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-                {t("common.login_to_track_progress")}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  onClick={() => router.push("/guest-login")}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg shadow-md"
-                >
-                  {t("common.login")} / {t("common.register")}
-                </Button>
-              </div>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-600" />
+            <h2 className="text-xl font-bold mb-2">{t("loading")}</h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              {locale === "th" ? "กำลังโหลดผลการประเมิน..." : "Loading assessment results..."}
+            </p>
           </CardContent>
         </Card>
+      </div>
+    )
+  }
+
+  if (error || !assessment) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="h-8 w-8 mx-auto mb-4 text-red-600" />
+            <h2 className="text-xl font-bold mb-2">{t("error")}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+            <Button asChild>
+              <Link href="/">{t("back")}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
+      <div className="container mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Button variant="ghost" asChild className="mb-4 hover:bg-white/80">
+            <Link href="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("back")}
+            </Link>
+          </Button>
+
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold flex items-center gap-3">
+                <FileText className="h-7 w-7 text-purple-600" />
+                {t("assessment_results")}
+                <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200">
+                  {locale === "th" ? "ทดลองใช้งาน" : "Guest Mode"}
+                </Badge>
+              </CardTitle>
+              <p className="text-gray-600 dark:text-gray-400">{assessment.category_title}</p>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Guest Mode Notice */}
+        <Alert className="mb-8 border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950">
+          <Shield className="h-4 w-4 text-purple-600" />
+          <AlertDescription className="text-purple-800 dark:text-purple-200">
+            {locale === "th"
+              ? "ข้อมูลนี้เป็นการทดลองใช้งานและจะไม่ถูกบันทึกถาวร หากต้องการบันทึกข้อมูลและใช้งานฟีเจอร์เต็มรูปแบบ กรุณาสมัครสมาชิก"
+              : "This is guest mode data and will not be permanently saved. To save your data and access full features, please register for an account."}
+          </AlertDescription>
+        </Alert>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Results */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Assessment Info */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-purple-600" />
+                  {t("assessment_date")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg">{formatDate(assessment.completed_at)}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {locale === "th" ? "ทดลองใช้งานโดย" : "Guest assessment by"} {guestUser.nickname}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Score */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+              <CardHeader>
+                <CardTitle>{t("score")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-purple-600 mb-2">
+                  {assessment.total_score}/{assessment.max_score}
+                </div>
+                <div className="text-lg text-gray-600 dark:text-gray-400">
+                  {assessment.percentage}% {locale === "th" ? "จากคะแนนเต็ม" : "of total score"}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                  {assessment.answers.length} {t("questions_answered")}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Risk Level */}
+            {assessment.category_id !== "basic" && (
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+                <CardHeader>
+                  <CardTitle>{t("overall_risk_level")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Badge className={`${getRiskLevelBadgeClass(assessment.risk_level)} text-lg px-4 py-2`}>
+                    {getRiskLevelLabel(assessment.risk_level)}
+                  </Badge>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Risk Factors */}
+            {assessment.risk_factors && assessment.risk_factors.length > 0 && (
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-orange-600" />
+                    {t("risk_factors")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {assessment.risk_factors.map((factor: string, index: number) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-orange-500 mt-1">•</span>
+                        <span>{factor}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recommendations */}
+            {assessment.recommendations && assessment.recommendations.length > 0 && (
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    {t("recommendations")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {assessment.recommendations.map((recommendation: string, index: number) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-green-500 mt-1">•</span>
+                        <span>{recommendation}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Upgrade Notice */}
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
+              <CardHeader>
+                <CardTitle className="text-purple-800 dark:text-purple-200 flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  {t("want_to_save_results")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-purple-700 dark:text-purple-300 text-sm mb-4">{t("login_to_track_progress")}</p>
+                <div className="flex flex-col gap-2">
+                  <Button asChild className="bg-purple-600 hover:bg-purple-700">
+                    <Link href="/register">{t("register")}</Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    asChild
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50 bg-transparent"
+                  >
+                    <Link href="/login">{t("login")}</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+              <CardHeader>
+                <CardTitle>{locale === "th" ? "การดำเนินการ" : "Actions"}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button variant="outline" className="w-full bg-transparent" asChild>
+                  <Link href="/">{locale === "th" ? "กลับหน้าหลัก" : "Back to Home"}</Link>
+                </Button>
+                <Button variant="outline" className="w-full bg-transparent" asChild>
+                  <Link href={`/assessment/${assessment.category_id}`}>
+                    {locale === "th" ? "ทำแบบประเมินใหม่" : "Retake Assessment"}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   )
