@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -70,6 +70,9 @@ export default function HomePage() {
   const [animateAboutUs, setAnimateAboutUs] = useState(false)
   const [animateWhyChoose, setAnimateWhyChoose] = useState(false)
 
+  // Ref for the About Us section to trigger animation on scroll
+  const aboutUsRef = useRef<HTMLDivElement>(null)
+
   const { t } = useTranslation(["common"])
   const { getRiskLevelLabel } = useRiskLevelTranslation()
   const { locale } = useLanguage()
@@ -96,15 +99,40 @@ export default function HomePage() {
 
   useEffect(() => {
     setMounted(true)
-    // Trigger animations after a short delay
-    const timer1 = setTimeout(() => setAnimateAboutUs(true), 200)
+    // Trigger animations for whyChooseUs after a short delay
     const timer2 = setTimeout(() => setAnimateWhyChoose(true), 400)
 
     return () => {
-      clearTimeout(timer1)
       clearTimeout(timer2)
     }
   }, [])
+
+  useEffect(() => {
+    // Intersection Observer for About Us section
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setAnimateAboutUs(true)
+          observer.disconnect() // Disconnect after animation is triggered
+        }
+      },
+      {
+        root: null, // relative to the viewport
+        rootMargin: "0px",
+        threshold: 0.1, // Trigger when 10% of the section is visible
+      },
+    )
+
+    if (aboutUsRef.current) {
+      observer.observe(aboutUsRef.current)
+    }
+
+    return () => {
+      if (aboutUsRef.current) {
+        observer.unobserve(aboutUsRef.current)
+      }
+    }
+  }, [aboutUsRef])
 
   useEffect(() => {
     if (isGuestLoggedIn) {
@@ -695,7 +723,7 @@ export default function HomePage() {
           {!isLoggedIn && (
             <>
               {/* About Us Divider Section */}
-              <section className="mb-40 py-32 relative overflow-hidden">
+              <section ref={aboutUsRef} className="mb-40 py-32 relative overflow-hidden">
                 {/* Background Effects */}
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-indigo-600/5"></div>
                 <div className="absolute inset-0 opacity-20">
@@ -704,7 +732,12 @@ export default function HomePage() {
                 </div>
 
                 <div className="relative z-10 text-center">
-                  <h2 className="text-8xl md:text-9xl font-black mb-12 leading-none">
+                  <h2
+                    className={cn(
+                      "text-8xl md:text-9xl font-black mb-12 leading-none transition-transform duration-1000 ease-out",
+                      animateAboutUs ? "scale-100 opacity-100" : "scale-0 opacity-0",
+                    )}
+                  >
                     <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm">
                       VONIX
                     </span>
