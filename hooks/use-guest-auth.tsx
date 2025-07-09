@@ -1,98 +1,85 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
+
+import { createContext, useContext, useState, useEffect, useCallback } from "react"
+import { GuestAssessmentService } from "@/lib/guest-assessment-service"
+import { useRouter } from "next/navigation"
+import { useTranslation } from "@/hooks/use-translation"
 
 interface GuestUser {
   id: string
   nickname: string
-  pdpaConsent: boolean
   createdAt: string
 }
 
 interface GuestAuthContextType {
   guestUser: GuestUser | null
   isGuestLoggedIn: boolean
-  loginGuest: (nickname: string, pdpaConsent: boolean) => void
+  loading: boolean
+  loginGuest: (nickname: string) => void
   logoutGuest: () => void
 }
 
-const GuestAuthContext = createContext<GuestAuthContextType>({
-  guestUser: null,
-  isGuestLoggedIn: false,
-  loginGuest: () => {},
-  logoutGuest: () => {},
-})
+const GuestAuthContext = createContext<GuestAuthContextType | undefined>(undefined)
 
 export function GuestAuthProvider({ children }: { children: React.ReactNode }) {
   const [guestUser, setGuestUser] = useState<GuestUser | null>(null)
   const [isGuestLoggedIn, setIsGuestLoggedIn] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { t } = useTranslation(["common"])
 
-  // Load guest session from localStorage on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const guestSession = localStorage.getItem("guest_session")
-        const guestUserData = localStorage.getItem("guest_user")
-
-        if (guestSession === "active" && guestUserData) {
-          const userData = JSON.parse(guestUserData)
-          setGuestUser(userData)
-          setIsGuestLoggedIn(true)
-        }
-      } catch (error) {
-        console.error("Error loading guest session:", error)
-        // Clear corrupted data
-        localStorage.removeItem("guest_session")
-        localStorage.removeItem("guest_user")
+    // On mount, try to load guest user from session storage
+    try {
+      const storedGuestUser = localStorage.getItem("guestUser")
+      if (storedGuestUser) {
+        const parsedUser: GuestUser = JSON.parse(storedGuestUser)
+        setGuestUser(parsedUser)
+        setIsGuestLoggedIn(true)
+        console.log("GuestAuth: Loaded guest user from localStorage:", parsedUser.id)
       }
+    } catch (error) {
+      console.error("GuestAuth: Error loading guest user from localStorage:", error)
+      localStorage.removeItem("guestUser") // Clear corrupted data
+    } finally {
+      setLoading(false)
     }
   }, [])
 
-  const loginGuest = useCallback((nickname: string, pdpaConsent: boolean) => {
-    const guestUserData: GuestUser = {
-      id: `guest_${Date.now()}`,
-      nickname,
-      pdpaConsent,
+  const loginGuest = useCallback((nickname: string) => {
+    const newGuestUser: GuestUser = {
+      id: `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      nickname: nickname,
       createdAt: new Date().toISOString(),
     }
-
-    setGuestUser(guestUserData)
-    setIsGuestLoggedIn(true)
-
-    // Save to localStorage
-    if (typeof window !== "undefined") {
-      localStorage.setItem("guest_session", "active")
-      localStorage.setItem("guest_user", JSON.stringify(guestUserData))
+    try {
+      // Clear any previous guest data to ensure a fresh start for this new session
+      GuestAssessmentService.clearAllGuestData()
+      localStorage.setItem("guestUser", JSON.stringify(newGuestUser))
+      setGuestUser(newGuestUser)
+      setIsGuestLoggedIn(true)
+      console.log("GuestAuth: Guest user logged in:", newGuestUser.id)
+    } catch (error) {
+      console.error("GuestAuth: Error saving guest user to localStorage:", error)
+      // Handle error, maybe show a toast
     }
   }, [])
 
   const logoutGuest = useCallback(() => {
-    setGuestUser(null)
-    setIsGuestLoggedIn(false)
-
-    // Clear localStorage
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("guest_session")
-      localStorage.removeItem("guest_user")
-      // Clear all guest assessment data
-      Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith("guest_assessment_") || key.startsWith("guest_")) {
-          localStorage.removeItem(key)
-        }
-      })
+    try {
+      GuestAssessmentService.clearAllGuestData() // This should clear all guest-related data
+      setGuestUser(null)
+      setIsGuestLoggedIn(false)
+      console.log("GuestAuth: Guest user logged out and data cleared.")
+    } catch (error) {
+      console.error("GuestAuth: Error clearing guest user data:", error)
     }
   }, [])
 
   return (
-    <GuestAuthContext.Provider
-      value={{
-        guestUser,
-        isGuestLoggedIn,
-        loginGuest,
-        logoutGuest,
-      }}
-    >
+    <GuestAuthContext.Provider value={{ guestUser, isGuestLoggedIn, loading, loginGuest, logoutGuest }}>
       {children}
     </GuestAuthContext.Provider>
   )
@@ -100,7 +87,7 @@ export function GuestAuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useGuestAuth = () => {
   const context = useContext(GuestAuthContext)
-  if (!context) {
+  if (context === undefined) {
     throw new Error("useGuestAuth must be used within a GuestAuthProvider")
   }
   return context

@@ -1,63 +1,45 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-  Loader2,
   Activity,
   Heart,
-  BarChart,
-  User,
   Apple,
   Brain,
+  MoonIcon,
   Dumbbell,
-  Moon,
+  BarChart,
   Calendar,
-  TrendingUp,
-  AlertTriangle,
+  Shield,
+  Loader2,
   CheckCircle,
+  AlertCircle,
+  XCircle,
   Info,
-  X,
+  ChevronRight,
 } from "lucide-react"
-import { GuestAssessmentService } from "@/lib/guest-assessment-service"
-import type { DashboardStats, AssessmentResult } from "@/types/assessment"
 import { useTranslation } from "@/hooks/use-translation"
 import { useLanguage } from "@/contexts/language-context"
+import { GuestAssessmentService } from "@/lib/guest-assessment-service"
+import { getAssessmentCategories } from "@/data/assessment-questions"
+import { getRiskLevelText, getRiskLevelBadgeClass } from "@/utils/risk-level"
+import type { AssessmentResult, DashboardStats } from "@/types/assessment"
 
 interface GuestHealthOverviewModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-const categoryIcons = {
-  basic: User,
-  heart: Heart,
-  nutrition: Apple,
-  mental: Brain,
-  physical: Dumbbell,
-  sleep: Moon,
-}
-
-const categoryNames = {
-  basic: { th: "ข้อมูลพื้นฐาน", en: "Basic Information" },
-  heart: { th: "สุขภาพหัวใจ", en: "Heart Health" },
-  nutrition: { th: "โภชนาการ", en: "Nutrition" },
-  mental: { th: "สุขภาพจิต", en: "Mental Health" },
-  physical: { th: "กิจกรรมทางกาย", en: "Physical Activity" },
-  sleep: { th: "สุขภาพการนอน", en: "Sleep Health" },
-}
-
 export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOverviewModalProps) {
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
-  const [latestAssessments, setLatestAssessments] = useState<{ category: string; result: AssessmentResult }[]>([])
-  const [loading, setLoading] = useState(true)
-  const { t } = useTranslation()
+  const { t } = useTranslation(["common", "guest_health_overview"])
   const { locale } = useLanguage()
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
+  const [guestAssessments, setGuestAssessments] = useState<AssessmentResult[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (isOpen) {
@@ -65,365 +47,183 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
       try {
         const stats = GuestAssessmentService.getDashboardStats()
         setDashboardStats(stats)
-        const assessments = GuestAssessmentService.getLatestAssessments()
-        setLatestAssessments(assessments)
+        const assessments = GuestAssessmentService.getLatestAssessments().map((item) => item.result)
+        setGuestAssessments(assessments)
       } catch (error) {
-        console.error("Failed to load guest health overview:", error)
+        console.error("Failed to load guest health overview data:", error)
         setDashboardStats(null)
-        setLatestAssessments([])
+        setGuestAssessments([])
       } finally {
         setLoading(false)
       }
     }
   }, [isOpen])
 
-  const getRiskLevelText = (risk: string) => {
-    switch (risk?.toLowerCase()) {
-      case "low":
-        return locale === "th" ? "ความเสี่ยงต่ำ" : "Low Risk"
-      case "medium":
-        return locale === "th" ? "ความเสี่ยงปานกลาง" : "Medium Risk"
-      case "high":
-        return locale === "th" ? "ความเสี่ยงสูง" : "High Risk"
-      case "very-high":
-      case "very_high":
-        return locale === "th" ? "ความเสี่ยงสูงมาก" : "Very High Risk"
+  const assessmentCategories = useMemo(() => getAssessmentCategories(locale), [locale])
+
+  const getCategoryIcon = (categoryId: string) => {
+    switch (categoryId) {
+      case "basic":
+        return <Activity className="h-5 w-5" />
+      case "heart":
+        return <Heart className="h-5 w-5" />
+      case "nutrition":
+        return <Apple className="h-5 w-5" />
+      case "mental":
+        return <Brain className="h-5 w-5" />
+      case "physical":
+        return <Dumbbell className="h-5 w-5" />
+      case "sleep":
+        return <MoonIcon className="h-5 w-5" />
       default:
-        return locale === "th" ? "ไม่ระบุ" : "Not Specified"
+        return <BarChart className="h-5 w-5" />
     }
   }
 
-  const getRiskBadgeClass = (risk: string) => {
-    switch (risk?.toLowerCase()) {
-      case "low":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-      case "medium":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-      case "high":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-      case "very-high":
-      case "very_high":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-    }
-  }
-
-  const getRiskIcon = (risk: string) => {
-    switch (risk?.toLowerCase()) {
-      case "low":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case "medium":
-        return <Info className="h-4 w-4 text-yellow-500" />
-      case "high":
-      case "very-high":
-      case "very_high":
-        return <AlertTriangle className="h-4 w-4 text-red-500" />
-      default:
-        return <Info className="h-4 w-4 text-gray-500" />
-    }
-  }
-
-  const formatDate = (dateString: string) => {
+  const getFormattedDate = (dateString: string | null) => {
+    if (!dateString) return t("no_data")
     try {
       const date = new Date(dateString)
       if (isNaN(date.getTime())) {
-        return locale === "th" ? "ไม่ระบุวันที่" : "Date not specified"
+        return t("invalid_date")
       }
-
-      if (locale === "th") {
-        return date.toLocaleDateString("th-TH", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })
-      }
-      return date.toLocaleDateString("en-US", {
+      return date.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
       })
-    } catch (error) {
-      return locale === "th" ? "ไม่ระบุวันที่" : "Date not specified"
+    } catch (e) {
+      console.error("Error formatting date:", e)
+      return t("invalid_date")
     }
   }
 
-  const getCategoryName = (categoryId: string) => {
-    const category = categoryNames[categoryId as keyof typeof categoryNames]
-    return category ? category[locale as "th" | "en"] : categoryId
-  }
+  const renderRiskBadge = (riskLevel: AssessmentResult["riskLevel"]) => {
+    const colorClass = getRiskLevelBadgeClass(riskLevel)
+    const label = getRiskLevelText(riskLevel, locale)
+    let Icon = Info
+    if (riskLevel === "low") Icon = CheckCircle
+    if (riskLevel === "medium") Icon = Info
+    if (riskLevel === "high") Icon = AlertCircle
+    if (riskLevel === "very-high") Icon = XCircle
 
-  const getOverallRiskLevel = () => {
-    if (!latestAssessments || latestAssessments.length === 0) {
-      return locale === "th" ? "ยังไม่ได้ประเมิน" : "Not Assessed"
-    }
-
-    const riskLevels = latestAssessments.map((assessment) => assessment.result.riskLevel).filter(Boolean)
-
-    if (riskLevels.length === 0) {
-      return locale === "th" ? "ยังไม่ได้ประเมิน" : "Not Assessed"
-    }
-
-    // Find the highest risk level
-    if (
-      riskLevels.some(
-        (level) => level?.toLowerCase().includes("very-high") || level?.toLowerCase().includes("very_high"),
-      )
-    ) {
-      return "very-high"
-    }
-    if (riskLevels.some((level) => level?.toLowerCase() === "high")) {
-      return "high"
-    }
-    if (riskLevels.some((level) => level?.toLowerCase() === "medium")) {
-      return "medium"
-    }
-    return "low"
+    return (
+      <Badge className={`flex items-center gap-1 ${colorClass} text-white px-2 py-1 rounded-full text-xs font-medium`}>
+        <Icon className="h-3 w-3" />
+        {label}
+      </Badge>
+    )
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                <Activity className="h-6 w-6 text-blue-600" />
-                {locale === "th" ? "ภาพรวมสุขภาพ (ทดลองใช้งาน)" : "Health Overview (Guest Mode)"}
-              </DialogTitle>
-              <DialogDescription className="text-gray-600 dark:text-gray-400 mt-1">
-                {locale === "th" ? "สรุปผลการประเมินสุขภาพของคุณ" : "Summary of your health assessment results"}
-              </DialogDescription>
-            </div>
-            <Button variant="ghost" size="sm" onClick={onClose} className="rounded-full h-8 w-8 p-0">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <BarChart className="h-6 w-6 text-blue-600" />
+            {t("guest_health_overview_title", { ns: "guest_health_overview" })}
+          </DialogTitle>
+          <DialogDescription className="text-gray-600 dark:text-gray-400">
+            {t("guest_health_overview_description", { ns: "guest_health_overview" })}
+          </DialogDescription>
         </DialogHeader>
 
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <span className="ml-2 text-gray-600">{locale === "th" ? "กำลังโหลดข้อมูล..." : "Loading data..."}</span>
+          <div className="flex flex-col items-center justify-center h-64">
+            <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+            <span className="mt-4 text-lg text-gray-600 dark:text-gray-400">{t("loading_data")}...</span>
           </div>
         ) : (
-          <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-6 py-4">
-              {/* Overall Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Total Assessments */}
-                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                          {locale === "th" ? "การประเมินทั้งหมด" : "Total Assessments"}
-                        </p>
-                        <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                          {dashboardStats?.totalAssessments || latestAssessments.length || 0}
-                        </p>
-                      </div>
-                      <BarChart className="h-8 w-8 text-blue-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Last Assessment Date */}
-                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                          {locale === "th" ? "ประเมินล่าสุด" : "Last Assessment"}
-                        </p>
-                        <p className="text-lg font-bold text-purple-900 dark:text-purple-100">
-                          {latestAssessments.length > 0
-                            ? formatDate(latestAssessments[0].result.timestamp)
-                            : locale === "th"
-                              ? "ยังไม่มีข้อมูล"
-                              : "No data"}
-                        </p>
-                      </div>
-                      <Calendar className="h-8 w-8 text-purple-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Overall Risk Level */}
-                <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-red-700 dark:text-red-300">
-                          {locale === "th" ? "ระดับความเสี่ยงรวม" : "Overall Risk Level"}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          {getRiskIcon(getOverallRiskLevel())}
-                          <p className="text-lg font-bold text-red-900 dark:text-red-100">
-                            {getRiskLevelText(getOverallRiskLevel())}
-                          </p>
-                        </div>
-                      </div>
-                      <Heart className="h-8 w-8 text-red-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Separator />
-
-              {/* Assessment Results */}
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                  {locale === "th" ? "ผลการประเมินแต่ละด้าน" : "Assessment Results by Category"}
-                </h3>
-
-                {latestAssessments.length === 0 ? (
-                  <Card className="p-8 text-center">
-                    <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h4 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      {locale === "th" ? "ยังไม่มีข้อมูลการประเมิน" : "No Assessment Data"}
-                    </h4>
-                    <p className="text-gray-500 dark:text-gray-500">
-                      {locale === "th" ? "เริ่มทำแบบประเมินเพื่อดูผลลัพธ์ที่นี่" : "Start taking assessments to see results here"}
-                    </p>
-                  </Card>
-                ) : (
-                  <div className="grid gap-4">
-                    {latestAssessments.map((assessment, index) => {
-                      const IconComponent = categoryIcons[assessment.category as keyof typeof categoryIcons] || Activity
-                      const categoryName = getCategoryName(assessment.category)
-
-                      return (
-                        <Card key={index} className="hover:shadow-md transition-shadow">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                                  <IconComponent className="h-5 w-5 text-blue-600" />
-                                </div>
-                                <div>
-                                  <CardTitle className="text-lg">{categoryName}</CardTitle>
-                                  <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    {formatDate(assessment.result.timestamp)}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {getRiskIcon(assessment.result.riskLevel || "")}
-                                <Badge className={getRiskBadgeClass(assessment.result.riskLevel || "")}>
-                                  {getRiskLevelText(assessment.result.riskLevel || "")}
-                                </Badge>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pt-0">
-                            {/* Summary */}
-                            {assessment.result.summary && (
-                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                <h5 className="font-medium text-blue-800 dark:text-blue-200 mb-1">
-                                  {locale === "th" ? "สรุปผล" : "Summary"}
-                                </h5>
-                                <p className="text-sm text-blue-700 dark:text-blue-300">{assessment.result.summary}</p>
-                              </div>
-                            )}
-
-                            {/* Recommendations */}
-                            {assessment.result.recommendations && assessment.result.recommendations.length > 0 && (
-                              <div>
-                                <h5 className="font-medium text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-1">
-                                  <CheckCircle className="h-4 w-4 text-green-500" />
-                                  {locale === "th" ? "คำแนะนำ" : "Recommendations"}
-                                </h5>
-                                <ul className="space-y-1">
-                                  {assessment.result.recommendations.slice(0, 3).map((rec, i) => (
-                                    <li
-                                      key={i}
-                                      className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2"
-                                    >
-                                      <span className="text-green-500 mt-0.5">•</span>
-                                      {rec}
-                                    </li>
-                                  ))}
-                                  {assessment.result.recommendations.length > 3 && (
-                                    <li className="text-xs text-gray-500 dark:text-gray-500 ml-4">
-                                      +{assessment.result.recommendations.length - 3}{" "}
-                                      {locale === "th" ? "รายการเพิ่มเติม" : "more items"}
-                                    </li>
-                                  )}
-                                </ul>
-                              </div>
-                            )}
-
-                            {/* No data message */}
-                            {!assessment.result.summary &&
-                              (!assessment.result.recommendations ||
-                                assessment.result.recommendations.length === 0) && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                                  {locale === "th" ? "ไม่มีข้อมูลเพิ่มเติม" : "No additional information available"}
-                                </p>
-                              )}
-                          </CardContent>
-                        </Card>
-                      )
-                    })}
+          <ScrollArea className="flex-1 pr-4 -mr-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border-blue-200 dark:border-gray-700 shadow-sm">
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <Activity className="h-6 w-6 text-blue-600 mb-2" />
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("total_assessments")}</div>
+                  <div className="text-2xl font-bold text-blue-800 dark:text-blue-300">
+                    {dashboardStats?.totalAssessments || 0}
                   </div>
-                )}
-              </div>
-
-              <Separator />
-
-              {/* General Recommendations */}
-              {dashboardStats?.recommendations && dashboardStats.recommendations.length > 0 && (
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    {locale === "th" ? "คำแนะนำทั่วไป" : "General Recommendations"}
-                  </h3>
-                  <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-                    <CardContent className="p-4">
-                      <ul className="space-y-2">
-                        {dashboardStats.recommendations.map((rec, index) => (
-                          <li key={index} className="text-sm text-green-700 dark:text-green-300 flex items-start gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            {rec}
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
-              {/* Guest Mode Notice */}
-              <Card className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">
-                        {locale === "th" ? "โหมดทดลองใช้งาน" : "Guest Mode"}
-                      </h4>
-                      <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                        {locale === "th"
-                          ? "ข้อมูลนี้เป็นการทดลองใช้งานเท่านั้น และจะไม่ถูกบันทึกในระบบ หากต้องการบันทึกผลและใช้งานฟีเจอร์เต็มรูปแบบ กรุณาสมัครสมาชิกหรือเข้าสู่ระบบ"
-                          : "This data is for trial purposes only and will not be saved. To save results and access full features, please register or log in."}
-                      </p>
-                    </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-800 dark:to-gray-700 border-purple-200 dark:border-gray-700 shadow-sm">
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <Calendar className="h-6 w-6 text-purple-600 mb-2" />
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("last_assessment")}</div>
+                  <div className="text-lg font-bold text-purple-800 dark:text-purple-300">
+                    {getFormattedDate(dashboardStats?.lastAssessmentDate)}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-gray-800 dark:to-gray-700 border-red-200 dark:border-gray-700 shadow-sm">
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <Shield className="h-6 w-6 text-red-600 mb-2" />
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("overall_risk_level")}</div>
+                  <div className="text-lg font-bold">
+                    {dashboardStats?.overallRisk ? (
+                      renderRiskBadge(dashboardStats.overallRisk)
+                    ) : (
+                      <Badge variant="secondary">{t("no_data")}</Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+              {t("your_assessments_title", { ns: "guest_health_overview" })}
+            </h3>
+            {guestAssessments.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Info className="mx-auto h-10 w-10 mb-3" />
+                <p>{t("no_assessments_completed")}</p>
+              </div>
+            ) : (
+              <div className="space-y-4 mb-6">
+                {guestAssessments.map((assessment) => {
+                  const categoryInfo = assessmentCategories.find((cat) => cat.id === assessment.category)
+                  return (
+                    <Card key={assessment.id} className="shadow-sm">
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                            {getCategoryIcon(assessment.category)}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-800 dark:text-gray-200">
+                              {categoryInfo?.title || assessment.category}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {t("completed_on")}: {getFormattedDate(assessment.completedAt)}
+                            </div>
+                          </div>
+                        </div>
+                        {renderRiskBadge(assessment.riskLevel)}
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
+
+            <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+              {t("general_recommendations_title", { ns: "guest_health_overview" })}
+            </h3>
+            {dashboardStats?.recommendations && dashboardStats.recommendations.length > 0 ? (
+              <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+                {dashboardStats.recommendations.map((rec, index) => (
+                  <li key={index} className="flex items-start">
+                    <ChevronRight className="h-4 w-4 mt-1 mr-2 shrink-0 text-blue-500" />
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                <p>{t("no_recommendations_yet")}</p>
+              </div>
+            )}
           </ScrollArea>
         )}
-
-        <div className="flex justify-end pt-4 border-t">
-          <Button onClick={onClose} className="px-6">
-            {locale === "th" ? "ปิด" : "Close"}
-          </Button>
-        </div>
       </DialogContent>
     </Dialog>
   )

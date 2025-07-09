@@ -14,6 +14,7 @@ export const setGuestServiceTranslation = (translateFn: (key: string) => string)
 export class GuestAssessmentService {
   private static readonly STORAGE_KEY_PREFIX = "guest-assessment-"
   private static readonly DASHBOARD_STATS_KEY = "guest-dashboard-stats"
+  private static readonly AI_ANALYSIS_KEY_PREFIX = "guest-ai-analysis-"
 
   static saveAssessment(category: AssessmentCategory, result: AssessmentResult) {
     try {
@@ -120,13 +121,23 @@ export class GuestAssessmentService {
 
   static clearAllGuestData() {
     try {
-      for (let i = localStorage.length - 1; i >= 0; i--) {
+      const keysToRemove: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
-        if (key && key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX)) {
-          localStorage.removeItem(key)
+        if (
+          key &&
+          (key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX) ||
+            key.startsWith(GuestAssessmentService.AI_ANALYSIS_KEY_PREFIX) ||
+            key === GuestAssessmentService.DASHBOARD_STATS_KEY ||
+            key === "guestUser") // Explicitly add "guestUser"
+        ) {
+          keysToRemove.push(key)
         }
       }
-      localStorage.removeItem(GuestAssessmentService.DASHBOARD_STATS_KEY)
+
+      keysToRemove.forEach((key) => {
+        localStorage.removeItem(key)
+      })
       console.log("All guest assessment data cleared.")
     } catch (error) {
       console.error("Error clearing all guest data:", error)
