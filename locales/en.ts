@@ -181,6 +181,14 @@ const en: Dictionary = {
     theme: "Theme",
     dark: "Dark",
     light: "Light",
+    // New About Us translations
+    about_us_title: "About Us",
+    about_us_tagline: "WE ARE FIGHT !!",
+    about_us_intro:
+      "AI-powered health assessments, blockchain-secured Electronic Health Records (EHR), and real-time telemedicine — seamlessly integrated to deliver smarter healthcare solutions.",
+    about_us_mission:
+      "We are transforming the way people access and manage their health through intelligent technology that empowers early detection, enhances data security, and enables direct, real-time connections between patients and healthcare professionals. Designed with accessibility and prevention in mind, our platform bridges the gap between innovation and everyday healthcare.",
+    real_time_telemedicine_description: "Real-time telemedicine for direct patient-doctor connections.",
   },
   assessment: {
     basic_info: "Basic Information",
@@ -238,7 +246,7 @@ const en: Dictionary = {
   },
   guest_health_overview: {
     guest_health_overview_title: "Guest Health Overview",
-    guest_health_overview_description: "A summary of your health assessments as a guest user.",
+    guest_health_overview_description: "A summary of your health assessment results as a guest user.",
     your_assessments_title: "Your Assessments",
     general_recommendations_title: "General Recommendations",
     no_assessments_completed: "No assessments completed yet. Start an assessment to see your results here!",

@@ -31,6 +31,8 @@ import {
   Dumbbell,
   Loader2,
   BarChart,
+  ShieldCheck,
+  PhoneCall,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -236,7 +238,7 @@ export default function HomePage() {
         cardiac: latestAssessments.find((a) => a.category_id === "heart")?.risk_level || "",
         diabetes: latestAssessments.find((a) => a.category_id === "nutrition")?.risk_level || "",
       },
-      overallRisk: getHealthLevelColor(getRiskLevelLabel(averageScore)), // Use getHealthLevelColor with a derived risk level
+      overallRisk: getRiskLevelLabel(averageScore), // Use getRiskLevelLabel directly
       recommendations: ["Continue regular exercise.", "Monitor blood sugar levels.", "Schedule annual check-up."],
     })
   }
@@ -383,17 +385,80 @@ export default function HomePage() {
 
     if (!isLoggedIn) {
       return (
-        <div className="text-center py-12 px-4">
-          <User className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">{t("welcome_to_vonix")}</h2>
-          <p className="text-gray-600 mb-6">{t("login_or_try_guest")}</p>
-          <Button
-            onClick={() => router.push("/guest-login")}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            {t("try_now_as_guest")}
-          </Button>
-        </div>
+        <>
+          <div className="text-center py-12 px-4">
+            <User className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">{t("welcome_to_vonix")}</h2>
+            <p className="text-gray-600 mb-6">{t("login_or_try_guest")}</p>
+            <Button
+              onClick={() => router.push("/guest-login")}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              {t("try_now_as_guest")}
+            </Button>
+          </div>
+
+          {/* About Us Section */}
+          <section className="py-16 bg-white dark:bg-gray-900 rounded-3xl shadow-xl mt-12">
+            <div className="container mx-auto px-6 text-center">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800 dark:text-white">
+                {t("common.about_us_title")}
+              </h2>
+              <p className="text-xl md:text-2xl font-semibold text-blue-600 dark:text-blue-400 mb-8">
+                {t("common.about_us_tagline")}
+              </p>
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-12 leading-relaxed">
+                {t("common.about_us_intro")}
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <Card className="p-6 rounded-2xl shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700">
+                  <CardHeader className="flex flex-row items-center justify-center p-0 mb-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md">
+                      <Brain className="h-8 w-8" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">{t("common.smart_ai")}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{t("common.ai_powered_description")}</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="p-6 rounded-2xl shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-800 dark:to-gray-700 border border-green-200 dark:border-gray-700">
+                  <CardHeader className="flex flex-row items-center justify-center p-0 mb-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 text-white shadow-md">
+                      <ShieldCheck className="h-8 w-8" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">{t("common.secure")}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{t("common.encrypted_data_pdpa")}</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="p-6 rounded-2xl shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-800 dark:to-gray-700 border border-purple-200 dark:border-gray-700">
+                  <CardHeader className="flex flex-row items-center justify-center p-0 mb-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-violet-500 text-white shadow-md">
+                      <PhoneCall className="h-8 w-8" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                      {t("common.consult_doctor_online")}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      {t("common.real_time_telemedicine_description")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
+                {t("common.about_us_mission")}
+              </p>
+            </div>
+          </section>
+        </>
       )
     }
 
