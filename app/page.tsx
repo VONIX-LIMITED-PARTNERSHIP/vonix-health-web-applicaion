@@ -21,7 +21,6 @@ import {
   Apple,
   Brain,
   MoonIcon,
-  ChevronRight,
   Activity,
   Sparkles,
   Shield,
@@ -32,16 +31,12 @@ import {
   Loader2,
   BarChart,
   PhoneCall,
-  Database,
   Search,
   Lock,
   Users,
   TrendingUp,
-  Calendar,
   FileText,
-  ArrowRight,
   CheckCircle,
-  Star,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -54,6 +49,7 @@ import { useRiskLevelTranslation } from "@/utils/risk-level"
 import { useLanguage } from "@/contexts/language-context"
 import { getAssessmentCategories } from "@/data/assessment-questions"
 import type { DashboardStats } from "@/types/assessment"
+import { cn } from "@/lib/utils"
 
 export default function HomePage() {
   const { user, profile, isAuthSessionLoading, isProfileLoading } = useAuth()
@@ -69,6 +65,10 @@ export default function HomePage() {
   const [isHealthOverviewModalOpen, setIsHealthOverviewModalOpen] = useState(false)
   const [isGuestHealthOverviewModalOpen, setIsGuestHealthOverviewModalOpen] = useState(false)
   const [targetAssessmentId, setTargetAssessmentId] = useState<string | null>(null)
+
+  // State for animations
+  const [animateAboutUs, setAnimateAboutUs] = useState(false)
+  const [animateWhyChoose, setAnimateWhyChoose] = useState(false)
 
   const { t } = useTranslation(["common"])
   const { getRiskLevelLabel } = useRiskLevelTranslation()
@@ -96,6 +96,14 @@ export default function HomePage() {
 
   useEffect(() => {
     setMounted(true)
+    // Trigger animations after a short delay
+    const timer1 = setTimeout(() => setAnimateAboutUs(true), 200)
+    const timer2 = setTimeout(() => setAnimateWhyChoose(true), 400)
+
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+    }
   }, [])
 
   useEffect(() => {
@@ -256,6 +264,66 @@ export default function HomePage() {
     return null
   }
 
+  const features = [
+    {
+      icon: Brain,
+      title: t("ai_health_assessment"),
+      description: t("ai_health_assessment_desc"),
+      delay: 0,
+    },
+    {
+      icon: Stethoscope,
+      title: t("doctor_portal"),
+      description: t("doctor_portal_desc"),
+      delay: 100,
+    },
+    {
+      icon: Lock, // Changed from custom SVG to Lucide Lock for Blockchain EHR
+      title: t("blockchain_ehr"),
+      description: t("blockchain_ehr_desc"),
+      delay: 200,
+    },
+  ]
+
+  const whyChooseUs = [
+    {
+      icon: Search,
+      title: t("ai_powered_diagnostics"),
+      description: t("ai_powered_diagnostics_desc"),
+      delay: 0,
+    },
+    {
+      icon: Shield,
+      title: t("blockchain_security"),
+      description: t("blockchain_security_desc"),
+      delay: 100,
+    },
+    {
+      icon: PhoneCall,
+      title: t("telemedicine_ready"),
+      description: t("telemedicine_ready_desc"),
+      delay: 200,
+    },
+    {
+      icon: FileText,
+      title: t("secure_ehr_system"),
+      description: t("secure_ehr_system_desc"),
+      delay: 300,
+    },
+    {
+      icon: Users,
+      title: t("patient_centric_design"),
+      description: t("patient_centric_design_desc"),
+      delay: 400,
+    },
+    {
+      icon: TrendingUp,
+      title: t("real_time_analytics"),
+      description: t("real_time_analytics_desc"),
+      delay: 500,
+    },
+  ]
+
   const getUpdatedCategories = () => {
     const currentAssessments = isGuestLoggedIn ? guestAssessments : getLatestAssessments(assessments)
 
@@ -397,7 +465,7 @@ export default function HomePage() {
     }
 
     return (
-      <Card className="mb-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-2xl rounded-3xl overflow-hidden">
+      <Card className="mb-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-2xl rounded-none md:rounded-3xl overflow-hidden">
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1">
           <div className="bg-white dark:bg-gray-900 rounded-3xl">
             <CardHeader className="pb-6">
@@ -530,25 +598,22 @@ export default function HomePage() {
 
         <div className="container mx-auto px-6 py-12 relative z-10">
           {/* Hero Section */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-24">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-blue-200 text-blue-700 text-sm font-medium mb-6 shadow-lg">
               <Sparkles className="w-4 h-4 mr-2" />
               {t("smart_health_assessment_system")}
             </div>
-
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
                 {t("assess_health_with_ai")}
               </span>
             </h1>
-
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-4 font-semibold">
               {t("easy_fast_accurate")}
             </p>
             <p className="text-gray-500 dark:text-gray-400 max-w-3xl mx-auto mb-12 text-lg leading-relaxed">
               {t("ai_powered_description")}
             </p>
-
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button
                 size="lg"
@@ -579,8 +644,7 @@ export default function HomePage() {
                   </Button>
                   <Button
                     size="lg"
-                    variant="outline"
-                    className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto border-2 border-purple-300 hover:border-purple-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
                     asChild
                   >
                     <Link href="/guest-assessment">
@@ -592,7 +656,6 @@ export default function HomePage() {
                 </>
               )}
             </div>
-
             {/* Features */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto" id="features-section">
               <div className="flex items-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
@@ -626,15 +689,35 @@ export default function HomePage() {
           </div>
 
           {/* Dashboard Stats */}
-          <section className="mb-12">{renderDashboardContent()}</section>
+          <section className="mb-24 -mx-6">{renderDashboardContent()}</section>
 
-          {/* About Us Section - Only for non-logged-in users */}
+          {/* About Us Section Divider - Only for non-logged-in users */}
           {!isLoggedIn && (
             <>
+              {/* About Us Divider Section */}
+              <section className="mb-40 py-32 relative overflow-hidden">
+                {/* Background Effects */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-indigo-600/5"></div>
+                <div className="absolute inset-0 opacity-20">
+                  <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+                  <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000"></div>
+                </div>
+
+                <div className="relative z-10 text-center">
+                  <h2 className="text-8xl md:text-9xl font-black mb-12 leading-none">
+                    <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm">
+                      VONIX
+                    </span>
+                  </h2>
+
+                  <div className="w-32 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-12 rounded-full"></div>
+                </div>
+              </section>
+
               {/* Core Features Section */}
               <section
                 className="mb-24 relative p-8 md:p-16 rounded-3xl overflow-hidden
-                bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800"
+               bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800"
               >
                 {/* Background decorative elements */}
                 <div className="absolute inset-0 opacity-30">
@@ -645,80 +728,35 @@ export default function HomePage() {
 
                 <div className="relative z-10">
                   <div className="text-center mb-20">
-                    <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full text-blue-600 dark:text-blue-400 text-sm font-semibold mb-8 border border-blue-200/50 dark:border-blue-700/50 backdrop-blur-sm">
-                      <Star className="w-4 h-4 mr-2" />
-                      {t("about_us_tagline")}
-                    </div>
-                    <h2 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-8 leading-tight">
-                      <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                        {t("about_us_title_main")}
-                      </span>
-                    </h2>
                     <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-5xl mx-auto leading-relaxed font-medium">
                       {t("about_us_intro")}
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* AI Health Assessment */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-blue-300/50 dark:hover:border-blue-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
-                          <Brain className="h-10 w-10 text-white" />
+                    {features.map((feature, index) => (
+                      <Card
+                        key={index}
+                        className={cn(
+                          "group relative h-full animate-in fade-in-0 slide-in-from-bottom-8 scale-95 duration-700 ease-out fill-mode-forwards",
+                          !animateAboutUs && "opacity-0 translate-y-8 scale-95",
+                        )}
+                        style={{ animationDelay: `${feature.delay}ms` }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                        <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-blue-300/50 dark:hover:border-blue-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2 h-full flex flex-col">
+                          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                            <feature.icon className="h-10 w-10 text-white" />
+                          </div>
+                          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                            {feature.title}
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base flex-1">
+                            {feature.description}
+                          </p>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                          {t("ai_health_assessment")}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
-                          {t("ai_health_assessment_desc")}
-                        </p>
-                        <div className="mt-6 flex items-center justify-center text-blue-600 dark:text-blue-400 font-medium opacity-0 group-hover:opacity-100 transition-all duration-300">
-                          <span className="text-sm">เรียนรู้เพิ่มเติม</span>
-                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Doctor Consultation */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-green-300/50 dark:hover:border-green-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-                        <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
-                          <Stethoscope className="h-10 w-10 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-300">
-                          {t("doctor_portal")}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
-                          {t("doctor_portal_desc")}
-                        </p>
-                        <div className="mt-6 flex items-center justify-center text-green-600 dark:text-green-400 font-medium opacity-0 group-hover:opacity-100 transition-all duration-300">
-                          <span className="text-sm">เรียนรู้เพิ่มเติม</span>
-                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Blockchain EHR */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-purple-300/50 dark:hover:border-purple-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-                        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-violet-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
-                          <Database className="h-10 w-10 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
-                          {t("blockchain_ehr")}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
-                          {t("blockchain_ehr_desc")}
-                        </p>
-                        <div className="mt-6 flex items-center justify-center text-purple-600 dark:text-purple-400 font-medium opacity-0 group-hover:opacity-100 transition-all duration-300">
-                          <span className="text-sm">เรียนรู้เพิ่มเติม</span>
-                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                        </div>
-                      </div>
-                    </div>
+                      </Card>
+                    ))}
                   </div>
                 </div>
               </section>
@@ -748,290 +786,32 @@ export default function HomePage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* AI Powered Diagnostics */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-orange-300/50 dark:hover:border-orange-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-                        <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
-                          <Search className="h-10 w-10 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-300">
-                          {t("ai_powered_diagnostics")}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
-                          {t("ai_powered_diagnostics_desc")}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Blockchain Security */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-indigo-300/50 dark:hover:border-indigo-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-                        <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
-                          <Lock className="h-10 w-10 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
-                          {t("blockchain_security")}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
-                          {t("blockchain_security_desc")}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Telemedicine Ready */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-pink-300/50 dark:hover:border-pink-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-                        <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-rose-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
-                          <PhoneCall className="h-10 w-10 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors duration-300">
-                          {t("telemedicine_ready")}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
-                          {t("telemedicine_ready_desc")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* System Features Section */}
-              <section
-                className="mb-24 relative p-8 md:p-16 rounded-3xl overflow-hidden
-                bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-gray-900 dark:to-gray-800"
-              >
-                <div className="absolute inset-0 opacity-30">
-                  <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-                  <div className="absolute top-1/2 right-1/4 w-48 h-48 bg-orange-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-                  <div className="absolute bottom-1/4 left-1/3 w-48 h-48 bg-red-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-6000"></div>
-                </div>
-
-                <div className="relative z-10">
-                  <div className="text-center mb-20">
-                    <h3 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-                      <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                        {locale === "th" ? "ระบบที่ครอบคลุม" : "Comprehensive System"}
-                      </span>
-                    </h3>
-                    <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-medium">
-                      {locale === "th"
-                        ? "ระบบสุขภาพดิจิทัลที่ออกแบบมาเพื่อตอบสนองทุกความต้องการของผู้ใช้งาน"
-                        : "A comprehensive digital health system designed to meet all user needs"}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Secure EHR System */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-teal-300/50 dark:hover:border-teal-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-                        <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
-                          <FileText className="h-10 w-10 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors duration-300">
-                          {t("secure_ehr_system")}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
-                          {t("secure_ehr_system_desc")}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Patient Centric Design */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-yellow-300/50 dark:hover:border-yellow-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-                        <div className="w-20 h-20 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
-                          <Users className="h-10 w-10 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors duration-300">
-                          {t("patient_centric_design")}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
-                          {t("patient_centric_design_desc")}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Real-time Analytics */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-emerald-300/50 dark:hover:border-emerald-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-                        <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
-                          <TrendingUp className="h-10 w-10 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300">
-                          {t("real_time_analytics")}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
-                          {t("real_time_analytics_desc")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* Call to Action Section */}
-              <section
-                className="mb-20 relative p-8 md:p-16 rounded-3xl overflow-hidden
-                bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800"
-              >
-                <div className="absolute inset-0 opacity-30">
-                  <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-                  <div className="absolute top-1/2 right-1/4 w-48 h-48 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-                  <div className="absolute bottom-1/4 left-1/3 w-48 h-48 bg-indigo-400 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-                </div>
-
-                <div className="relative z-10 text-center bg-gradient-to-br from-white/80 to-white/60 dark:from-gray-800/80 dark:to-gray-900/60 backdrop-blur-xl rounded-3xl p-16 border border-white/30 dark:border-gray-700/30 shadow-2xl">
-                  <div className="mb-8">
-                    <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
-                      <Sparkles className="h-12 w-12 text-white" />
-                    </div>
-                  </div>
-
-                  <h3 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-                    <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                      {t("ready_to_transform_healthcare")}
-                    </span>
-                  </h3>
-                  <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
-                    {t("join_thousands_users")}
-                  </p>
-
-                  <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
-                    <Button
-                      onClick={() => router.push("/guest-login")}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-lg"
-                    >
-                      <Play className="mr-3 h-6 w-6" />
-                      {t("get_started_now")}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold px-10 py-4 rounded-2xl transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-lg"
-                      onClick={() => {
-                        const assessmentSection = document.getElementById("features-section")
-                        if (assessmentSection) {
-                          assessmentSection.scrollIntoView({ behavior: "smooth" })
-                        }
-                      }}
-                    >
-                      <Calendar className="mr-3 h-6 w-6" />
-                      {t("schedule_demo")}
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center justify-center space-x-2 text-gray-500 dark:text-gray-400 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>{t("free_health_assessment")}</span>
-                  </div>
-                </div>
-              </section>
-            </>
-          )}
-
-          {isLoggedIn && (
-            <>
-              {/* Assessment Categories */}
-              <div className="mb-16" id="assessment-section">
-                <div className="text-center mb-12">
-                  <h2 className="text-4xl font-bold mb-4">
-                    <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text dark:bg-red-900 dark:text-red-200 text-transparent">
-                      {t("health_assessments")}
-                    </span>
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-lg">{t("choose_assessment_type")}</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {getUpdatedCategories().map((category, index) => (
-                    <Card
-                      key={category.id}
-                      className={`group relative overflow-hidden 
-                        bg-gradient-to-br ${category.bgGradient} ${category.darkBgGradient} 
-                        border-0 shadow-xl hover:shadow-2xl transition-all duration-500 
-                        transform hover:scale-105 cursor-pointer rounded-3xl`}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-black/30 dark:to-transparent"></div>
-                      <CardContent className="relative p-8">
-                        <div className="flex items-start justify-between mb-6">
-                          <div
-                            className={`p-4 rounded-2xl bg-gradient-to-br ${category.gradient} text-white shadow-lg group-hover:shadow-xl transition-all duration-300`}
-                          >
-                            <category.icon className="h-8 w-8" />
+                    {whyChooseUs.map((feature, index) => (
+                      <Card
+                        key={index}
+                        className={cn(
+                          "group relative h-full animate-in fade-in-0 slide-in-from-bottom-8 scale-95 duration-700 ease-out fill-mode-forwards",
+                          !animateWhyChoose && "opacity-0 translate-y-8 scale-95",
+                        )}
+                        style={{ animationDelay: `${feature.delay}ms` }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                        <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-orange-300/50 dark:hover:border-orange-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2 h-full flex flex-col">
+                          <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                            <feature.icon className="h-10 w-10 text-white" />
                           </div>
-                          <div className="flex flex-col items-end space-y-2">
-                            {category.required ? (
-                              <Badge className="bg-red-500 text-white font-medium px-3 py-1 rounded-full dark:bg-red-700">
-                                {t("required")}
-                              </Badge>
-                            ) : (
-                              <Badge
-                                variant="secondary"
-                                className="bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full dark:bg-blue-800 dark:text-white"
-                              >
-                                {t("optional")}
-                              </Badge>
-                            )}
-                            {category.progress > 0 && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-                                <div className="font-medium">{t("completed")}</div>
-                                {category.id !== "basic" && category.riskLevel && (
-                                  <div
-                                    className={`font-semibold text-sm mt-1 ${
-                                      category.riskLevel === "low"
-                                        ? "text-green-600 dark:text-green-400"
-                                        : category.riskLevel === "medium"
-                                          ? "text-yellow-600 dark:text-yellow-400"
-                                          : category.riskLevel === "high"
-                                            ? "text-orange-600 dark:text-orange-400"
-                                            : category.riskLevel === "very-high"
-                                              ? "text-red-600 dark:text-red-400"
-                                              : "text-gray-600 dark:text-gray-300"
-                                    }`}
-                                  >
-                                    ({getRiskLevelLabel(category.riskLevel)})
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
+                          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-300">
+                            {feature.title}
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base flex-1">
+                            {feature.description}
+                          </p>
                         </div>
-
-                        <h3 className="font-bold text-xl mb-3 text-gray-800 group-hover:text-gray-900 transition-colors dark:text-white dark:group-hover:text-gray-100">
-                          {category.title}
-                        </h3>
-                        <p className="text-gray-600 mb-4 leading-relaxed dark:text-gray-300">{category.description}</p>
-                        <p className="text-sm text-gray-500 mb-6 flex items-center dark:text-gray-400">
-                          <Clock className="w-4 h-4 mr-2" />
-                          {category.status}
-                          {category.lastCompleted && <span className="ml-2 text-xs">({category.lastCompleted})</span>}
-                        </p>
-
-                        <Button
-                          className={`w-full font-semibold py-3 rounded-xl transition-all duration-300 ${
-                            category.required
-                              ? `bg-gradient-to-r ${category.gradient} hover:shadow-lg text-white`
-                              : `bg-white/90 hover:bg-white text-gray-700 border border-gray-200 hover:border-gray-300 
-                                dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700 dark:hover:border-gray-600`
-                          }`}
-                          asChild
-                        >
-                          <Link href={`/assessment/${category.id}`}>
-                            {category.progress > 0 ? t("re_assess") : t("start_assessment")}
-                            <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
+                      </Card>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </section>
             </>
           )}
         </div>
