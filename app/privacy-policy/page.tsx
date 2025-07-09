@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button"
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto bg-white/80 backdrop-blur-lg border-0 shadow-2xl rounded-3xl p-8 sm:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 dark:bg-white py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto bg-white/80 backdrop-blur-lg border-0 shadow-2xl rounded-3xl p-8 sm:p-10 dark:bg-white/80">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
-            นโยบายความเป็นส่วนตัวของบริษัท วอนิกซ��� จำกัด (VONIX LIMITED PARTNERSHIP)
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-900">
+            นโยบายความเป็นส่วนตัวของบริษัท วอนิกซ์ จำกัด (VONIX LIMITED PARTNERSHIP)
           </h1>
           <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-gray-800 transition-colors">
             <Link href="/register" className="flex items-center">
@@ -18,10 +18,10 @@ export default function PrivacyPolicyPage() {
           </Button>
         </div>
 
-        <div className="prose prose-lg max-w-none text-gray-700 dark:text-gray-300 prose-p:my-4 prose-li:my-2 prose-h2:mt-8 prose-h2:mb-4">
+        <div className="prose prose-lg max-w-none text-gray-700 dark:text-gray-900 prose-p:my-4 prose-li:my-2 prose-h2:mt-8 prose-h2:mb-4">
           <p>
             บริษัท วอนิกซ์ จำกัด (“VONIX”) ให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคลของผู้ใช้ทุกท่าน โดยดำเนินงานภายใต้กรอบกฎหมาย PDPA
-            (พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ.2562) และ GDPR ของสหภาพยุโรป หลักการสำคัญของ PDPA ได้รับอิท��ิพลจาก GDPR เป็นอย่างมาก
+            (พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ.2562) และ GDPR ของสหภาพยุโรป หลักการสำคัญของ PDPA ได้รับอิทธิพลจาก GDPR เป็นอย่างมาก
             จึงกำหนดสิทธิของเจ้าของข้อมูลให้สามารถควบคุมการเก็บ ใช้ หรือเปิดเผยข้อมูลส่วนบุคคลของตนเองได้อย่างเข้มงวด
             บนพื้นฐานการได้รับความยินยอมและความโปร่งใสจากเจ้าของข้อมูล
           </p>
@@ -37,7 +37,7 @@ export default function PrivacyPolicyPage() {
             </li>
             <li>
               <strong>ข้อมูลสุขภาพและพฤติกรรมการใช้ชีวิต:</strong> เช่น ประวัติการรักษา ผลตรวจทางห้องปฏิบัติการ น้ำหนัก ส่วนสูง ความดันโลหิต
-              ความพิการ การแพ้ยา ข้อมูลการนอนหลับ อาหาร ออกกำลังกาย หรือข้อมูลสุขภาพจิต โดยข้อมูลเหล่านี้จัดเป็นข้อมูลส่วนบุ���คลที่อ่อนไหว
+              ความพิการ การแพ้ยา ข้อมูลการนอนหลับ อาหาร ออกกำลังกาย หรือข้อมูลสุขภาพจิต โดยข้อมูลเหล่านี้จัดเป็นข้อมูลส่วนบุคคลที่อ่อนไหว
               (Sensitive Personal Data) ตาม PDPA และข้อมูลสุขภาพอยู่ภายใต้กฎ GDPR มาตรา 9 จึงต้องได้รับความยินยอมเป็นพิเศษ
             </li>
             <li>
@@ -141,7 +141,7 @@ export default function PrivacyPolicyPage() {
             </li>
             <li>
               <strong>สิทธิในการเข้าถึงและขอรับสำเนาข้อมูล (Right to Access):</strong> ผู้ใช้สามารถขอเข้าดูหรือขอสำเนาข้อมูลส่วนบุคคลที่
-              VONIX เก็บไว้เกี่ยวกับตนเองได้ตามมาตร��� 30 ของ PDPA
+              VONIX เก็บไว้เกี่ยวกับตนเองได้ตามมาตรา 30 ของ PDPA
             </li>
             <li>
               <strong>สิทธิแก้ไขข้อมูล (Right to Rectification):</strong> หากผู้ใช้พบว่าข้อมูลส่วนบุคคลของตนผิดพลาดหรือไม่สมบูรณ์
