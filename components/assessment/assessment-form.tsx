@@ -95,34 +95,66 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
           // Handle guest assessment
           console.log("👤 AssessmentForm: บันทึกแบบประเมินสำหรับ Guest User...")
 
+          let aiAnalysis = null
+          let riskFactors: string[] = []
+          let recommendations: string[] = []
+
+          if (categoryId !== "basic") {
+            console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI สำหรับ Guest...")
+            const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(
+              categoryId,
+              finalAnswersToSave,
+            )
+            if (aiError) {
+              console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
+              // Fallback to basic calculation
+              if (finalAnswersToSave.reduce((sum, answer) => sum + (answer.score || 0), 0) >= 60) {
+                recommendations.push(locale === "th" ? "ควรปรึกษาแพทย์" : "Should consult a doctor")
+              }
+            } else {
+              aiAnalysis = aiData
+              console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
+
+              // Use AI analysis results
+              if (aiAnalysis.riskFactors) {
+                riskFactors = locale === "th" ? aiAnalysis.riskFactors.th : aiAnalysis.riskFactors.en
+              }
+              if (aiAnalysis.recommendations) {
+                recommendations = locale === "th" ? aiAnalysis.recommendations.th : aiAnalysis.recommendations.en
+              }
+            }
+          } else {
+            // Basic assessment recommendations
+            if (finalAnswersToSave.reduce((sum, answer) => sum + (answer.score || 0), 0) >= 60) {
+              recommendations.push(locale === "th" ? "ควรปรึกษาแพทย์" : "Should consult a doctor")
+            }
+          }
+
           // Calculate basic scoring
           const totalScore = finalAnswersToSave.reduce((sum, answer) => sum + (answer.score || 0), 0)
           const maxScore = category.questions.length * 5 // Assuming max score per question is 5
           const percentage = Math.round((totalScore / maxScore) * 100)
 
-          // Simple risk level calculation
-          let riskLevel: RiskLevel = "low"
-          if (percentage >= 80) riskLevel = "very-high"
-          else if (percentage >= 60) riskLevel = "high"
-          else if (percentage >= 40) riskLevel = "medium"
-
-          // Basic risk factors and recommendations (you can enhance this)
-          const recommendations: string[] = []
-
-          if (categoryId !== "basic") {
-            if (percentage >= 60) {
-              recommendations.push(locale === "th" ? "ควรปรึกษาแพทย์" : "Should consult a doctor")
-            }
-          }
+          // Use AI analysis score if available, otherwise use calculated percentage
+          const finalScore = aiAnalysis ? aiAnalysis.score : percentage
+          const finalRiskLevel: RiskLevel = aiAnalysis
+            ? aiAnalysis.riskLevel
+            : percentage >= 80
+              ? "very-high"
+              : percentage >= 60
+                ? "high"
+                : percentage >= 40
+                  ? "medium"
+                  : "low"
 
           const guestResult: AssessmentResult = {
             id: `guest_${categoryId}_${Date.now()}`,
             category: categoryId as AssessmentCategory,
-            score: percentage,
-            riskLevel: riskLevel,
+            score: finalScore,
+            riskLevel: finalRiskLevel,
             completedAt: new Date().toISOString(),
             answers: finalAnswersToSave,
-            aiAnalysis: null, // Guest mode doesn't have AI analysis
+            aiAnalysis: aiAnalysis,
           }
 
           GuestAssessmentService.saveAssessment(categoryId as AssessmentCategory, guestResult)

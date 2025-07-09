@@ -235,7 +235,7 @@ export default function GuestAssessmentResultsPage() {
             )}
 
             {/* Risk Factors */}
-            {assessment.risk_factors && assessment.risk_factors.length > 0 && (
+            {assessment.ai_analysis?.riskFactors && (
               <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -245,7 +245,10 @@ export default function GuestAssessmentResultsPage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {assessment.risk_factors.map((factor: string, index: number) => (
+                    {(locale === "th"
+                      ? assessment.ai_analysis.riskFactors.th
+                      : assessment.ai_analysis.riskFactors.en
+                    ).map((factor: string, index: number) => (
                       <li key={index} className="flex items-start gap-2">
                         <span className="text-orange-500 mt-1">•</span>
                         <span>{factor}</span>
@@ -257,7 +260,7 @@ export default function GuestAssessmentResultsPage() {
             )}
 
             {/* Recommendations */}
-            {assessment.recommendations && assessment.recommendations.length > 0 && (
+            {assessment.ai_analysis?.recommendations && (
               <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -267,13 +270,33 @@ export default function GuestAssessmentResultsPage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {assessment.recommendations.map((recommendation: string, index: number) => (
+                    {(locale === "th"
+                      ? assessment.ai_analysis.recommendations.th
+                      : assessment.ai_analysis.recommendations.en
+                    ).map((recommendation: string, index: number) => (
                       <li key={index} className="flex items-start gap-2">
                         <span className="text-green-500 mt-1">•</span>
                         <span>{recommendation}</span>
                       </li>
                     ))}
                   </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* AI Summary (if available) */}
+            {assessment.ai_analysis?.summary && (
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    {locale === "th" ? "สรุปผลการประเมิน" : "Assessment Summary"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {locale === "th" ? assessment.ai_analysis.summary.th : assessment.ai_analysis.summary.en}
+                  </p>
                 </CardContent>
               </Card>
             )}

@@ -164,4 +164,30 @@ export class GuestAssessmentService {
   static calculateDashboardStats(): DashboardStats {
     return GuestAssessmentService.getDashboardStats()
   }
+
+  static getAssessmentByCategory(categoryId: string): any | null {
+    try {
+      const assessment = GuestAssessmentService.getAssessment(categoryId as AssessmentCategory)
+      if (!assessment) return null
+
+      // Convert to format expected by results page
+      return {
+        id: assessment.id,
+        category_id: assessment.category,
+        category_title: categoryId, // You might want to get the actual title from assessment categories
+        answers: assessment.answers,
+        total_score: assessment.score,
+        max_score: 100,
+        percentage: assessment.score,
+        risk_level: assessment.riskLevel,
+        risk_factors: assessment.aiAnalysis?.riskFactors?.th || [],
+        recommendations: assessment.aiAnalysis?.recommendations?.th || [],
+        completed_at: assessment.completedAt,
+        ai_analysis: assessment.aiAnalysis,
+      }
+    } catch (error) {
+      console.error("Error getting guest assessment by category:", error)
+      return null
+    }
+  }
 }
