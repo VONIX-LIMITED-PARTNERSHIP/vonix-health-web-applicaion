@@ -272,10 +272,16 @@ const th = {
     risk_factors_found: "ปัจจัยเสี่ยงที่พบ",
     assessments_completed: "การประเมินที่เสร็จสิ้น",
     health_report_status: "สถานะรายงานสุขภาพ",
+    report_ready: "พร้อม",
+    report_not_ready: "ไม่พร้อม",
+    can_generate_report: "สร้างรายงานได้",
+    must_complete_3_categories: "ต้องทำแบบประเมิน 3 ประเภท",
     latest_assessments: "การประเมินล่าสุด",
     score_label: "คะแนน",
     recommendations_label: "คำแนะนำ",
     no_risk_factors_found: "ไม่พบปัจจัยเสี่ยงที่สำคัญ",
+    unauthorized_access: "ไม่ได้รับอนุญาตให้เข้าถึง กรุณาเข้าสู่ระบบ",
+    assessment_not_found_or_unauthorized: "ไม่พบผลการประเมินหรือคุณไม่มีสิทธิ์เข้าถึง",
     // --- Health level labels -----------------
     health_level_excellent: "ดีเยี่ยม",
     health_level_very_good: "ดีมาก",
@@ -299,9 +305,12 @@ const th = {
     step_3_wait_for_contact: "รอการติดต่อกลับ",
     step_3_wait_for_contact_desc: "แพทย์จะติดต่อกลับภายใน 24 ชั่วโมง",
     understood: "เข้าใจแล้ว",
-    profile_link_text: "โปรไฟล์", // Added this key
-    unauthorized_access: "ไม่ได้รับอนุญาตให้เข้าถึง กรุณาเข้าสู่ระบบ",
-    assessment_not_found_or_unauthorized: "ไม่พบผลการประเมินหรือคุณไม่มีสิทธิ์เข้าถึง",
+    profile_link_text: "โปรไฟล์",
+    error_no_category_specified: "ไม่ได้ระบุหมวดหมู่แบบประเมิน", // Added this
+    recommendation_consult_doctor: "ปรึกษาแพทย์เพื่อตรวจเพิ่มเติม",
+    recommendation_improve_behavior: "พิจารณาปรับปรุงพฤติกรรมการใช้ชีวิตและสุขภาพ",
+    recommendation_complete_all_assessments: "ทำแบบประเมินให้ครบทุกหมวดหมู่เพื่อรายงานที่ครอบคลุม",
+    recommendation_maintain_health: "รักษาสุขภาพที่ดีเยี่ยมของคุณต่อไป",
   },
   assessment: {
     basic_info: "ข้อมูลพื้นฐาน",
@@ -335,6 +344,7 @@ const th = {
     recommendations: "คำแนะนำ",
     back_to_dashboard: "กลับสู่หน้าหลัก",
     share_result: "แชร์ผลลัพธ์",
+    error_loading_answers: "เกิดข้อผิดพลาดในการโหลดคำถามแบบประเมิน",
   },
   risk_level: {
     low: "ความเสี่ยงต่ำ",

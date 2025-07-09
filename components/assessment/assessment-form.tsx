@@ -122,7 +122,12 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
             riskLevel: riskLevel,
             completedAt: new Date().toISOString(),
             answers: finalAnswersToSave,
-            aiAnalysis: null, // Guest mode doesn't have AI analysis
+            aiAnalysis: {
+              summary: t("common.your_health_normal"), // Simplified for guest
+              riskFactors: [], // Simplified for guest
+              recommendations:
+                recommendations.length > 0 ? recommendations : [t("common.no_additional_recommendations")],
+            },
           }
 
           GuestAssessmentService.saveAssessment(categoryId as AssessmentCategory, guestResult)
@@ -183,7 +188,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         }
       } catch (error) {
         console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
-        alert(t("assessment.save_failed").replace("{{message}}", String(error)))
+        alert(t("common.save_failed").replace("{{message}}", String(error)))
       } finally {
         setIsSubmitting(false)
       }

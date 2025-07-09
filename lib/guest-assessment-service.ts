@@ -36,7 +36,6 @@ export class GuestAssessmentService {
     }
   }
 
-  // Added this method to resolve the error
   static getAssessmentByCategory(category: AssessmentCategory): AssessmentResult | null {
     return GuestAssessmentService.getAssessment(category)
   }
@@ -165,20 +164,20 @@ export class GuestAssessmentService {
     const mediumRiskCategories = results.filter((r) => r.riskLevel === "medium")
 
     if (highRiskCategories.length > 0) {
-      recommendations.push(t("recommendation_consult_doctor"))
+      recommendations.push(t("common.recommendation_consult_doctor"))
     }
 
     if (mediumRiskCategories.length > 0) {
-      recommendations.push(t("recommendation_improve_behavior"))
+      recommendations.push(t("common.recommendation_improve_behavior"))
     }
 
     if (results.length < 6) {
       // Assuming 6 categories total
-      recommendations.push(t("recommendation_complete_all_assessments"))
+      recommendations.push(t("common.recommendation_complete_all_assessments"))
     }
 
     if (recommendations.length === 0) {
-      recommendations.push(t("recommendation_maintain_health"))
+      recommendations.push(t("common.recommendation_maintain_health"))
     }
 
     return recommendations

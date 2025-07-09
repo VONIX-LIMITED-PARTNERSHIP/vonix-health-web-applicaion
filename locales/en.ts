@@ -275,6 +275,10 @@ const en: Dictionary = {
     risk_factors_found: "Risk Factors Found",
     assessments_completed: "Assessments Completed",
     health_report_status: "Health Report Status",
+    report_ready: "Ready",
+    report_not_ready: "Not Ready",
+    can_generate_report: "Can Generate Report",
+    must_complete_3_categories: "Must Complete 3 Categories",
     latest_assessments: "Latest Assessments",
     score_label: "Score",
     recommendations_label: "Recommendations",
@@ -304,7 +308,12 @@ const en: Dictionary = {
     step_3_wait_for_contact: "Wait for Contact",
     step_3_wait_for_contact_desc: "A doctor will contact you within 24 hours",
     understood: "Understood",
-    profile_link_text: "Profile", // Added this key
+    profile_link_text: "Profile",
+    error_no_category_specified: "No assessment category specified.", // Added this
+    recommendation_consult_doctor: "Consult a doctor for further examination.",
+    recommendation_improve_behavior: "Consider improving your lifestyle and health behaviors.",
+    recommendation_complete_all_assessments: "Complete all assessment categories for a comprehensive report.",
+    recommendation_maintain_health: "Continue to maintain your excellent health habits.",
   },
   assessment: {
     basic_info: "Basic Information",
@@ -338,6 +347,7 @@ const en: Dictionary = {
     recommendations: "Recommendations",
     back_to_dashboard: "Back to Dashboard",
     share_result: "Share Results",
+    error_loading_answers: "Error loading assessment questions.",
   },
   risk_level: {
     low: "Low Risk",
