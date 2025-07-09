@@ -1,198 +1,112 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import {
-  ArrowLeft,
-  CheckCircle,
-  AlertTriangle,
-  AlertCircle,
-  XCircle,
-  Calendar,
-  Heart,
-  Activity,
-  TrendingUp,
-  FileText,
-  FlaskConical,
-  Loader2,
-  Info,
-  Brain,
-} from "lucide-react"
-import { guestAssessmentCategory } from "@/data/assessment-questions"
-import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ArrowLeft, Calendar, FileText, Loader2, AlertTriangle, CheckCircle, User, Shield } from "lucide-react"
+import { GuestAssessmentService } from "@/lib/guest-assessment-service"
+import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { useTranslation } from "@/hooks/use-translation"
 import { useLanguage } from "@/contexts/language-context"
+import { getRiskLevelBadgeClass } from "@/utils/risk-level"
 
 export default function GuestAssessmentResultsPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [analyzing, setAnalyzing] = useState(false)
-  const [result, setResult] = useState<AssessmentResult | null>(null)
-  const [aiAnalysis, setAiAnalysis] = useState<any>(null) // To store raw AI analysis
-  const [error, setError] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const { guestUser } = useGuestAuth()
   const { t } = useTranslation()
   const { locale } = useLanguage()
+  const [assessment, setAssessment] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const categoryId = searchParams.get("category")
 
   useEffect(() => {
-    loadAndAnalyzeGuestAssessmentData()
-  }, [])
+    if (!guestUser) {
+      router.push("/guest-login")
+      return
+    }
 
-  const loadAndAnalyzeGuestAssessmentData = async () => {
+    if (!categoryId) {
+      setError(locale === "th" ? "ไม่พบข้อมูลการประเมิน" : "Assessment data not found")
+      setLoading(false)
+      return
+    }
+
+    loadAssessmentResults()
+  }, [guestUser, categoryId])
+
+  const loadAssessmentResults = () => {
     try {
-      setLoading(true)
-      setAnalyzing(true)
-      setError(null)
+      const assessmentData = GuestAssessmentService.getAssessmentByCategory(categoryId!)
 
-      const savedAnswers = localStorage.getItem(`guest-assessment-temp-answers`)
-      if (!savedAnswers) {
-        setError(t("no_guest_assessment_data"))
+      if (!assessmentData) {
+        setError(locale === "th" ? "ไม่พบผลการประเมิน" : "Assessment results not found")
         setLoading(false)
-        setAnalyzing(false)
         return
       }
 
-      const parsedAnswers: AssessmentAnswer[] = JSON.parse(savedAnswers)
-
-      // Call API to analyze results
-      const response = await fetch("/api/assessment/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          categoryId: guestAssessmentCategory.id,
-          categoryTitle: guestAssessmentCategory.title, // Pass category title for AI prompt
-          answers: parsedAnswers,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || t("error_loading_analysis"))
-      }
-
-      const { analysis } = await response.json()
-      setAiAnalysis(analysis) // Store raw AI analysis
-
-      // Map AI analysis to AssessmentResult format for display
-      const mappedResult: AssessmentResult = {
-        categoryId: guestAssessmentCategory.id,
-        totalScore: analysis.score,
-        maxScore: 100,
-        percentage: analysis.score,
-        riskLevel: analysis.riskLevel,
-        riskFactors: analysis.riskFactors, // This is now a BilingualStringArray
-        recommendations: analysis.recommendations, // This is now a BilingualStringArray
-        summary: analysis.summary, // This is now a BilingualText
-        totalQuestions: parsedAnswers.length,
-      }
-      setResult(mappedResult)
-
-      // Clear temporary answers from localStorage after successful analysis
-      localStorage.removeItem(`guest-assessment-temp-answers`)
-    } catch (err: any) {
-      setError(err.message || t("error_loading_analysis"))
-      console.error("Error:", err)
+      setAssessment(assessmentData)
+    } catch (err) {
+      console.error("Error loading guest assessment results:", err)
+      setError(locale === "th" ? "เกิดข้อผิดพลาดในการโหลดผลการประเมิน" : "Error loading assessment results")
     } finally {
       setLoading(false)
-      setAnalyzing(false)
     }
   }
 
-  const getRiskLevelInfo = (level: string) => {
-    switch (level) {
+  const getRiskLevelLabel = (riskLevel: string) => {
+    switch (riskLevel?.toLowerCase()) {
       case "low":
-        return {
-          label: t("low_risk"),
-          color: "text-green-600",
-          bgColor: "bg-green-50",
-          borderColor: "border-green-200",
-          icon: CheckCircle,
-        }
+        return locale === "th" ? "ความเสี่ยงต่ำ" : "Low Risk"
       case "medium":
-        return {
-          label: t("medium_risk"),
-          color: "text-yellow-600",
-          bgColor: "bg-yellow-50",
-          borderColor: "border-yellow-200",
-          icon: AlertTriangle,
-        }
+        return locale === "th" ? "ความเสี่ยงปานกลาง" : "Medium Risk"
       case "high":
-        return {
-          label: t("high_risk"),
-          color: "text-orange-600",
-          bgColor: "bg-orange-50",
-          borderColor: "border-orange-200",
-          icon: AlertCircle,
-        }
+        return locale === "th" ? "ความเสี่ยงสูง" : "High Risk"
       case "very-high":
-        return {
-          label: t("very_high_risk"),
-          color: "text-red-600",
-          bgColor: "bg-red-50",
-          borderColor: "border-red-200",
-          icon: XCircle,
-        }
+      case "very_high":
+        return locale === "th" ? "ความเสี่ยงสูงมาก" : "Very High Risk"
       default:
-        return {
-          label: t("unspecified_risk"),
-          color: "text-gray-600",
-          bgColor: "bg-gray-50",
-          borderColor: "border-gray-200",
-          icon: AlertCircle,
-        }
+        return locale === "th" ? "ไม่ระบุ" : "Unspecified"
     }
   }
 
-  const handleBackToHome = () => {
-    router.push("/")
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    if (locale === "th") {
+      return date.toLocaleDateString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    }
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
   }
 
-  // Loading state
-  if (loading || analyzing) {
+  if (!guestUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center">
-        <Card className="w-full max-w-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
-          <CardContent className="p-8 text-center">
-            <div className="mb-6">
-              {analyzing ? (
-                <Brain className="h-16 w-16 text-blue-600 mx-auto animate-pulse" />
-              ) : (
-                <Loader2 className="h-16 w-16 text-blue-600 mx-auto animate-spin" />
-              )}
-            </div>
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-              {analyzing ? t("ai_analyzing_results") : t("processing_results")}
-            </h3>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-bold mb-4">{t("not_logged_in")}</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {analyzing ? t("ai_analyzing_description") : t("please_wait")}
+              {locale === "th" ? "กรุณาเข้าสู่ระบบเพื่อดูผลการประเมิน" : "Please log in to view assessment results"}
             </p>
-            <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-100"></div>
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-200"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center">
-        <Card className="w-full max-w-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
-          <CardContent className="p-8 text-center">
-            <XCircle className="h-16 w-16 text-red-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t("error")}</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
-            <Button onClick={handleBackToHome} className="w-full">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("home")}
+            <Button asChild>
+              <Link href="/guest-login">{t("login")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -200,189 +114,216 @@ export default function GuestAssessmentResultsPage() {
     )
   }
 
-  if (!result) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400">{t("no_data")}</p>
-          <Button onClick={handleBackToHome} className="mt-4">
-            {t("home")}
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-600" />
+            <h2 className="text-xl font-bold mb-2">{t("loading")}</h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              {locale === "th" ? "กำลังโหลดผลการประเมิน..." : "Loading assessment results..."}
+            </p>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  const riskInfo = getRiskLevelInfo(result.riskLevel)
-  const RiskIcon = riskInfo.icon
+  if (error || !assessment) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="h-8 w-8 mx-auto mb-4 text-red-600" />
+            <h2 className="text-xl font-bold mb-2">{t("error")}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+            <Button asChild>
+              <Link href="/">{t("back")}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={handleBackToHome}
-            className="mb-4 hover:bg-white/80 dark:hover:bg-gray-700/80"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("home")}
+          <Button variant="ghost" asChild className="mb-4 hover:bg-white/80">
+            <Link href="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("back")}
+            </Link>
           </Button>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-2xl mb-2 flex items-center">
-                    <FlaskConical className="mr-3 h-6 w-6 text-purple-600" />
-                    {t("assessment_results")}
+              <CardTitle className="text-2xl font-bold flex items-center gap-3">
+                <FileText className="h-7 w-7 text-purple-600" />
+                {t("assessment_results")}
+                <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200">
+                  {locale === "th" ? "ทดลองใช้งาน" : "Guest Mode"}
+                </Badge>
+              </CardTitle>
+              <p className="text-gray-600 dark:text-gray-400">{assessment.category_title}</p>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Guest Mode Notice */}
+        <Alert className="mb-8 border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950">
+          <Shield className="h-4 w-4 text-purple-600" />
+          <AlertDescription className="text-purple-800 dark:text-purple-200">
+            {locale === "th"
+              ? "ข้อมูลนี้เป็นการทดลองใช้งานและจะไม่ถูกบันทึกถาวร หากต้องการบันทึกข้อมูลและใช้งานฟีเจอร์เต็มรูปแบบ กรุณาสมัครสมาชิก"
+              : "This is guest mode data and will not be permanently saved. To save your data and access full features, please register for an account."}
+          </AlertDescription>
+        </Alert>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Results */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Assessment Info */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-purple-600" />
+                  {t("assessment_date")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg">{formatDate(assessment.completed_at)}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {locale === "th" ? "ทดลองใช้งานโดย" : "Guest assessment by"} {guestUser.nickname}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Score */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+              <CardHeader>
+                <CardTitle>{t("score")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-purple-600 mb-2">
+                  {assessment.total_score}/{assessment.max_score}
+                </div>
+                <div className="text-lg text-gray-600 dark:text-gray-400">
+                  {assessment.percentage}% {locale === "th" ? "จากคะแนนเต็ม" : "of total score"}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                  {assessment.answers.length} {t("questions_answered")}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Risk Level */}
+            {assessment.category_id !== "basic" && (
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+                <CardHeader>
+                  <CardTitle>{t("overall_risk_level")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Badge className={`${getRiskLevelBadgeClass(assessment.risk_level)} text-lg px-4 py-2`}>
+                    {getRiskLevelLabel(assessment.risk_level)}
+                  </Badge>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Risk Factors */}
+            {assessment.risk_factors && assessment.risk_factors.length > 0 && (
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-orange-600" />
+                    {t("risk_factors")}
                   </CardTitle>
-                  {/* Removed guestAssessmentCategory.description */}
-                  <div className="flex items-center mt-2 text-sm text-blue-600 dark:text-blue-400">
-                    <Info className="w-4 h-4 mr-1" />
-                    {t("this_data_not_saved")}
-                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {assessment.risk_factors.map((factor: string, index: number) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-orange-500 mt-1">•</span>
+                        <span>{factor}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recommendations */}
+            {assessment.recommendations && assessment.recommendations.length > 0 && (
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    {t("recommendations")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {assessment.recommendations.map((recommendation: string, index: number) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-green-500 mt-1">•</span>
+                        <span>{recommendation}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Upgrade Notice */}
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
+              <CardHeader>
+                <CardTitle className="text-purple-800 dark:text-purple-200 flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  {t("want_to_save_results")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-purple-700 dark:text-purple-300 text-sm mb-4">{t("login_to_track_progress")}</p>
+                <div className="flex flex-col gap-2">
+                  <Button asChild className="bg-purple-600 hover:bg-purple-700">
+                    <Link href="/register">{t("register")}</Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    asChild
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50 bg-transparent"
+                  >
+                    <Link href="/login">{t("login")}</Link>
+                  </Button>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">{t("assessment_date")}</div>
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    {new Date().toLocaleDateString("th-TH")}
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+              <CardHeader>
+                <CardTitle>{locale === "th" ? "การดำเนินการ" : "Actions"}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button variant="outline" className="w-full bg-transparent" asChild>
+                  <Link href="/">{locale === "th" ? "กลับหน้าหลัก" : "Back to Home"}</Link>
+                </Button>
+                <Button variant="outline" className="w-full bg-transparent" asChild>
+                  <Link href={`/assessment/${assessment.category_id}`}>
+                    {locale === "th" ? "ทำแบบประเมินใหม่" : "Retake Assessment"}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* AI Summary */}
-        {aiAnalysis?.summary && (
-          <Card className="mb-8 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 shadow-xl rounded-2xl dark:from-purple-950 dark:to-blue-950 dark:border-purple-800">
-            <CardHeader>
-              <CardTitle className="flex items-center text-xl text-gray-800 dark:text-gray-200">
-                <Brain className="mr-3 h-5 w-5 text-purple-600" />
-                {t("ai_summary")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{aiAnalysis.summary[locale]}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Results Summary */}
-        <Card className={`mb-8 border-2 ${riskInfo.borderColor} ${riskInfo.bgColor} shadow-xl rounded-2xl`}>
-          <CardContent className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                <div className={`p-4 rounded-2xl ${riskInfo.bgColor} border ${riskInfo.borderColor}`}>
-                  <RiskIcon className={`h-8 w-8 ${riskInfo.color}`} />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-1">{riskInfo.label}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{t("overall_risk_level")}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-4xl font-bold text-gray-800 dark:text-gray-200">{result.percentage}%</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {t("score")} {result.totalScore}/{result.maxScore}
-                </div>
-              </div>
-            </div>
-
-            <Progress value={result.percentage} className="h-4 mb-4" />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-              <div className="text-center p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <Activity className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">{result.totalQuestions}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">{t("questions_answered")}</div>
-              </div>
-              <div className="text-center p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                  {result.riskFactors[locale].length}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">{t("risk_factors")}</div>
-              </div>
-              <div className="text-center p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl">
-                <FileText className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                  {result.recommendations[locale].length}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">{t("recommendations")}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Risk Factors */}
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
-            <CardHeader>
-              <CardTitle className="flex items-center text-xl text-gray-800 dark:text-gray-200">
-                <AlertTriangle className="mr-3 h-5 w-5 text-orange-600" />
-                {t("risk_factors")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {result.riskFactors[locale] && result.riskFactors[locale].length > 0 ? (
-                <div className="space-y-3">
-                  {result.riskFactors[locale].map((factor, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center p-3 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800"
-                    >
-                      <AlertCircle className="h-4 w-4 text-orange-600 mr-3 flex-shrink-0" />
-                      <span className="text-gray-800 dark:text-gray-200">{factor}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400">{t("no_significant_risk_factors")}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{t("your_health_normal")}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recommendations */}
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
-            <CardHeader>
-              <CardTitle className="flex items-center text-xl text-gray-800 dark:text-gray-200">
-                <Heart className="mr-3 h-5 w-5 text-red-600" />
-                {t("recommendations")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {result.recommendations[locale] && result.recommendations[locale].length > 0 ? (
-                <div className="space-y-3">
-                  {result.recommendations[locale].map((recommendation, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800"
-                    >
-                      <CheckCircle className="h-4 w-4 text-blue-600 mr-3 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-800 dark:text-gray-200">{recommendation}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400">{t("no_additional_recommendations")}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{t("your_health_excellent")}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Removed Call to Action for Login/Register */}
       </div>
     </div>
   )

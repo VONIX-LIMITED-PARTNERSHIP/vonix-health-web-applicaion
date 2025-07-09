@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { redirect } from "next/navigation"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -17,6 +18,9 @@ import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/hooks/use-translation"
 
 export default function RegisterPage() {
+  // 👋 Block normal register. Send everyone to the guest-login page.
+  redirect("/guest-login")
+
   const router = useRouter()
   const { signUp, user, loading: authLoading } = useAuth()
   const { toast } = useToast()
@@ -31,12 +35,22 @@ export default function RegisterPage() {
   })
   const { t } = useTranslation()
 
+  // Redirect immediately to guest login
   useEffect(() => {
-    if (!authLoading && user) {
-      router.push("/")
-    } else if (!authLoading && !user) {
-    }
-  }, [user, authLoading, router])
+    router.replace("/guest-login")
+  }, [router])
+
+  // Show a loading state while redirecting
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>{t("redirecting")}...</span>
+        </div>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

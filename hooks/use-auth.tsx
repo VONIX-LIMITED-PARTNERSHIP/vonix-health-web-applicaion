@@ -11,8 +11,8 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"]
 interface AuthContextType {
   user: User | null
   profile: Profile | null
-  isAuthSessionLoading: boolean // Indicates if the initial Supabase session check is ongoing
-  isProfileLoading: boolean // Indicates if the user profile data is being fetched
+  isAuthSessionLoading: boolean
+  isProfileLoading: boolean
   signIn: (email: string, password: string) => Promise<{ data?: any; error?: any }>
   signUp: (email: string, password: string, metadata?: any) => Promise<{ data?: any; error?: any }>
   signOut: () => Promise<void>
@@ -47,13 +47,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
     setProfile(null)
     if (typeof window !== "undefined") {
+      // Clear Supabase auth tokens
       localStorage.removeItem("sb-hybtdrtuyovowhzinbbu-auth-token")
       localStorage.removeItem("supabase.auth.token")
+
+      // Clear all Supabase auth related items
       Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("sb-") && key.includes("auth")) {
+          localStorage.removeItem(key)
+        }
         if (key.startsWith("assessment-")) {
           localStorage.removeItem(key)
         }
       })
+
       localStorage.removeItem("user-preferences")
       localStorage.removeItem("dashboard-cache")
     }
@@ -113,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const responseData = await response.json()
         if (response.ok) {
           console.log("createMissingProfile: Missing profile created successfully via API:", responseData)
-          await loadUserProfile(userId) // Reload profile after successful creation
+          await loadUserProfile(userId)
         } else {
           console.error(
             "createMissingProfile: Error creating missing profile via API:",
@@ -152,24 +159,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       setIsAuthSessionLoading(true)
       try {
+        // Add timeout to prevent infinite loading
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Session check timeout")), 10000),
+        )
+
         const {
           data: { session },
           error,
-        } = await supabase.auth.getSession()
+        } = (await Promise.race([sessionPromise, timeoutPromise])) as any
 
         if (!mounted) return
 
         if (error) {
           console.error("Auth Effect: Error getting session:", error.message)
-          if (error.message?.includes("invalid") || error.message?.includes("expired")) {
-            clearAuthData()
-          }
+          clearAuthData()
           setUser(null)
           setProfile(null)
         } else if (session?.user) {
           console.log("Auth Effect: Initial session found for user:", session.user.id)
           setUser(session.user)
-          // Profile loading will be handled by the separate useEffect below
         } else {
           console.log("Auth Effect: No initial session found.")
           setUser(null)
@@ -177,9 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (err) {
         console.error("Auth Effect: Unexpected error during initial session check:", err)
-        if (err instanceof Error && (err.message?.includes("invalid") || err.message?.includes("expired"))) {
-          clearAuthData()
-        }
+        clearAuthData()
         setUser(null)
         setProfile(null)
       } finally {
@@ -207,7 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null)
         setIsAuthSessionLoading(false)
         if (typeof window !== "undefined" && event === "SIGNED_OUT") {
-          window.location.href = "/" // Redirect to home on sign out
+          window.location.href = "/"
         }
       } else if (event === "SIGNED_IN" && session?.user) {
         console.log("Auth State Change: User signed in.", session.user.id)

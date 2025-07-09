@@ -1,31 +1,22 @@
 "use client"
 
-import type { ReactNode } from "react"
+import type React from "react"
 
-import { ThemeProvider } from "@/components/theme-provider"
-import { LanguageProvider } from "@/contexts/language-context"
 import { AuthProvider } from "@/hooks/use-auth"
+import { GuestAuthProvider } from "@/hooks/use-guest-auth"
+import { LanguageProvider } from "@/contexts/language-context"
+import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
-import { ChatWidget } from "@/components/chatbot/chat-widget"
-import { Footer } from "@/components/footer"
 
-/**
- * Groups every client-side context / widget so the server layout
- * doesn’t have to pass non-serialisable values through RSC.
- *
- * Defaults:
- *   – Language  : Thai (“th”)        (already default in LanguageProvider)
- *   – Theme     : Light mode only    (enableSystem = false)
- */
-export default function Providers({ children }: { children: ReactNode }) {
+export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <LanguageProvider>
         <AuthProvider>
-          {children}
-          <Footer />
-          <Toaster />
-          <ChatWidget />
+          <GuestAuthProvider>
+            {children}
+            <Toaster />
+          </GuestAuthProvider>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>

@@ -10,7 +10,9 @@ import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from "lucide-react
 import { QuestionCard } from "./question-card"
 import { getAssessmentCategories } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
+import { GuestAssessmentService } from "@/lib/guest-assessment-service"
 import { useAuth } from "@/hooks/use-auth"
+import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { useLanguage } from "@/contexts/language-context"
 import { useTranslation } from "@/hooks/use-translation"
 import type { AssessmentAnswer } from "@/types/assessment"
@@ -23,8 +25,9 @@ interface AssessmentFormProps {
 export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const router = useRouter()
   const { user } = useAuth()
+  const { guestUser, isGuestLoggedIn } = useGuestAuth()
   const { locale } = useLanguage()
-  const { t } = useTranslation(["common", "assessment", "placeholder", "validation"])
+  const { t } = useTranslation()
   const supabase = createClientComponentClient()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
@@ -85,25 +88,70 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
     if (isLastQuestion) {
       setIsSubmitting(true)
-      console.log("🚀 AssessmentForm: เริ่มประมวลผลแบบประเมิน...")
+      console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
 
       try {
-        if (categoryId === "guest-assessment") {
-          // For guest assessment, save answers to localStorage and redirect to results page
-          console.log("💾 AssessmentForm: กำลังบันทึกคำตอบชั่วคราวสำหรับผู้เยี่ยมชม...")
-          localStorage.setItem(`guest-assessment-temp-answers`, JSON.stringify(finalAnswersToSave))
-          console.log("✅ AssessmentForm: บันทึกคำตอบชั่วคราวสำเร็จ")
-          console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์สำหรับผู้เยี่ยมชม")
-          router.push(`/guest-assessment/results`)
+        if (isGuestLoggedIn) {
+          // Handle guest assessment
+          console.log("👤 AssessmentForm: บันทึกแบบประเมินสำหรับ Guest User...")
+
+          // Calculate basic scoring
+          const totalScore = finalAnswersToSave.reduce((sum, answer) => sum + (answer.score || 0), 0)
+          const maxScore = category.questions.length * 5 // Assuming max score per question is 5
+          const percentage = Math.round((totalScore / maxScore) * 100)
+
+          // Simple risk level calculation
+          let riskLevel = "low"
+          if (percentage >= 80) riskLevel = "very-high"
+          else if (percentage >= 60) riskLevel = "high"
+          else if (percentage >= 40) riskLevel = "medium"
+
+          // Basic risk factors and recommendations (you can enhance this)
+          const riskFactors: string[] = []
+          const recommendations: string[] = []
+
+          if (categoryId !== "basic") {
+            // Add some basic risk factors based on score
+            if (percentage >= 60) {
+              riskFactors.push(locale === "th" ? "คะแนนความเสี่ยงสูง" : "High risk score")
+            }
+            if (percentage >= 40) {
+              recommendations.push(locale === "th" ? "ควรปรึกษาแพทย์" : "Should consult a doctor")
+            }
+          }
+
+          const guestAssessmentData = {
+            id: `guest_${categoryId}_${Date.now()}`,
+            category_id: categoryId,
+            category_title: category.title,
+            answers: finalAnswersToSave,
+            total_score: totalScore,
+            max_score: maxScore,
+            percentage,
+            risk_level: riskLevel,
+            risk_factors: riskFactors,
+            recommendations,
+            completed_at: new Date().toISOString(),
+          }
+
+          GuestAssessmentService.saveAssessment(guestAssessmentData)
+          console.log("✅ AssessmentForm: บันทึกแบบประเมิน Guest สำเร็จ")
+
+          if (categoryId === "basic") {
+            console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
+            router.push(`/?openHealthOverview=basic&assessmentId=${guestAssessmentData.id}`)
+          } else {
+            console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
+            router.push(`/guest-assessment/results?category=${categoryId}`)
+          }
         } else {
-          // Existing logic for logged-in users and basic assessments
+          // Handle regular user assessment
           if (!user?.id) {
             alert(t("assessment.not_logged_in"))
             return
           }
 
           let aiAnalysis = null
-          // AI analysis for non-basic assessments (guest assessment handles its own analysis on results page)
           if (categoryId !== "basic") {
             console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
             const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(
@@ -143,7 +191,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
           }
         }
       } catch (error) {
-        console.error("❌ AssessmentForm: การประมวลผลล้มเหลว:", error)
+        console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
         alert(t("assessment.save_failed").replace("{{message}}", String(error)))
       } finally {
         setIsSubmitting(false)
@@ -169,11 +217,6 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         full: locale === "en" ? "Save Data and View Overview" : "บันทึกข้อมูลและดูภาพรวม",
         short: locale === "en" ? "Save" : "บันทึก",
       }
-    } else if (categoryId === "guest-assessment") {
-      return {
-        full: t("common.view_results"),
-        short: locale === "en" ? "View Results" : "ดูผล",
-      }
     } else {
       return {
         full: t("common.view_results"),
@@ -198,7 +241,14 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-2xl mb-2 dark:text-foreground">{category.title}</CardTitle>
+                  <CardTitle className="text-2xl mb-2 dark:text-foreground flex items-center gap-2">
+                    {category.title}
+                    {isGuestLoggedIn && (
+                      <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200">
+                        {locale === "th" ? "ทดลองใช้งาน" : "Guest Mode"}
+                      </Badge>
+                    )}
+                  </CardTitle>
                   <p className="text-gray-600 dark:text-muted-foreground">{category.description}</p>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -258,7 +308,11 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
               <Button
                 onClick={handleNext}
                 disabled={!canProceed() || isSubmitting}
-                className="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm sm:text-base"
+                className={`px-4 sm:px-6 py-2 text-sm sm:text-base ${
+                  isGuestLoggedIn
+                    ? "bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
+                    : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                } text-white`}
               >
                 {isSubmitting ? (
                   <>

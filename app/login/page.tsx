@@ -13,6 +13,7 @@ import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
+import { redirect } from "next/navigation" // Import redirect
 
 export default function LoginPage() {
   const router = useRouter()
@@ -23,13 +24,25 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" })
   const { t } = useTranslation() // Use translation hook
 
-  // Redirect if already logged in
+  // 👋 Block normal login. Send everyone to the guest-login page.
+  redirect("/guest-login")
+
+  // Redirect immediately to guest login
   useEffect(() => {
-    if (!authLoading && user) {
-      router.push("/")
-    } else if (!authLoading && !user) {
-    }
-  }, [user, authLoading, router])
+    router.replace("/guest-login")
+  }, [router])
+
+  // Show a loading state while redirecting
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>{t("redirecting")}...</span>
+        </div>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -78,18 +91,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  // Show loading if auth is still loading (full page spinner)
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>{t("loading_profile")}...</span>
-        </div>
-      </div>
-    )
   }
 
   return (
