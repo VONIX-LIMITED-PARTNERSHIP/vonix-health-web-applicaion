@@ -1,7 +1,5 @@
 import type { Config } from "tailwindcss"
-import { fontFamily } from "tailwindcss/defaultTheme"
-
-// all in fixtures is set to tailwind v3 as interims solutions
+import defaultTheme from "tailwindcss/defaultTheme"
 
 const config: Config = {
   darkMode: ["class"],
@@ -93,8 +91,7 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontFamily: {
-        sans: ["var(--font-sarabun)", ...fontFamily.sans],
-        times: ['"Times New Roman"', "Times", "serif"],
+        sans: ["var(--font-roboto)", ...defaultTheme.fontFamily.sans],
       },
     },
   },

@@ -1,13 +1,13 @@
 import type { ReactNode } from "react"
 import type { Metadata } from "next"
-import { Sarabun } from "next/font/google"
+import { Roboto } from "next/font/google"
 import "./globals.css"
 import Providers from "./providers"
 
-const sarabun = Sarabun({
-  subsets: ["thai"],
-  weight: ["400", "700"], // Regular and Bold weights
-  variable: "--font-sarabun",
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-roboto",
 })
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="th" suppressHydrationWarning>
-      <body className={sarabun.variable}>
+      <body className={roboto.className}>
         {/* All client logic is encapsulated here */}
         <Providers>{children}</Providers>
       </body>
