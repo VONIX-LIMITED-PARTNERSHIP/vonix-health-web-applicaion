@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, Calendar, FileText, Loader2, AlertTriangle, CheckCircle, User, Shield } from "lucide-react"
+import { ArrowLeft, Calendar, FileText, Loader2, AlertTriangle, CheckCircle, Shield } from "lucide-react"
 import { GuestAssessmentService } from "@/lib/guest-assessment-service"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { useTranslation } from "@/hooks/use-translation"
@@ -187,7 +187,7 @@ export default function GuestAssessmentResultsPage() {
           {/* Main Results */}
           <div className="lg:col-span-2 space-y-6">
             {/* Assessment Info */}
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-purple-600" />
@@ -203,7 +203,7 @@ export default function GuestAssessmentResultsPage() {
             </Card>
 
             {/* Score */}
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
               <CardHeader>
                 <CardTitle>{t("score")}</CardTitle>
               </CardHeader>
@@ -222,7 +222,7 @@ export default function GuestAssessmentResultsPage() {
 
             {/* Risk Level */}
             {assessment.category_id !== "basic" && (
-              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
                 <CardHeader>
                   <CardTitle>{t("overall_risk_level")}</CardTitle>
                 </CardHeader>
@@ -236,7 +236,7 @@ export default function GuestAssessmentResultsPage() {
 
             {/* Risk Factors */}
             {assessment.ai_analysis?.riskFactors && (
-              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <AlertTriangle className="h-5 w-5 text-orange-600" />
@@ -261,7 +261,7 @@ export default function GuestAssessmentResultsPage() {
 
             {/* Recommendations */}
             {assessment.ai_analysis?.recommendations && (
-              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
@@ -286,7 +286,7 @@ export default function GuestAssessmentResultsPage() {
 
             {/* AI Summary (if available) */}
             {assessment.ai_analysis?.summary && (
-              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5 text-blue-600" />
@@ -304,33 +304,8 @@ export default function GuestAssessmentResultsPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Upgrade Notice */}
-            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
-              <CardHeader>
-                <CardTitle className="text-purple-800 dark:text-purple-200 flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  {t("want_to_save_results")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-purple-700 dark:text-purple-300 text-sm mb-4">{t("login_to_track_progress")}</p>
-                <div className="flex flex-col gap-2">
-                  <Button asChild className="bg-purple-600 hover:bg-purple-700">
-                    <Link href="/register">{t("register")}</Link>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    asChild
-                    className="border-purple-300 text-purple-700 hover:bg-purple-50 bg-transparent"
-                  >
-                    <Link href="/login">{t("login")}</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Actions */}
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl">
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
               <CardHeader>
                 <CardTitle>{locale === "th" ? "การดำเนินการ" : "Actions"}</CardTitle>
               </CardHeader>
