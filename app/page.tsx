@@ -39,6 +39,9 @@ import {
   TrendingUp,
   Calendar,
   FileText,
+  ArrowRight,
+  CheckCircle,
+  Star,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -629,168 +632,288 @@ export default function HomePage() {
           {!isLoggedIn && (
             <>
               {/* Core Features Section */}
-              <section className="mb-20">
-                <div className="text-center mb-16">
-                  <div className="inline-block px-4 py-2 bg-blue-500/10 rounded-full text-blue-600 dark:text-blue-400 text-sm font-medium mb-6">
-                    {t("about_us_tagline")}
-                  </div>
-                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-                    {t("about_us_title_main")}
-                  </h2>
-                  <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
-                    {t("about_us_intro")}
-                  </p>
+              <section
+                className="mb-24 relative p-8 md:p-16 rounded-3xl overflow-hidden
+                bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800"
+              >
+                {/* Background decorative elements */}
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+                  <div className="absolute top-1/2 right-1/4 w-48 h-48 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+                  <div className="absolute bottom-1/4 left-1/3 w-48 h-48 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <Brain className="h-8 w-8 text-white" />
+                <div className="relative z-10">
+                  <div className="text-center mb-20">
+                    <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full text-blue-600 dark:text-blue-400 text-sm font-semibold mb-8 border border-blue-200/50 dark:border-blue-700/50 backdrop-blur-sm">
+                      <Star className="w-4 h-4 mr-2" />
+                      {t("about_us_tagline")}
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                      {t("ai_health_assessment")}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {t("ai_health_assessment_desc")}
+                    <h2 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-8 leading-tight">
+                      <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                        {t("about_us_title_main")}
+                      </span>
+                    </h2>
+                    <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-5xl mx-auto leading-relaxed font-medium">
+                      {t("about_us_intro")}
                     </p>
                   </div>
 
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <Stethoscope className="h-8 w-8 text-white" />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* AI Health Assessment */}
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-blue-300/50 dark:hover:border-blue-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
+                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                          <Brain className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                          {t("ai_health_assessment")}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                          {t("ai_health_assessment_desc")}
+                        </p>
+                        <div className="mt-6 flex items-center justify-center text-blue-600 dark:text-blue-400 font-medium opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          <span className="text-sm">เรียนรู้เพิ่มเติม</span>
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("doctor_portal")}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {t("doctor_portal_desc")}
-                    </p>
-                  </div>
 
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-violet-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <Database className="h-8 w-8 text-white" />
+                    {/* Doctor Consultation */}
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-green-300/50 dark:hover:border-green-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
+                        <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                          <Stethoscope className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-300">
+                          {t("doctor_portal")}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                          {t("doctor_portal_desc")}
+                        </p>
+                        <div className="mt-6 flex items-center justify-center text-green-600 dark:text-green-400 font-medium opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          <span className="text-sm">เรียนรู้เพิ่มเติม</span>
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("blockchain_ehr")}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {t("blockchain_ehr_desc")}
-                    </p>
+
+                    {/* Blockchain EHR */}
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-purple-300/50 dark:hover:border-purple-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
+                        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-violet-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                          <Database className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                          {t("blockchain_ehr")}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                          {t("blockchain_ehr_desc")}
+                        </p>
+                        <div className="mt-6 flex items-center justify-center text-purple-600 dark:text-purple-400 font-medium opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          <span className="text-sm">เรียนรู้เพิ่มเติม</span>
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
 
               {/* Why Choose Vonix Section */}
-              <section className="mb-20">
-                <div className="text-center mb-16">
-                  <div className="inline-block px-4 py-2 bg-cyan-500/10 rounded-full text-cyan-600 dark:text-cyan-400 text-sm font-medium mb-6">
-                    {t("why_choose_vonix")}
-                  </div>
-                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                    {t("built_for_future_healthcare")}
-                  </h3>
+              <section
+                className="mb-24 relative p-8 md:p-16 rounded-3xl overflow-hidden
+                bg-gradient-to-br from-green-50 to-teal-50 dark:from-gray-800 dark:to-gray-900"
+              >
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute top-1/4 right-1/4 w-48 h-48 bg-green-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-1000"></div>
+                  <div className="absolute top-1/2 left-1/4 w-48 h-48 bg-teal-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-3000"></div>
+                  <div className="absolute bottom-1/4 right-1/3 w-48 h-48 bg-emerald-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-5000"></div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
-                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <Search className="h-8 w-8 text-white" />
+                <div className="relative z-10">
+                  <div className="text-center mb-20">
+                    <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 rounded-full text-cyan-600 dark:text-cyan-400 text-sm font-semibold mb-8 border border-cyan-200/50 dark:border-cyan-700/50 backdrop-blur-sm">
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {t("why_choose_vonix")}
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                      {t("ai_powered_diagnostics")}
+                    <h3 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+                      <span className="bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        {t("built_for_future_healthcare")}
+                      </span>
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {t("ai_powered_diagnostics_desc")}
-                    </p>
                   </div>
 
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
-                    <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <Lock className="h-8 w-8 text-white" />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* AI Powered Diagnostics */}
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-orange-300/50 dark:hover:border-orange-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
+                        <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                          <Search className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-300">
+                          {t("ai_powered_diagnostics")}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                          {t("ai_powered_diagnostics_desc")}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("blockchain_security")}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {t("blockchain_security_desc")}
-                    </p>
-                  </div>
 
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-pink-300 dark:hover:border-pink-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
-                    <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <PhoneCall className="h-8 w-8 text-white" />
+                    {/* Blockchain Security */}
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-indigo-300/50 dark:hover:border-indigo-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
+                        <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                          <Lock className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
+                          {t("blockchain_security")}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                          {t("blockchain_security_desc")}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("telemedicine_ready")}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {t("telemedicine_ready_desc")}
-                    </p>
+
+                    {/* Telemedicine Ready */}
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-pink-300/50 dark:hover:border-pink-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
+                        <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-rose-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                          <PhoneCall className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors duration-300">
+                          {t("telemedicine_ready")}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                          {t("telemedicine_ready_desc")}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
 
               {/* System Features Section */}
-              <section className="mb-20">
-                <div className="text-center mb-16">
-                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                    {locale === "th" ? "ระบบที่ครอบคลุม" : "Comprehensive System"}
-                  </h3>
-                  <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                    {locale === "th"
-                      ? "ระบบสุขภาพดิจิทัลที่ออกแบบมาเพื่อตอบสนองทุกความต้องการของผู้ใช้งาน"
-                      : "A comprehensive digital health system designed to meet all user needs"}
-                  </p>
+              <section
+                className="mb-24 relative p-8 md:p-16 rounded-3xl overflow-hidden
+                bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-gray-900 dark:to-gray-800"
+              >
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+                  <div className="absolute top-1/2 right-1/4 w-48 h-48 bg-orange-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+                  <div className="absolute bottom-1/4 left-1/3 w-48 h-48 bg-red-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-6000"></div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-teal-300 dark:hover:border-teal-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
-                    <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <FileText className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("secure_ehr_system")}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {t("secure_ehr_system_desc")}
-                    </p>
-                  </div>
-
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-yellow-300 dark:hover:border-yellow-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
-                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <Users className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                      {t("patient_centric_design")}
+                <div className="relative z-10">
+                  <div className="text-center mb-20">
+                    <h3 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+                      <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                        {locale === "th" ? "ระบบที่ครอบคลุม" : "Comprehensive System"}
+                      </span>
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {t("patient_centric_design_desc")}
+                    <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-medium">
+                      {locale === "th"
+                        ? "ระบบสุขภาพดิจิทัลที่ออกแบบมาเพื่อตอบสนองทุกความต้องการของผู้ใช้งาน"
+                        : "A comprehensive digital health system designed to meet all user needs"}
                     </p>
                   </div>
 
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <TrendingUp className="h-8 w-8 text-white" />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* Secure EHR System */}
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-teal-300/50 dark:hover:border-teal-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
+                        <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                          <FileText className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors duration-300">
+                          {t("secure_ehr_system")}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                          {t("secure_ehr_system_desc")}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("real_time_analytics")}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                      {t("real_time_analytics_desc")}
-                    </p>
+
+                    {/* Patient Centric Design */}
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-yellow-300/50 dark:hover:border-yellow-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
+                        <div className="w-20 h-20 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                          <Users className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors duration-300">
+                          {t("patient_centric_design")}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                          {t("patient_centric_design_desc")}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Real-time Analytics */}
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                      <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 hover:border-emerald-300/50 dark:hover:border-emerald-600/50 transition-all duration-500 group p-10 text-center rounded-3xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
+                        <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                          <TrendingUp className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300">
+                          {t("real_time_analytics")}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+                          {t("real_time_analytics_desc")}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
 
               {/* Call to Action Section */}
-              <section className="mb-20">
-                <div className="text-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 rounded-3xl p-12 border border-blue-200 dark:border-gray-700">
-                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                    {t("ready_to_transform_healthcare")}
+              <section
+                className="mb-20 relative p-8 md:p-16 rounded-3xl overflow-hidden
+                bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800"
+              >
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+                  <div className="absolute top-1/2 right-1/4 w-48 h-48 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+                  <div className="absolute bottom-1/4 left-1/3 w-48 h-48 bg-indigo-400 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+                </div>
+
+                <div className="relative z-10 text-center bg-gradient-to-br from-white/80 to-white/60 dark:from-gray-800/80 dark:to-gray-900/60 backdrop-blur-xl rounded-3xl p-16 border border-white/30 dark:border-gray-700/30 shadow-2xl">
+                  <div className="mb-8">
+                    <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
+                      <Sparkles className="h-12 w-12 text-white" />
+                    </div>
+                  </div>
+
+                  <h3 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+                    <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                      {t("ready_to_transform_healthcare")}
+                    </span>
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+                  <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
                     {t("join_thousands_users")}
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+
+                  <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
                     <Button
                       onClick={() => router.push("/guest-login")}
-                      className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-10 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-lg"
                     >
-                      <Play className="mr-2 h-5 w-5" />
+                      <Play className="mr-3 h-6 w-6" />
                       {t("get_started_now")}
                     </Button>
                     <Button
                       variant="outline"
-                      className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold px-8 py-4 rounded-xl transition-all duration-300 bg-transparent"
+                      className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold px-10 py-4 rounded-2xl transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-lg"
                       onClick={() => {
                         const assessmentSection = document.getElementById("features-section")
                         if (assessmentSection) {
@@ -798,11 +921,15 @@ export default function HomePage() {
                         }
                       }}
                     >
-                      <Calendar className="mr-2 h-5 w-5" />
+                      <Calendar className="mr-3 h-6 w-6" />
                       {t("schedule_demo")}
                     </Button>
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-6">{t("free_health_assessment")}</p>
+
+                  <div className="flex items-center justify-center space-x-2 text-gray-500 dark:text-gray-400 text-sm">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span>{t("free_health_assessment")}</span>
+                  </div>
                 </div>
               </section>
             </>
