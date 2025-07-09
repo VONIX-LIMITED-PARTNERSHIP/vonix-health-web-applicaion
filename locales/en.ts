@@ -304,7 +304,26 @@ const en: Dictionary = {
     step_3_wait_for_contact: "Wait for Contact",
     step_3_wait_for_contact_desc: "A doctor will contact you within 24 hours",
     understood: "Understood",
-    profile_link_text: "Profile", // Added this key
+    profile_link_text: "Profile",
+    // Guest health overview specific translations
+    guest_health_overview: "Health Overview (Guest Mode)",
+    guest_health_overview_description: "Summary of your health assessment results",
+    loading_health_data: "Loading health data",
+    total_assessments: "Total Assessments",
+    last_assessment: "Last Assessment",
+    not_assessed: "Not Assessed",
+    your_assessments: "Your Assessments",
+    no_assessments_found: "No assessments found",
+    completed_on: "Completed on",
+    general_recommendations: "General Recommendations",
+    no_general_recommendations: "No general recommendations",
+    // Assessment category names
+    basic_assessment: "Basic Information",
+    heart_assessment: "Heart Health",
+    nutrition_assessment: "Nutrition",
+    mental_assessment: "Mental Health",
+    physical_assessment: "Physical Activity",
+    sleep_assessment: "Sleep Health",
   },
   assessment: {
     basic_info: "Basic Information",

@@ -276,6 +276,8 @@ const th = {
     score_label: "คะแนน",
     recommendations_label: "คำแนะนำ",
     no_risk_factors_found: "ไม่พบปัจจัยเสี่ยงที่สำคัญ",
+    unauthorized_access: "ไม่ได้รับอนุญาตให้เข้าถึง กรุณาเข้าสู่ระบบ",
+    assessment_not_found_or_unauthorized: "ไม่พบผลการประเมินหรือคุณไม่มีสิทธิ์เข้าถึง",
     // --- Health level labels -----------------
     health_level_excellent: "ดีเยี่ยม",
     health_level_very_good: "ดีมาก",
@@ -299,9 +301,26 @@ const th = {
     step_3_wait_for_contact: "รอการติดต่อกลับ",
     step_3_wait_for_contact_desc: "แพทย์จะติดต่อกลับภายใน 24 ชั่วโมง",
     understood: "เข้าใจแล้ว",
-    profile_link_text: "โปรไฟล์", // Added this key
-    unauthorized_access: "ไม่ได้รับอนุญาตให้เข้าถึง กรุณาเข้าสู่ระบบ",
-    assessment_not_found_or_unauthorized: "ไม่พบผลการประเมินหรือคุณไม่มีสิทธิ์เข้าถึง",
+    profile_link_text: "โปรไฟล์",
+    // Guest health overview specific translations
+    guest_health_overview: "ภาพรวมสุขภาพ (ทดลองใช้งาน)",
+    guest_health_overview_description: "สรุปผลการประเมินสุขภาพของคุณ",
+    loading_health_data: "กำลังโหลดข้อมูลสุขภาพ",
+    total_assessments: "การประเมินทั้งหมด",
+    last_assessment: "ประเมินล่าสุด",
+    not_assessed: "ยังไม่ได้ประเมิน",
+    your_assessments: "ผลการประเมินของคุณ",
+    no_assessments_found: "ไม่พบข้อมูลการประเมิน",
+    completed_on: "ทำเสร็จเมื่อ",
+    general_recommendations: "คำแนะนำทั่วไป",
+    no_general_recommendations: "ไม่มีคำแนะนำทั่วไป",
+    // Assessment category names
+    basic_assessment: "ข้อมูลพื้นฐาน",
+    heart_assessment: "สุขภาพหัวใจ",
+    nutrition_assessment: "โภชนาการ",
+    mental_assessment: "สุขภาพจิต",
+    physical_assessment: "กิจกรรมทางกาย",
+    sleep_assessment: "สุขภาพการนอน",
   },
   assessment: {
     basic_info: "ข้อมูลพื้นฐาน",
