@@ -31,8 +31,14 @@ import {
   Dumbbell,
   Loader2,
   BarChart,
-  ShieldCheck,
   PhoneCall,
+  Database,
+  Search,
+  Lock,
+  Users,
+  TrendingUp,
+  Calendar,
+  FileText,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -238,7 +244,7 @@ export default function HomePage() {
         cardiac: latestAssessments.find((a) => a.category_id === "heart")?.risk_level || "",
         diabetes: latestAssessments.find((a) => a.category_id === "nutrition")?.risk_level || "",
       },
-      overallRisk: getRiskLevelLabel(averageScore), // Use getRiskLevelLabel directly
+      overallRisk: getHealthLevelColor(getRiskLevelLabel(averageScore)), // Use getHealthLevelColor with a derived risk level
       recommendations: ["Continue regular exercise.", "Monitor blood sugar levels.", "Schedule annual check-up."],
     })
   }
@@ -384,82 +390,7 @@ export default function HomePage() {
     }
 
     if (!isLoggedIn) {
-      return (
-        <>
-          <div className="text-center py-12 px-4">
-            <User className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">{t("welcome_to_vonix")}</h2>
-            <p className="text-gray-600 mb-6">{t("login_or_try_guest")}</p>
-            <Button
-              onClick={() => router.push("/guest-login")}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              {t("try_now_as_guest")}
-            </Button>
-          </div>
-
-          {/* About Us Section */}
-          <section className="py-16 bg-white dark:bg-gray-900 rounded-3xl shadow-xl mt-12">
-            <div className="container mx-auto px-6 text-center">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800 dark:text-white">
-                {t("common.about_us_title")}
-              </h2>
-              <p className="text-xl md:text-2xl font-semibold text-blue-600 dark:text-blue-400 mb-8">
-                {t("common.about_us_tagline")}
-              </p>
-              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-12 leading-relaxed">
-                {t("common.about_us_intro")}
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                <Card className="p-6 rounded-2xl shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700">
-                  <CardHeader className="flex flex-row items-center justify-center p-0 mb-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md">
-                      <Brain className="h-8 w-8" />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">{t("common.smart_ai")}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">{t("common.ai_powered_description")}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="p-6 rounded-2xl shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-800 dark:to-gray-700 border border-green-200 dark:border-gray-700">
-                  <CardHeader className="flex flex-row items-center justify-center p-0 mb-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 text-white shadow-md">
-                      <ShieldCheck className="h-8 w-8" />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">{t("common.secure")}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">{t("common.encrypted_data_pdpa")}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="p-6 rounded-2xl shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-800 dark:to-gray-700 border border-purple-200 dark:border-gray-700">
-                  <CardHeader className="flex flex-row items-center justify-center p-0 mb-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-violet-500 text-white shadow-md">
-                      <PhoneCall className="h-8 w-8" />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-                      {t("common.consult_doctor_online")}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      {t("common.real_time_telemedicine_description")}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
-                {t("common.about_us_mission")}
-              </p>
-            </div>
-          </section>
-        </>
-      )
+      return null // Don't render anything for non-logged-in users
     }
 
     return (
@@ -660,7 +591,7 @@ export default function HomePage() {
             </div>
 
             {/* Features */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto" id="features-section">
               <div className="flex items-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                   <Sparkles className="w-5 h-5" />
@@ -691,11 +622,194 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* Dashboard Stats */}
+          <section className="mb-12">{renderDashboardContent()}</section>
+
+          {/* About Us Section - Only for non-logged-in users */}
+          {!isLoggedIn && (
+            <>
+              {/* Core Features Section */}
+              <section className="mb-20">
+                <div className="text-center mb-16">
+                  <div className="inline-block px-4 py-2 bg-blue-500/10 rounded-full text-blue-600 dark:text-blue-400 text-sm font-medium mb-6">
+                    {t("about_us_tagline")}
+                  </div>
+                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+                    {t("about_us_title_main")}
+                  </h2>
+                  <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
+                    {t("about_us_intro")}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <Brain className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      {t("ai_health_assessment")}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      {t("ai_health_assessment_desc")}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <Stethoscope className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("doctor_portal")}</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      {t("doctor_portal_desc")}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-violet-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <Database className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("blockchain_ehr")}</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      {t("blockchain_ehr_desc")}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Why Choose Vonix Section */}
+              <section className="mb-20">
+                <div className="text-center mb-16">
+                  <div className="inline-block px-4 py-2 bg-cyan-500/10 rounded-full text-cyan-600 dark:text-cyan-400 text-sm font-medium mb-6">
+                    {t("why_choose_vonix")}
+                  </div>
+                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                    {t("built_for_future_healthcare")}
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
+                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <Search className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      {t("ai_powered_diagnostics")}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      {t("ai_powered_diagnostics_desc")}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
+                    <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <Lock className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("blockchain_security")}</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      {t("blockchain_security_desc")}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-pink-300 dark:hover:border-pink-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
+                    <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <PhoneCall className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("telemedicine_ready")}</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      {t("telemedicine_ready_desc")}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* System Features Section */}
+              <section className="mb-20">
+                <div className="text-center mb-16">
+                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                    {locale === "th" ? "ระบบที่ครอบคลุม" : "Comprehensive System"}
+                  </h3>
+                  <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                    {locale === "th"
+                      ? "ระบบสุขภาพดิจิทัลที่ออกแบบมาเพื่อตอบสนองทุกความต้องการของผู้ใช้งาน"
+                      : "A comprehensive digital health system designed to meet all user needs"}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-teal-300 dark:hover:border-teal-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
+                    <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <FileText className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("secure_ehr_system")}</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      {t("secure_ehr_system_desc")}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-yellow-300 dark:hover:border-yellow-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
+                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <Users className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      {t("patient_centric_design")}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      {t("patient_centric_design_desc")}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-300 group p-8 text-center rounded-3xl shadow-lg hover:shadow-xl">
+                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <TrendingUp className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t("real_time_analytics")}</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                      {t("real_time_analytics_desc")}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Call to Action Section */}
+              <section className="mb-20">
+                <div className="text-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 rounded-3xl p-12 border border-blue-200 dark:border-gray-700">
+                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                    {t("ready_to_transform_healthcare")}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+                    {t("join_thousands_users")}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button
+                      onClick={() => router.push("/guest-login")}
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    >
+                      <Play className="mr-2 h-5 w-5" />
+                      {t("get_started_now")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold px-8 py-4 rounded-xl transition-all duration-300 bg-transparent"
+                      onClick={() => {
+                        const assessmentSection = document.getElementById("features-section")
+                        if (assessmentSection) {
+                          assessmentSection.scrollIntoView({ behavior: "smooth" })
+                        }
+                      }}
+                    >
+                      <Calendar className="mr-2 h-5 w-5" />
+                      {t("schedule_demo")}
+                    </Button>
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-6">{t("free_health_assessment")}</p>
+                </div>
+              </section>
+            </>
+          )}
+
           {isLoggedIn && (
             <>
-              {/* Dashboard Stats */}
-              <section className="mb-12">{renderDashboardContent()}</section>
-
               {/* Assessment Categories */}
               <div className="mb-16" id="assessment-section">
                 <div className="text-center mb-12">

@@ -181,14 +181,43 @@ const en: Dictionary = {
     theme: "Theme",
     dark: "Dark",
     light: "Light",
-    // New About Us translations
-    about_us_title: "About Us",
+    // About Us - Modern Design
     about_us_tagline: "WE ARE FIGHT !!",
+    about_us_title_main: "Transforming Healthcare with Innovation",
     about_us_intro:
-      "AI-powered health assessments, blockchain-secured Electronic Health Records (EHR), and real-time telemedicine — seamlessly integrated to deliver smarter healthcare solutions.",
-    about_us_mission:
-      "We are transforming the way people access and manage their health through intelligent technology that empowers early detection, enhances data security, and enables direct, real-time connections between patients and healthcare professionals. Designed with accessibility and prevention in mind, our platform bridges the gap between innovation and everyday healthcare.",
-    real_time_telemedicine_description: "Real-time telemedicine for direct patient-doctor connections.",
+      "Our comprehensive platform integrates cutting-edge AI, blockchain security, and telemedicine to deliver accessible healthcare solutions.",
+    ai_health_assessment: "AI Health Assessment",
+    ai_health_assessment_desc:
+      "Advanced AI-powered health assessments, blockchain-secured EHR, and real-time telemedicine — built for better health outcomes and prevention.",
+    doctor_portal: "Doctor Portal",
+    doctor_portal_desc:
+      "A complete telemedicine platform for healthcare professionals, blockchain-secured EHR, and real-time telemedicine — built for better health outcomes and prevention.",
+    blockchain_ehr: "Blockchain EHR",
+    blockchain_ehr_desc:
+      "Secure electronic health records with blockchain technology, blockchain-secured EHR, and real-time telemedicine — built for better health outcomes and prevention.",
+    why_choose_vonix: "Why Choose VONIX",
+    built_for_future_healthcare: "Built for the Future of Healthcare",
+    ai_powered_diagnostics: "AI-Powered Diagnostics",
+    ai_powered_diagnostics_desc:
+      "Our intelligent system provides precise health assessments and early detection capabilities.",
+    blockchain_security: "Blockchain Security",
+    blockchain_security_desc: "Your health data is protected with military-grade encryption and decentralized storage.",
+    telemedicine_ready: "Telemedicine Ready",
+    telemedicine_ready_desc:
+      "Connect with healthcare professionals instantly through our integrated telemedicine platform.",
+    secure_ehr_system: "Secure EHR System",
+    secure_ehr_system_desc:
+      "Comprehensive electronic health records with blockchain security and seamless integration.",
+    patient_centric_design: "Patient-Centric Design",
+    patient_centric_design_desc: "Intuitive interface designed with patients and healthcare professionals in mind.",
+    real_time_analytics: "Real-Time Analytics",
+    real_time_analytics_desc: "Get instant insights from your health data and receive real-time health monitoring.",
+    ready_to_transform_healthcare: "Ready to Transform Your Healthcare Experience?",
+    join_thousands_users:
+      "Join thousands of users who trust VONIX for their health management needs. Start your journey towards better health today.",
+    get_started_now: "Get Started Now",
+    schedule_demo: "Schedule Demo",
+    free_health_assessment: "Free health assessment • No credit card required • PDPA compliant",
   },
   assessment: {
     basic_info: "Basic Information",
@@ -246,7 +275,7 @@ const en: Dictionary = {
   },
   guest_health_overview: {
     guest_health_overview_title: "Guest Health Overview",
-    guest_health_overview_description: "A summary of your health assessment results as a guest user.",
+    guest_health_overview_description: "A summary of your health assessments as a guest user.",
     your_assessments_title: "Your Assessments",
     general_recommendations_title: "General Recommendations",
     no_assessments_completed: "No assessments completed yet. Start an assessment to see your results here!",
