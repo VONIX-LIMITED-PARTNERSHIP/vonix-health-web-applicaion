@@ -43,7 +43,7 @@ const riskLevelDescriptions = {
 }
 
 // Helper functions for getting risk level information
-export function getRiskLevelText(riskLevel: string, locale = "th"): string {
+export function getRiskLevelTranslation(riskLevel: string, locale = "th"): string {
   const level = riskLevel as keyof typeof riskLevelTranslations
   return riskLevelTranslations[level]?.[locale as "th" | "en"] || riskLevel
 }
@@ -110,7 +110,7 @@ export function useRiskLevelTranslation() {
   const { locale } = useLanguage()
 
   const getRiskLevelLabel = (riskLevel: string) => {
-    return getRiskLevelText(riskLevel, locale)
+    return getRiskLevelTranslation(riskLevel, locale)
   }
 
   const getRiskLevelDescription = (riskLevel: string) => {

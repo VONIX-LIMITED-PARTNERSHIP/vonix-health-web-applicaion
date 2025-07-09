@@ -1298,6 +1298,76 @@ export const assessmentData = {
           },
         ],
       },
+      {
+        id: "sleep",
+        title: "Sleep Quality Assessment",
+        description: "Analyze sleep patterns and rest quality",
+        icon: "Moon",
+        required: false,
+        estimatedTime: 5,
+        questions: [
+          {
+            id: "sleep-1",
+            type: "multiple-choice",
+            question: "How many hours do you sleep per night on average?",
+            options: ["Less than 5 hours", "5-6 hours", "7-8 hours", "9-10 hours", "More than 10 hours"],
+            required: true,
+            category: "sleep",
+            weight: 4,
+            riskFactors: ["Insufficient sleep"],
+          },
+          {
+            id: "sleep-2",
+            type: "rating",
+            question: "How often do you have trouble falling asleep?",
+            description: "Rate 1-5 (1=Never, 5=Every night)",
+            options: ["1", "2", "3", "4", "5"],
+            required: true,
+            category: "sleep",
+            weight: 3,
+            riskFactors: ["Insomnia"],
+          },
+          {
+            id: "sleep-3",
+            type: "rating",
+            question: "How often do you wake up during the night?",
+            description: "Rate 1-5 (1=Never, 5=Every night)",
+            options: ["1", "2", "3", "4", "5"],
+            required: true,
+            category: "sleep",
+            weight: 3,
+          },
+          {
+            id: "sleep-4",
+            type: "rating",
+            question: "How refreshed do you feel when you wake up?",
+            description: "Rate 1-5 (1=Not refreshed, 5=Very refreshed)",
+            options: ["1", "2", "3", "4", "5"],
+            required: true,
+            category: "sleep",
+            weight: 3,
+          },
+          {
+            id: "sleep-5",
+            type: "yes-no",
+            question: "Do you snore?",
+            options: ["Yes", "No"],
+            required: true,
+            category: "sleep",
+            weight: 2,
+            riskFactors: ["Snoring"],
+          },
+          {
+            id: "sleep-6",
+            type: "multiple-choice",
+            question: "Do you use electronic devices before bed?",
+            options: ["Never", "Rarely", "Sometimes", "Almost every night", "Every night"],
+            required: true,
+            category: "sleep",
+            weight: 2,
+          },
+        ],
+      },
       guestAssessmentCategory, // Include guest assessment category here
     ],
   },
@@ -1310,3 +1380,13 @@ export function getAssessmentCategories(locale: "th" | "en" = "th"): AssessmentC
 
 // Export for backward compatibility (if still needed, otherwise can be removed)
 export const assessmentCategories = assessmentData.th.categories as AssessmentCategory[]
+
+// Return a plain object { [categoryId]: questions[] } for the requested locale.
+// This lets other modules (e.g. GuestAssessmentService) look-up questions quickly.
+export function getAssessmentQuestions(locale: "th" | "en" = "th"): Record<string, AssessmentQuestion[]> {
+  const categories = assessmentData[locale].categories as AssessmentCategory[]
+  return categories.reduce<Record<string, AssessmentQuestion[]>>((acc, cat) => {
+    acc[cat.id] = cat.questions
+    return acc
+  }, {})
+}

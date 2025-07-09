@@ -309,7 +309,7 @@ const en: Dictionary = {
     step_3_wait_for_contact_desc: "A doctor will contact you within 24 hours",
     understood: "Understood",
     profile_link_text: "Profile",
-    error_no_category_specified: "No assessment category specified.", // Added this
+    error_no_category_specified: "No assessment category specified.",
     recommendation_consult_doctor: "Consult a doctor for further examination.",
     recommendation_improve_behavior: "Consider improving your lifestyle and health behaviors.",
     recommendation_complete_all_assessments: "Complete all assessment categories for a comprehensive report.",

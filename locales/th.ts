@@ -306,7 +306,7 @@ const th = {
     step_3_wait_for_contact_desc: "แพทย์จะติดต่อกลับภายใน 24 ชั่วโมง",
     understood: "เข้าใจแล้ว",
     profile_link_text: "โปรไฟล์",
-    error_no_category_specified: "ไม่ได้ระบุหมวดหมู่แบบประเมิน", // Added this
+    error_no_category_specified: "ไม่ได้ระบุหมวดหมู่แบบประเมิน",
     recommendation_consult_doctor: "ปรึกษาแพทย์เพื่อตรวจเพิ่มเติม",
     recommendation_improve_behavior: "พิจารณาปรับปรุงพฤติกรรมการใช้ชีวิตและสุขภาพ",
     recommendation_complete_all_assessments: "ทำแบบประเมินให้ครบทุกหมวดหมู่เพื่อรายงานที่ครอบคลุม",
