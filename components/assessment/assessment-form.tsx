@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { useLanguage } from "@/contexts/language-context"
 import { useTranslation } from "@/hooks/use-translation"
-import type { AssessmentAnswer } from "@/types/assessment"
+import type { AssessmentAnswer, AssessmentResult, AssessmentCategory, RiskLevel } from "@/types/assessment"
 import { createClientComponentClient } from "@/lib/supabase"
 
 interface AssessmentFormProps {
@@ -101,45 +101,36 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
           const percentage = Math.round((totalScore / maxScore) * 100)
 
           // Simple risk level calculation
-          let riskLevel = "low"
+          let riskLevel: RiskLevel = "low"
           if (percentage >= 80) riskLevel = "very-high"
           else if (percentage >= 60) riskLevel = "high"
           else if (percentage >= 40) riskLevel = "medium"
 
           // Basic risk factors and recommendations (you can enhance this)
-          const riskFactors: string[] = []
           const recommendations: string[] = []
 
           if (categoryId !== "basic") {
-            // Add some basic risk factors based on score
             if (percentage >= 60) {
-              riskFactors.push(locale === "th" ? "คะแนนความเสี่ยงสูง" : "High risk score")
-            }
-            if (percentage >= 40) {
               recommendations.push(locale === "th" ? "ควรปรึกษาแพทย์" : "Should consult a doctor")
             }
           }
 
-          const guestAssessmentData = {
+          const guestResult: AssessmentResult = {
             id: `guest_${categoryId}_${Date.now()}`,
-            category_id: categoryId,
-            category_title: category.title,
+            category: categoryId as AssessmentCategory,
+            score: percentage,
+            riskLevel: riskLevel,
+            completedAt: new Date().toISOString(),
             answers: finalAnswersToSave,
-            total_score: totalScore,
-            max_score: maxScore,
-            percentage,
-            risk_level: riskLevel,
-            risk_factors: riskFactors,
-            recommendations,
-            completed_at: new Date().toISOString(),
+            aiAnalysis: null, // Guest mode doesn't have AI analysis
           }
 
-          GuestAssessmentService.saveAssessment(guestAssessmentData)
+          GuestAssessmentService.saveAssessment(categoryId as AssessmentCategory, guestResult)
           console.log("✅ AssessmentForm: บันทึกแบบประเมิน Guest สำเร็จ")
 
           if (categoryId === "basic") {
             console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
-            router.push(`/?openHealthOverview=basic&assessmentId=${guestAssessmentData.id}`)
+            router.push(`/?openHealthOverview=basic&assessmentId=${guestResult.id}`)
           } else {
             console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
             router.push(`/guest-assessment/results?category=${categoryId}`)

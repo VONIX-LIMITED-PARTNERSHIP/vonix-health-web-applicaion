@@ -1,94 +1,167 @@
-export interface GuestAssessment {
-  id: string
-  category: string
-  timestamp: string // ISO string
-  riskLevel: "low" | "medium" | "high" | "very_high" | ""
-  summary: string
-  recommendations: string[]
-}
+import type { AssessmentCategory, AssessmentResult, DashboardStats } from "@/types/assessment"
 
-interface DashboardStats {
-  totalAssessments: number
-  lastAssessmentDate: string | null
-  overallRisk: string
-  recommendations: string[]
-}
+// This is a workaround to use useTranslation in a static class method.
+// In a real application, you might pass the `t` function as an argument
+// or use a different translation approach for non-React contexts.
+let t: (key: string) => string = (key) => key // Default fallback
 
-const STORAGE_KEY = "guest-assessments"
-
-function read(): GuestAssessment[] {
-  if (typeof window === "undefined") return []
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as GuestAssessment[]) : []
-  } catch {
-    return []
-  }
+// This function should be called once, e.g., in a root layout or provider,
+// to set the translation function for the service.
+export const setGuestServiceTranslation = (translateFn: (key: string) => string) => {
+  t = translateFn
 }
 
 export class GuestAssessmentService {
-  /** Return raw array (all assessments) */
-  static getAll(): GuestAssessment[] {
-    return read()
+  private static readonly STORAGE_KEY_PREFIX = "guest-assessment-"
+  private static readonly DASHBOARD_STATS_KEY = "guest-dashboard-stats"
+
+  static saveAssessment(category: AssessmentCategory, result: AssessmentResult) {
+    try {
+      const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
+      localStorage.setItem(key, JSON.stringify(result))
+      GuestAssessmentService.updateDashboardStats(category, result)
+    } catch (error) {
+      console.error("Error saving guest assessment:", error)
+    }
   }
 
-  /** Latest assessment for every category, newest first */
-  static getLatestAssessments(): { category: string; result: GuestAssessment }[] {
-    const all = read()
-    const latestByCategory = new Map<string, GuestAssessment>()
+  static getAssessment(category: AssessmentCategory): AssessmentResult | null {
+    try {
+      const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
+      const stored = localStorage.getItem(key)
+      return stored ? JSON.parse(stored) : null
+    } catch (error) {
+      console.error("Error getting guest assessment:", error)
+      return null
+    }
+  }
 
-    all.forEach((a) => {
-      const existing = latestByCategory.get(a.category)
-      if (!existing || new Date(a.timestamp) > new Date(existing.timestamp)) {
-        latestByCategory.set(a.category, a)
+  static getLatestAssessments(): { category: AssessmentCategory; result: AssessmentResult }[] {
+    try {
+      const assessments: { category: AssessmentCategory; result: AssessmentResult }[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX)) {
+          const category = key.replace(GuestAssessmentService.STORAGE_KEY_PREFIX, "") as AssessmentCategory
+          const result = GuestAssessmentService.getAssessment(category)
+          if (result) {
+            assessments.push({ category, result })
+          }
+        }
       }
-    })
-
-    // newest → oldest
-    return Array.from(latestByCategory.entries())
-      .sort(([, a], [, b]) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .map(([category, result]) => ({ category, result }))
+      // Sort by timestamp to get the latest for each category if multiple exist (though typically only one per category)
+      return assessments.sort(
+        (a, b) => new Date(b.result.completedAt).getTime() - new Date(a.result.completedAt).getTime(),
+      )
+    } catch (error) {
+      console.error("Error getting latest guest assessments:", error)
+      return []
+    }
   }
 
-  /** Light-weight dashboard information */
+  static updateDashboardStats(category: AssessmentCategory, result: AssessmentResult) {
+    try {
+      const currentStats = GuestAssessmentService.getDashboardStats()
+      const updatedStats = { ...currentStats }
+
+      // Update total assessments
+      const allLatest = GuestAssessmentService.getLatestAssessments()
+      updatedStats.totalAssessments = allLatest.length
+
+      // Update last assessment date
+      const latestOverallAssessment = allLatest.length > 0 ? allLatest[0].result : null
+      updatedStats.lastAssessmentDate = latestOverallAssessment?.completedAt
+        ? new Date(latestOverallAssessment.completedAt).toISOString().split("T")[0]
+        : null
+
+      // Update risk levels
+      updatedStats.riskLevels[category] = result.riskLevel
+
+      // Calculate overall risk based on all latest assessments
+      const riskOrder = ["low", "medium", "high", "very-high"]
+      let overallHighestRisk: AssessmentResult["riskLevel"] = "low"
+      allLatest.forEach((item) => {
+        if (riskOrder.indexOf(item.result.riskLevel) > riskOrder.indexOf(overallHighestRisk)) {
+          overallHighestRisk = item.result.riskLevel
+        }
+      })
+      updatedStats.overallRisk = overallHighestRisk
+
+      // Generate recommendations (simplified for guest)
+      updatedStats.recommendations = GuestAssessmentService.generateRecommendations(
+        allLatest.map((item) => item.result),
+      )
+
+      localStorage.setItem(GuestAssessmentService.DASHBOARD_STATS_KEY, JSON.stringify(updatedStats))
+    } catch (error) {
+      console.error("Error updating guest dashboard stats:", error)
+    }
+  }
+
   static getDashboardStats(): DashboardStats {
-    const assessments = read()
-    if (assessments.length === 0) {
-      return {
-        totalAssessments: 0,
-        lastAssessmentDate: null,
-        overallRisk: "",
-        recommendations: [],
+    try {
+      const storedStats = localStorage.getItem(GuestAssessmentService.DASHBOARD_STATS_KEY)
+      if (storedStats) {
+        return JSON.parse(storedStats)
       }
+    } catch (error) {
+      console.error("Error getting guest dashboard stats:", error)
     }
 
-    // total
-    const totalAssessments = assessments.length
-
-    // last date
-    const sorted = [...assessments].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    const lastAssessmentDate = sorted[0]?.timestamp ?? null
-
-    // overall risk: take max risk level severity
-    const riskOrder = ["low", "medium", "high", "very_high"]
-    const highest = sorted.reduce(
-      (prev, cur) => {
-        if (riskOrder.indexOf(cur.riskLevel) > riskOrder.indexOf(prev)) return cur.riskLevel
-        return prev
-      },
-      "" as GuestAssessment["riskLevel"],
-    )
-
-    // gather unique recommendations (latest 10)
-    const recSet = new Set<string>()
-    sorted.forEach((a) => a.recommendations?.forEach((r) => recSet.add(r)))
-    const recommendations = Array.from(recSet).slice(0, 10)
-
+    // Default initial stats with translation
     return {
-      totalAssessments,
-      lastAssessmentDate,
-      overallRisk: highest,
-      recommendations,
+      totalAssessments: 0,
+      lastAssessmentDate: null,
+      riskLevels: {},
+      overallRisk: "unknown", // Default to unknown or low
+      recommendations: [],
     }
+  }
+
+  static clearAllGuestData() {
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX)) {
+          localStorage.removeItem(key)
+        }
+      }
+      localStorage.removeItem(GuestAssessmentService.DASHBOARD_STATS_KEY)
+      console.log("All guest assessment data cleared.")
+    } catch (error) {
+      console.error("Error clearing all guest data:", error)
+    }
+  }
+
+  private static generateRecommendations(results: AssessmentResult[]): string[] {
+    const recommendations: string[] = []
+
+    const highRiskCategories = results.filter((r) => r.riskLevel === "high" || r.riskLevel === "very-high")
+    const mediumRiskCategories = results.filter((r) => r.riskLevel === "medium")
+
+    if (highRiskCategories.length > 0) {
+      recommendations.push(t("recommendation_consult_doctor"))
+    }
+
+    if (mediumRiskCategories.length > 0) {
+      recommendations.push(t("recommendation_improve_behavior"))
+    }
+
+    if (results.length < 6) {
+      // Assuming 6 categories total
+      recommendations.push(t("recommendation_complete_all_assessments"))
+    }
+
+    if (recommendations.length === 0) {
+      recommendations.push(t("recommendation_maintain_health"))
+    }
+
+    return recommendations
+  }
+
+  // This method is needed by app/page.tsx to calculate dashboard stats for guest users
+  // It's a wrapper around getDashboardStats for compatibility with the old call signature
+  static calculateDashboardStats(): DashboardStats {
+    return GuestAssessmentService.getDashboardStats()
   }
 }

@@ -68,20 +68,19 @@ export default function HomePage() {
 
   const isLoggedIn = (!isAuthSessionLoading && !isProfileLoading && user && profile) || isGuestLoggedIn
 
-  const getHealthLevel = (percentage: number): string => {
-    if (percentage <= 20) return t("health_level_excellent")
-    if (percentage <= 40) return t("health_level_good")
-    if (percentage <= 60) return t("health_level_fair")
-    if (percentage <= 80) return t("health_level_poor")
-    return t("health_level_very_poor")
-  }
-
-  const getHealthLevelColor = (percentage: number): string => {
-    if (percentage <= 20) return "text-green-600"
-    if (percentage <= 40) return "text-blue-600"
-    if (percentage <= 60) return "text-yellow-600"
-    if (percentage <= 80) return "text-orange-600"
-    return "text-red-600"
+  const getHealthLevelColor = (riskLevel: string): string => {
+    switch (riskLevel) {
+      case "low":
+        return "text-green-600"
+      case "medium":
+        return "text-blue-600"
+      case "high":
+        return "text-orange-600"
+      case "very-high":
+        return "text-red-600"
+      default:
+        return "text-gray-600"
+    }
   }
 
   useEffect(() => {
@@ -155,9 +154,9 @@ export default function HomePage() {
   const loadGuestAssessments = () => {
     try {
       const guestData = GuestAssessmentService.getLatestAssessments()
-      setGuestAssessments(guestData)
+      setGuestAssessments(guestData.map((item) => item.result)) // Map to AssessmentResult[]
 
-      const stats = GuestAssessmentService.calculateDashboardStats()
+      const stats = GuestAssessmentService.getDashboardStats() // Corrected call
       setDashboardStats(stats)
     } catch (error) {
       console.error("Error loading guest assessments:", error)
@@ -237,7 +236,7 @@ export default function HomePage() {
         cardiac: latestAssessments.find((a) => a.category_id === "heart")?.risk_level || "",
         diabetes: latestAssessments.find((a) => a.category_id === "nutrition")?.risk_level || "",
       },
-      overallRisk: getHealthLevel(averageScore),
+      overallRisk: getHealthLevelColor(getRiskLevelLabel(averageScore)), // Use getHealthLevelColor with a derived risk level
       recommendations: ["Continue regular exercise.", "Monitor blood sugar levels.", "Schedule annual check-up."],
     })
   }
@@ -446,9 +445,9 @@ export default function HomePage() {
                   <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
                   <div className="relative">
                     <div
-                      className={`text-3xl font-bold mb-1 ${getHealthLevelColor(dashboardStats?.overallRisk ? 50 : 0)}`}
+                      className={`text-3xl font-bold mb-1 ${getHealthLevelColor(dashboardStats?.overallRisk || "")}`}
                     >
-                      {dashboardStats?.overallRisk || t("no_data")}
+                      {dashboardStats?.overallRisk ? getRiskLevelLabel(dashboardStats.overallRisk) : t("no_data")}
                     </div>
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       {t("overall_health_score")}
