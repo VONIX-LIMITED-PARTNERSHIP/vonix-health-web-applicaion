@@ -36,6 +36,31 @@ export class GuestAssessmentService {
     }
   }
 
+  // Added this method to resolve the error
+  static getAssessmentByCategory(category: AssessmentCategory): AssessmentResult | null {
+    return GuestAssessmentService.getAssessment(category)
+  }
+
+  static getAll(): AssessmentResult[] {
+    try {
+      const assessments: AssessmentResult[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX)) {
+          const category = key.replace(GuestAssessmentService.STORAGE_KEY_PREFIX, "") as AssessmentCategory
+          const result = GuestAssessmentService.getAssessment(category)
+          if (result) {
+            assessments.push(result)
+          }
+        }
+      }
+      return assessments
+    } catch (error) {
+      console.error("Error getting all guest assessments:", error)
+      return []
+    }
+  }
+
   static getLatestAssessments(): { category: AssessmentCategory; result: AssessmentResult }[] {
     try {
       const assessments: { category: AssessmentCategory; result: AssessmentResult }[] = []
