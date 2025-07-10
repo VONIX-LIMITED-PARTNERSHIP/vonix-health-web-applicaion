@@ -13,6 +13,7 @@ import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { useTranslation } from "@/hooks/use-translation"
 import { useLanguage } from "@/contexts/language-context"
 import { getRiskLevelBadgeClass } from "@/utils/risk-level"
+import type { AssessmentResult, BilingualArray, BilingualText } from "@/types/assessment" // Import AssessmentResult type
 
 export default function GuestAssessmentResultsPage() {
   const router = useRouter()
@@ -20,11 +21,12 @@ export default function GuestAssessmentResultsPage() {
   const { guestUser } = useGuestAuth()
   const { t } = useTranslation()
   const { locale } = useLanguage()
-  const [assessment, setAssessment] = useState<any>(null)
+  const [assessment, setAssessment] = useState<AssessmentResult | null>(null) // Use AssessmentResult type
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const categoryId = searchParams.get("category")
+  // Get the assessment ID from the URL
+  const assessmentId = searchParams.get("id")
 
   useEffect(() => {
     if (!guestUser) {
@@ -32,18 +34,19 @@ export default function GuestAssessmentResultsPage() {
       return
     }
 
-    if (!categoryId) {
-      setError(locale === "th" ? "ไม่พบข้อมูลการประเมิน" : "Assessment data not found")
+    if (!assessmentId) {
+      setError(locale === "th" ? "ไม่พบรหัสการประเมิน" : "Assessment ID not found")
       setLoading(false)
       return
     }
 
     loadAssessmentResults()
-  }, [guestUser, categoryId])
+  }, [guestUser, assessmentId, locale]) // Add locale to dependencies
 
   const loadAssessmentResults = () => {
     try {
-      const assessmentData = GuestAssessmentService.getAssessmentByCategory(categoryId!)
+      // Use the new getAssessmentById method
+      const assessmentData = GuestAssessmentService.getAssessmentById(assessmentId!)
 
       if (!assessmentData) {
         setError(locale === "th" ? "ไม่พบผลการประเมิน" : "Assessment results not found")
@@ -168,7 +171,8 @@ export default function GuestAssessmentResultsPage() {
                   {locale === "th" ? "ทดลองใช้งาน" : "Guest Mode"}
                 </Badge>
               </CardTitle>
-              <p className="text-gray-600 dark:text-gray-400">{assessment.category_title}</p>
+              {/* Use assessment.category for title, or fetch full category info if needed */}
+              <p className="text-gray-600 dark:text-gray-400">{assessment.category}</p>
             </CardHeader>
           </Card>
         </div>
@@ -195,7 +199,7 @@ export default function GuestAssessmentResultsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-lg">{formatDate(assessment.completed_at)}</p>
+                <p className="text-lg">{formatDate(assessment.completedAt)}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {locale === "th" ? "ทดลองใช้งานโดย" : "Guest assessment by"} {guestUser.nickname}
                 </p>
@@ -209,33 +213,34 @@ export default function GuestAssessmentResultsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-purple-600 mb-2">
-                  {assessment.total_score}/{assessment.max_score}
+                  {assessment.totalScore}/{assessment.maxScore}
                 </div>
                 <div className="text-lg text-gray-600 dark:text-gray-400">
                   {assessment.percentage}% {locale === "th" ? "จากคะแนนเต็ม" : "of total score"}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                {/* The number of questions answered is not directly available in AssessmentResult */}
+                {/* <div className="text-sm text-gray-500 dark:text-gray-500 mt-1">
                   {assessment.answers.length} {t("questions_answered")}
-                </div>
+                </div> */}
               </CardContent>
             </Card>
 
             {/* Risk Level */}
-            {assessment.category_id !== "basic" && (
+            {assessment.category !== "basic" && ( // Use assessment.category
               <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
                 <CardHeader>
                   <CardTitle>{t("overall_risk_level")}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Badge className={`${getRiskLevelBadgeClass(assessment.risk_level)} text-lg px-4 py-2`}>
-                    {getRiskLevelLabel(assessment.risk_level)}
+                  <Badge className={`${getRiskLevelBadgeClass(assessment.riskLevel)} text-lg px-4 py-2`}>
+                    {getRiskLevelLabel(assessment.riskLevel)}
                   </Badge>
                 </CardContent>
               </Card>
             )}
 
             {/* Risk Factors */}
-            {assessment.ai_analysis?.riskFactors && (
+            {assessment.riskFactors && (
               <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -246,8 +251,8 @@ export default function GuestAssessmentResultsPage() {
                 <CardContent>
                   <ul className="space-y-2">
                     {(locale === "th"
-                      ? assessment.ai_analysis.riskFactors.th
-                      : assessment.ai_analysis.riskFactors.en
+                      ? (assessment.riskFactors as BilingualArray).th
+                      : (assessment.riskFactors as BilingualArray).en
                     ).map((factor: string, index: number) => (
                       <li key={index} className="flex items-start gap-2">
                         <span className="text-orange-500 mt-1">•</span>
@@ -260,7 +265,7 @@ export default function GuestAssessmentResultsPage() {
             )}
 
             {/* Recommendations */}
-            {assessment.ai_analysis?.recommendations && (
+            {assessment.recommendations && (
               <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -271,8 +276,8 @@ export default function GuestAssessmentResultsPage() {
                 <CardContent>
                   <ul className="space-y-2">
                     {(locale === "th"
-                      ? assessment.ai_analysis.recommendations.th
-                      : assessment.ai_analysis.recommendations.en
+                      ? (assessment.recommendations as BilingualArray).th
+                      : (assessment.recommendations as BilingualArray).en
                     ).map((recommendation: string, index: number) => (
                       <li key={index} className="flex items-start gap-2">
                         <span className="text-green-500 mt-1">•</span>
@@ -285,7 +290,7 @@ export default function GuestAssessmentResultsPage() {
             )}
 
             {/* AI Summary (if available) */}
-            {assessment.ai_analysis?.summary && (
+            {assessment.summary && (
               <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -295,7 +300,9 @@ export default function GuestAssessmentResultsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-700 dark:text-gray-300">
-                    {locale === "th" ? assessment.ai_analysis.summary.th : assessment.ai_analysis.summary.en}
+                    {locale === "th"
+                      ? (assessment.summary as BilingualText).th
+                      : (assessment.summary as BilingualText).en}
                   </p>
                 </CardContent>
               </Card>
@@ -314,7 +321,7 @@ export default function GuestAssessmentResultsPage() {
                   <Link href="/">{locale === "th" ? "กลับหน้าหลัก" : "Back to Home"}</Link>
                 </Button>
                 <Button variant="outline" className="w-full bg-transparent" asChild>
-                  <Link href={`/assessment/${assessment.category_id}`}>
+                  <Link href={`/assessment/${assessment.category}`}>
                     {locale === "th" ? "ทำแบบประเมินใหม่" : "Retake Assessment"}
                   </Link>
                 </Button>

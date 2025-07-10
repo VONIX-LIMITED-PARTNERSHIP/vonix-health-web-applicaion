@@ -1,4 +1,6 @@
-import type { AssessmentCategory, AssessmentResult, DashboardStats } from "@/types/assessment"
+import type { AssessmentCategory, AssessmentResult, DashboardStats, AIAnalysisResult } from "@/types/assessment"
+import { getAssessmentCategories } from "@/data/assessment-questions" // Import getAssessmentCategories
+import { v4 as uuidv4 } from "uuid" // Import uuid
 
 // This is a workaround to use useTranslation in a static class method.
 // In a real application, you might pass the `t` function as an argument
@@ -12,86 +14,104 @@ export const setGuestServiceTranslation = (translateFn: (key: string) => string)
 }
 
 export class GuestAssessmentService {
-  private static readonly STORAGE_KEY_PREFIX = "guest-assessment-"
+  // Changed to store a list of assessments under one key
+  private static readonly GUEST_ASSESSMENTS_LIST_KEY = "guest-assessments-list"
   private static readonly DASHBOARD_STATS_KEY = "guest-dashboard-stats"
-  private static readonly AI_ANALYSIS_KEY_PREFIX = "guest-ai-analysis-"
+  private static readonly AI_ANALYSIS_KEY_PREFIX = "guest-ai-analysis-" // This prefix might become redundant if AI analysis is part of AssessmentResult
 
-  static saveAssessment(category: AssessmentCategory, result: AssessmentResult) {
+  // Helper to get all stored guest assessments
+  private static getStoredAssessments(): AssessmentResult[] {
     try {
-      const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
-      localStorage.setItem(key, JSON.stringify(result))
-      GuestAssessmentService.updateDashboardStats(category, result)
+      const stored = localStorage.getItem(GuestAssessmentService.GUEST_ASSESSMENTS_LIST_KEY)
+      return stored ? JSON.parse(stored) : []
+    } catch (error) {
+      console.error("Error getting stored guest assessments list:", error)
+      return []
+    }
+  }
+
+  // Helper to save the list of guest assessments
+  private static saveStoredAssessments(assessments: AssessmentResult[]) {
+    try {
+      localStorage.setItem(GuestAssessmentService.GUEST_ASSESSMENTS_LIST_KEY, JSON.stringify(assessments))
+    } catch (error) {
+      console.error("Error saving stored guest assessments list:", error)
+    }
+  }
+
+  static saveAssessment(
+    category: AssessmentCategory,
+    result: Omit<AssessmentResult, "id" | "completedAt" | "category"> & { aiAnalysis?: AIAnalysisResult },
+  ) {
+    try {
+      const assessments = GuestAssessmentService.getStoredAssessments()
+
+      // Create a new AssessmentResult with unique ID and timestamp
+      const newAssessment: AssessmentResult = {
+        ...result,
+        id: uuidv4(), // Generate a unique ID
+        completedAt: new Date().toISOString(), // Add completion timestamp
+        category: category.id, // Ensure category ID is correctly set
+      }
+
+      // Add the new assessment to the list
+      assessments.push(newAssessment)
+      GuestAssessmentService.saveStoredAssessments(assessments)
+
+      // Update dashboard stats based on the new list
+      GuestAssessmentService.updateDashboardStats()
     } catch (error) {
       console.error("Error saving guest assessment:", error)
     }
   }
 
-  static getAssessment(category: AssessmentCategory): AssessmentResult | null {
+  // New method to get an assessment by its unique ID
+  static getAssessmentById(id: string): AssessmentResult | null {
     try {
-      const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
-      const stored = localStorage.getItem(key)
-      return stored ? JSON.parse(stored) : null
+      const assessments = GuestAssessmentService.getStoredAssessments()
+      return assessments.find((a) => a.id === id) || null
     } catch (error) {
-      console.error("Error getting guest assessment:", error)
+      console.error("Error getting guest assessment by ID:", error)
       return null
     }
   }
 
-  static getLatestAssessments(): { category: AssessmentCategory; result: AssessmentResult }[] {
+  // Renamed and updated to get all assessments, sorted by completion date
+  static getLatestAssessments(): AssessmentResult[] {
     try {
-      const assessments: { category: AssessmentCategory; result: AssessmentResult }[] = []
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (key && key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX)) {
-          const category = key.replace(GuestAssessmentService.STORAGE_KEY_PREFIX, "") as AssessmentCategory
-          const result = GuestAssessmentService.getAssessment(category)
-          if (result) {
-            assessments.push({ category, result })
-          }
-        }
-      }
-      // Sort by timestamp to get the latest for each category if multiple exist (though typically only one per category)
-      return assessments.sort(
-        (a, b) => new Date(b.result.completedAt).getTime() - new Date(a.result.completedAt).getTime(),
-      )
+      const assessments = GuestAssessmentService.getStoredAssessments()
+      // Sort by timestamp to get the latest first
+      return assessments.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
     } catch (error) {
       console.error("Error getting latest guest assessments:", error)
       return []
     }
   }
 
-  static updateDashboardStats(category: AssessmentCategory, result: AssessmentResult) {
+  // Update dashboard stats based on the current list of assessments
+  static updateDashboardStats() {
     try {
-      const currentStats = GuestAssessmentService.getDashboardStats()
-      const updatedStats = { ...currentStats }
-
-      // Update total assessments
       const allLatest = GuestAssessmentService.getLatestAssessments()
-      updatedStats.totalAssessments = allLatest.length
+      const updatedStats: DashboardStats = {
+        totalAssessments: allLatest.length,
+        lastAssessmentDate: allLatest.length > 0 ? allLatest[0].completedAt : null,
+        riskLevels: {},
+        overallRisk: "low", // Default to low, will be updated
+        recommendations: [],
+      }
 
-      // Update last assessment date
-      const latestOverallAssessment = allLatest.length > 0 ? allLatest[0].result : null
-      updatedStats.lastAssessmentDate = latestOverallAssessment?.completedAt
-        ? new Date(latestOverallAssessment.completedAt).toISOString().split("T")[0]
-        : null
-
-      // Update risk levels
-      updatedStats.riskLevels[category] = result.riskLevel
-
-      // Calculate overall risk based on all latest assessments
       const riskOrder = ["low", "medium", "high", "very-high"]
       let overallHighestRisk: AssessmentResult["riskLevel"] = "low"
+
       allLatest.forEach((item) => {
-        if (riskOrder.indexOf(item.result.riskLevel) > riskOrder.indexOf(overallHighestRisk)) {
-          overallHighestRisk = item.result.riskLevel
+        updatedStats.riskLevels[item.category] = item.riskLevel
+        if (riskOrder.indexOf(item.riskLevel) > riskOrder.indexOf(overallHighestRisk)) {
+          overallHighestRisk = item.riskLevel
         }
       })
       updatedStats.overallRisk = overallHighestRisk
 
-      // Generate recommendations (simplified for guest)
-      updatedStats.recommendations = GuestAssessmentService.generateRecommendations(
-        allLatest.map((item) => item.result),
-      )
+      updatedStats.recommendations = GuestAssessmentService.generateRecommendations(allLatest)
 
       localStorage.setItem(GuestAssessmentService.DASHBOARD_STATS_KEY, JSON.stringify(updatedStats))
     } catch (error) {
@@ -126,8 +146,7 @@ export class GuestAssessmentService {
         const key = localStorage.key(i)
         if (
           key &&
-          (key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX) ||
-            key.startsWith(GuestAssessmentService.AI_ANALYSIS_KEY_PREFIX) ||
+          (key === GuestAssessmentService.GUEST_ASSESSMENTS_LIST_KEY || // Clear the new list key
             key === GuestAssessmentService.DASHBOARD_STATS_KEY ||
             key === "guestUser") // Explicitly add "guestUser"
         ) {
@@ -158,8 +177,11 @@ export class GuestAssessmentService {
       recommendations.push(t("recommendation_improve_behavior"))
     }
 
-    if (results.length < 6) {
-      // Assuming 6 categories total
+    // Assuming 6 categories total, check if all are completed
+    const completedCategories = new Set(results.map((r) => r.category))
+    // Pass a dummy locale to getAssessmentCategories if `t` doesn't provide it directly
+    const allCategories = getAssessmentCategories("en").map((cat) => cat.id)
+    if (completedCategories.size < allCategories.length) {
       recommendations.push(t("recommendation_complete_all_assessments"))
     }
 
@@ -174,31 +196,5 @@ export class GuestAssessmentService {
   // It's a wrapper around getDashboardStats for compatibility with the old call signature
   static calculateDashboardStats(): DashboardStats {
     return GuestAssessmentService.getDashboardStats()
-  }
-
-  static getAssessmentByCategory(categoryId: string): any | null {
-    try {
-      const assessment = GuestAssessmentService.getAssessment(categoryId as AssessmentCategory)
-      if (!assessment) return null
-
-      // Convert to format expected by results page
-      return {
-        id: assessment.id,
-        category_id: assessment.category,
-        category_title: categoryId, // You might want to get the actual title from assessment categories
-        answers: assessment.answers,
-        total_score: assessment.score,
-        max_score: 100,
-        percentage: assessment.score,
-        risk_level: assessment.riskLevel,
-        risk_factors: assessment.aiAnalysis?.riskFactors?.th || [],
-        recommendations: assessment.aiAnalysis?.recommendations?.th || [],
-        completed_at: assessment.completedAt,
-        ai_analysis: assessment.aiAnalysis,
-      }
-    } catch (error) {
-      console.error("Error getting guest assessment by category:", error)
-      return null
-    }
   }
 }

@@ -48,7 +48,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
       try {
         const stats = GuestAssessmentService.getDashboardStats()
         setDashboardStats(stats)
-        const assessments = GuestAssessmentService.getLatestAssessments().map((item) => item.result)
+        const assessments = GuestAssessmentService.getLatestAssessments().map((item) => item) // Ensure it's AssessmentResult
         setGuestAssessments(assessments)
       } catch (error) {
         console.error("Failed to load guest health overview data:", error)
