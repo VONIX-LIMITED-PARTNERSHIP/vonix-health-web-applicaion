@@ -1,49 +1,58 @@
 "use client"
 
+import { useState } from "react"
 import {
   Dialog,
+  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { useRiskLevelTranslation, getRiskLevelBadgeClass, type RiskLevel } from "@/utils/risk-level"
+import { getRiskLevelBadgeClass, getRiskLevelLabel, useRiskLevelTranslation } from "@/utils/risk-level"
 
-interface GuestHealthOverviewModalProps {
-  /** Overall risk level for the latest guest assessment. */
-  overallRisk?: RiskLevel | null
+interface Props {
+  overallRisk?: string | null
+  lang?: "en" | "th"
 }
 
-export function GuestHealthOverviewModal({ overallRisk = "unknown" }: GuestHealthOverviewModalProps) {
-  const { getRiskLevelLabel, getRiskLevelDescription } = useRiskLevelTranslation()
+export function GuestHealthOverviewModal({ overallRisk, lang = "en" }: Props) {
+  const [open, setOpen] = useState(false)
+  const { getRiskLevelDescription } = useRiskLevelTranslation(lang)
 
   const badgeClass = getRiskLevelBadgeClass(overallRisk)
-  const label = getRiskLevelLabel(overallRisk)
-  const desc = getRiskLevelDescription(overallRisk)
+  const riskLabel = getRiskLevelLabel(overallRisk, lang)
+  const riskDesc = getRiskLevelDescription(overallRisk)
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          {label}
-        </Button>
+        <Button variant="outline">{lang === "th" ? "ดูภาพรวมสุขภาพ" : "View Health Overview"}</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{label}</DialogTitle>
-          <DialogDescription>{desc}</DialogDescription>
+          <DialogTitle>{lang === "th" ? "ภาพรวมสุขภาพ" : "Health Overview"}</DialogTitle>
+          <DialogDescription>
+            {lang === "th" ? "ผลการประเมินสุขภาพสำหรับผู้ใช้งานชั่วคราว" : "Guest user health-assessment summary"}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
-          <Badge className={badgeClass}>{label}</Badge>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <span className={`rounded-full px-3 py-1 text-sm font-medium ${badgeClass}`}>{riskLabel}</span>
+            <span className="text-sm text-muted-foreground">{riskDesc}</span>
+          </div>
+          {/* Extra stats / recommendations could go here */}
         </div>
+
+        <DialogClose asChild>
+          <Button className="mt-6 w-full">{lang === "th" ? "ปิด" : "Close"}</Button>
+        </DialogClose>
       </DialogContent>
     </Dialog>
   )
 }
 
-/* default export for `import GuestHealthOverviewModal from ...` */
 export default GuestHealthOverviewModal
