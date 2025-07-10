@@ -26,6 +26,29 @@ const RISK_LABELS: Record<RiskLevel, BilingualText> = {
   unknown: { en: "Unknown", th: "ไม่ทราบ" },
 }
 
+const RISK_DESCRIPTIONS: Record<RiskLevel, BilingualText> = {
+  low: {
+    en: "Your health assessment indicates a low risk. Continue with your healthy habits!",
+    th: "ผลการประเมินสุขภาพของคุณมีความเสี่ยงต่ำ โปรดรักษาสุขภาพที่ดีต่อไป!",
+  },
+  medium: {
+    en: "Your health assessment indicates a medium risk. Consider reviewing your habits.",
+    th: "ผลการประเมินสุขภาพของคุณมีความเสี่ยงปานกลาง ควรพิจารณาทบทวนพฤติกรรมของคุณ",
+  },
+  high: {
+    en: "Your health assessment indicates a high risk. It is recommended to consult a doctor.",
+    th: "ผลการประเมินสุขภาพของคุณมีความเสี่ยงสูง แนะนำให้ปรึกษาแพทย์",
+  },
+  "very-high": {
+    en: "Your health assessment indicates a very high risk. Urgent medical consultation is advised.",
+    th: "ผลการประเมินสุขภาพของคุณมีความเสี่ยงสูงมาก แนะนำให้ปรึกษาแพทย์โดยด่วน",
+  },
+  unknown: {
+    en: "Unable to determine risk level. Please ensure all questions are answered.",
+    th: "ไม่สามารถระบุระดับความเสี่ยงได้ โปรดตรวจสอบว่าตอบคำถามครบถ้วน",
+  },
+}
+
 /**
  * Return a locale-specific label for a risk level.
  * Defaults to English if the caller passes an unsupported locale.
@@ -33,6 +56,15 @@ const RISK_LABELS: Record<RiskLevel, BilingualText> = {
 export function getRiskLevelText(riskLevel: RiskLevel | string, locale: "en" | "th" = "en"): string {
   const level = (riskLevel as RiskLevel) in RISK_LABELS ? (riskLevel as RiskLevel) : "unknown"
   return RISK_LABELS[level][locale] ?? RISK_LABELS[level].en
+}
+
+/**
+ * Return a locale-specific description for a risk level.
+ * Defaults to English if the caller passes an unsupported locale.
+ */
+export function getRiskLevelDescription(riskLevel: RiskLevel | string, locale: "en" | "th" = "en"): string {
+  const level = (riskLevel as RiskLevel) in RISK_DESCRIPTIONS ? (riskLevel as RiskLevel) : "unknown"
+  return RISK_DESCRIPTIONS[level][locale] ?? RISK_DESCRIPTIONS[level].en
 }
 
 /**
