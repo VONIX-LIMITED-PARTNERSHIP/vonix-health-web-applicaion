@@ -332,7 +332,7 @@ export class AssessmentService {
           if (disease !== "ไม่มีโรคประจำตัว") {
             riskFactors.push(disease)
             if (disease === "เบาหวาน") {
-              recommendations.push("ควบคุมระดับน้ำตาลในเลือดอย่างสม่ำเสมอ")
+              recommendations.push("ควบคุมระดับน้ำ���าลในเลือดอย่างสม่ำเสมอ")
             } else if (disease === "ความดันโลหิตสูง") {
               recommendations.push("ตรวจวัดความดันโลหิตเป็นประจำ")
             }

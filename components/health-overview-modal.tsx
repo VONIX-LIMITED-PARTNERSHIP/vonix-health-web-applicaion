@@ -370,11 +370,17 @@ export function HealthOverviewModal({
                         <Target className="h-6 w-6" />
                       </div>
                       <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-100">
-                        {stats.healthScore >= 80 ? "ดีเยี่ยม" : stats.healthScore >= 60 ? "ดี" : "ต้องปรับปรุง"}
+                        {stats.healthScore >= 80
+                          ? t("health_status_excellent")
+                          : stats.healthScore >= 60
+                            ? t("health_status_good")
+                            : t("health_status_needs_improvement")}
                       </Badge>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">คะแนนสุขภาพรวม</p>
+                      <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                        {t("overall_health_score_summary")}
+                      </p>
                       <div className="flex items-end gap-2">
                         <span className="text-3xl font-bold text-emerald-800 dark:text-emerald-200">
                           {stats.healthScore}
@@ -399,12 +405,14 @@ export function HealthOverviewModal({
                       </Badge>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-blue-700 dark:text-blue-300">การประเมินที่เสร็จสิ้น</p>
+                      <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                        {t("completed_assessments_summary")}
+                      </p>
                       <div className="flex items-end gap-2">
                         <span className="text-3xl font-bold text-blue-800 dark:text-blue-200">
                           {stats.completedAssessments}
                         </span>
-                        <span className="text-blue-600 dark:text-blue-400 text-lg">หมวดหมู่</span>
+                        <span className="text-blue-600 dark:text-blue-400 text-lg">{t("categories_unit")}</span>
                       </div>
                       <Progress
                         value={(stats.completedAssessments / 6) * 100}
@@ -423,20 +431,24 @@ export function HealthOverviewModal({
                         <AlertTriangle className="h-6 w-6" />
                       </div>
                       <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-100">
-                        {stats.improvementAreas > 0 ? "ต้องดูแล" : "ปกติ"}
+                        {stats.improvementAreas > 0 ? t("health_status_needs_improvement") : t("health_status_good")}
                       </Badge>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-orange-700 dark:text-orange-300">ปัจจัยเสี่ยง</p>
+                      <p className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                        {t("risk_factors_summary")}
+                      </p>
                       <div className="flex items-end gap-2">
                         <span className="text-3xl font-bold text-orange-800 dark:text-orange-200">
                           {stats.totalRiskFactors}
                         </span>
-                        <span className="text-orange-600 dark:text-orange-400 text-lg">รายการ</span>
+                        <span className="text-orange-600 dark:text-orange-400 text-lg">{t("items_unit")}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
                         <Shield className="h-4 w-4" />
-                        <span>{stats.improvementAreas} พื้นที่ต้องปรับปรุง</span>
+                        <span>
+                          {stats.improvementAreas} {t("improvement_areas_summary")}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -453,19 +465,21 @@ export function HealthOverviewModal({
                       <Badge
                         className={`${stats.canGenerateReport ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100" : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"}`}
                       >
-                        {stats.canGenerateReport ? "พร้อม" : "ยังไม่พร้อม"}
+                        {stats.canGenerateReport ? t("ready_to_use") : t("not_ready")}
                       </Badge>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-purple-700 dark:text-purple-300">รายงานสุขภาพ</p>
+                      <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                        {t("health_report_summary")}
+                      </p>
                       <div className="flex items-end gap-2">
                         <span className="text-2xl font-bold text-purple-800 dark:text-purple-200">
-                          {stats.canGenerateReport ? "พร้อมใช้" : "ยังไม่พร้อม"}
+                          {stats.canGenerateReport ? t("ready_to_use") : t("not_ready")}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400">
                         <Clock className="h-4 w-4" />
-                        <span>ต้องการ 3 หมวดหมู่ขึ้นไป</span>
+                        <span>{t("requires_3_categories_for_report")}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -480,7 +494,9 @@ export function HealthOverviewModal({
                   <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
                     <Activity className="h-6 w-6 text-blue-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">การประเมินล่าสุดแต่ละหมวดหมู่</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {t("latest_assessments_by_category_title")}
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -545,7 +561,7 @@ export function HealthOverviewModal({
                           {/* Progress Bar */}
                           <div className="space-y-2">
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-600 dark:text-gray-400">คะแนนการประเมิน</span>
+                              <span className="text-gray-600 dark:text-gray-400">{t("assessment_score_label")}</span>
                               <span className="font-medium text-gray-900 dark:text-gray-100">
                                 {assessment.percentage}%
                               </span>
@@ -559,7 +575,7 @@ export function HealthOverviewModal({
                               <div className="flex items-center gap-2 mb-2">
                                 <Zap className="h-4 w-4 text-blue-600" />
                                 <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-                                  AI Analysis
+                                  {t("ai_analysis_label")}
                                 </span>
                               </div>
                               <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">{summary}</p>
@@ -574,7 +590,7 @@ export function HealthOverviewModal({
                                 <div className="flex items-center gap-2">
                                   {getRiskIcon(assessment.risk_level)}
                                   <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    ปัจจัยเสี่ยง ({riskFactors.length})
+                                    {t("risk_factors")} ({riskFactors.length})
                                   </span>
                                 </div>
                                 <div className="space-y-1">
@@ -589,7 +605,7 @@ export function HealthOverviewModal({
                                   ))}
                                   {riskFactors.length > 2 && (
                                     <div className="text-xs text-gray-500 dark:text-gray-500 pl-3">
-                                      +{riskFactors.length - 2} รายการเพิ่มเติม
+                                      +{riskFactors.length - 2} {t("items_unit")}
                                     </div>
                                   )}
                                 </div>
@@ -602,7 +618,7 @@ export function HealthOverviewModal({
                                 <div className="flex items-center gap-2">
                                   <CheckCircle className="h-4 w-4 text-green-500" />
                                   <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    คำแนะนำ ({recommendations.length})
+                                    {t("recommendations")} ({recommendations.length})
                                   </span>
                                 </div>
                                 <div className="space-y-1">
@@ -617,7 +633,7 @@ export function HealthOverviewModal({
                                   ))}
                                   {recommendations.length > 2 && (
                                     <div className="text-xs text-gray-500 dark:text-gray-500 pl-3">
-                                      +{recommendations.length - 2} รายการเพิ่มเติม
+                                      +{recommendations.length - 2} {t("items_unit")}
                                     </div>
                                   )}
                                 </div>
@@ -640,7 +656,7 @@ export function HealthOverviewModal({
                               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                             >
                               <Eye className="mr-2 h-4 w-4" />
-                              {locale === "th" ? "ดูผลลัพธ์แบบละเอียด" : "View Detailed Results"}
+                              {t("view_detailed_results_button")}
                               <ExternalLink className="ml-2 h-4 w-4" />
                             </Button>
                           </div>
