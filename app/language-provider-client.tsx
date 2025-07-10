@@ -19,3 +19,6 @@ export default function LanguageProviderClient({
 }) {
   return <LanguageProviderNoSSR>{children}</LanguageProviderNoSSR>
 }
+
+// Named export so callers can import { LanguageProviderClient }
+export { LanguageProviderClient }

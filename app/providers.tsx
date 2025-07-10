@@ -2,23 +2,33 @@
 
 import type React from "react"
 
+import { ThemeProvider } from "@/components/theme-provider"
+import { LanguageProviderClient } from "./language-provider-client"
+import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/hooks/use-auth"
 import { GuestAuthProvider } from "@/hooks/use-guest-auth"
-import { LanguageProvider } from "@/contexts/language-context"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
+import { useEffect } from "react"
+import { useTranslation } from "@/hooks/use-translation"
+import { setGuestServiceTranslation } from "@/lib/guest-assessment-service"
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation()
+
+  useEffect(() => {
+    // Set the translation function for the GuestAssessmentService
+    setGuestServiceTranslation(t)
+  }, [t])
+
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      <LanguageProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <LanguageProviderClient>
         <AuthProvider>
-          <GuestAuthProvider>
-            {children}
-            <Toaster />
-          </GuestAuthProvider>
+          <GuestAuthProvider>{children}</GuestAuthProvider>
         </AuthProvider>
-      </LanguageProvider>
+        <Toaster />
+      </LanguageProviderClient>
     </ThemeProvider>
   )
 }
+
+export default Providers
