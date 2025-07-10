@@ -529,7 +529,7 @@ export function HealthOverviewModal({
                                 </CardTitle>
                                 <CardDescription className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                                   <Calendar className="h-4 w-4" />
-                                  {formatDate(assessment.completed_at)}
+                                  {t("completed_on")}: {formatDate(assessment.completed_at)}
                                 </CardDescription>
                               </div>
                             </div>
