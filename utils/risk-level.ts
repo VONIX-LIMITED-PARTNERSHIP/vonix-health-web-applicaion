@@ -1,4 +1,4 @@
-import { useTranslation } from "@/hooks/use-translation"
+"use client"
 
 export type RiskLevel = "low" | "moderate" | "high" | "critical" | "unknown"
 
@@ -60,14 +60,14 @@ function normalizeRiskLevel(level: string | null | undefined): RiskLevel {
   return "unknown"
 }
 
-export function getRiskLevelLabel(level: string | null | undefined): BilingualText {
+export function getRiskLevelLabel(level: string | null | undefined, language: "en" | "th" = "en"): string {
   const normalizedLevel = normalizeRiskLevel(level)
-  return RISK_META[normalizedLevel].label
+  return RISK_META[normalizedLevel].label[language]
 }
 
-export function getRiskLevelDescription(level: string | null | undefined): BilingualText {
+export function getRiskLevelDescription(level: string | null | undefined, language: "en" | "th" = "en"): string {
   const normalizedLevel = normalizeRiskLevel(level)
-  return RISK_META[normalizedLevel].description
+  return RISK_META[normalizedLevel].description[language]
 }
 
 export function getRiskLevelColor(level: string | null | undefined): string {
@@ -97,18 +97,11 @@ export function getBilingualArray<T extends { label: BilingualText }>(
   }))
 }
 
-export function useRiskLevelTranslation() {
-  const { language } = useTranslation()
-
+export function useRiskLevelTranslation(language: "en" | "th" = "en") {
   return {
-    getRiskLevelLabel: (level: string | null | undefined) => {
-      const label = getRiskLevelLabel(level)
-      return getBilingualText(label, language as "en" | "th")
-    },
-    getRiskLevelDescription: (level: string | null | undefined) => {
-      const description = getRiskLevelDescription(level)
-      return getBilingualText(description, language as "en" | "th")
-    },
+    getRiskLevelLabel: (level: string | null | undefined) => getRiskLevelLabel(level, language),
+    getRiskLevelDescription: (level: string | null | undefined) => getRiskLevelDescription(level, language),
+    getRiskLevelText: (level: string | null | undefined) => getRiskLevelLabel(level, language),
     getRiskLevelColor,
     getRiskLevelBadgeClass,
     language,

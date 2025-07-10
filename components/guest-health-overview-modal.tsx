@@ -7,9 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Calendar, Activity, AlertTriangle, TrendingUp, X } from "lucide-react"
-import { useTranslation } from "@/hooks/use-translation"
 import { useRiskLevelTranslation, getRiskLevelColor, getRiskLevelBadgeClass } from "@/utils/risk-level"
-import { GuestAssessmentService } from "@/lib/guest-assessment-service"
 
 interface GuestHealthOverviewModalProps {
   isOpen: boolean
@@ -29,8 +27,7 @@ interface DashboardStats {
 }
 
 export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOverviewModalProps) {
-  const { t } = useTranslation()
-  const { getRiskLevelLabel, getRiskLevelDescription } = useRiskLevelTranslation()
+  const { getRiskLevelLabel, getRiskLevelDescription } = useRiskLevelTranslation("en")
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -43,11 +40,25 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
   const loadDashboardStats = async () => {
     try {
       setLoading(true)
-      const dashboardStats = await GuestAssessmentService.getDashboardStats()
-      setStats(dashboardStats)
+      // Simulate loading guest assessment data
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Mock data for guest user
+      const mockStats: DashboardStats = {
+        overallRisk: "moderate",
+        totalAssessments: 1,
+        lastAssessmentDate: new Date().toISOString(),
+        recommendations: ["Consider regular exercise", "Maintain a balanced diet", "Get adequate sleep"],
+        riskFactors: [
+          { category: "Cardiovascular", level: "moderate", score: 45 },
+          { category: "Mental Health", level: "low", score: 25 },
+          { category: "Lifestyle", level: "high", score: 70 },
+        ],
+      }
+
+      setStats(mockStats)
     } catch (error) {
       console.error("Error loading dashboard stats:", error)
-      // Set default stats if loading fails
       setStats({
         overallRisk: "unknown",
         totalAssessments: 0,
@@ -61,15 +72,15 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
   }
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return t("never")
+    if (!dateString) return "Never"
     try {
-      return new Date(dateString).toLocaleDateString("th-TH", {
+      return new Date(dateString).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
       })
     } catch {
-      return t("unknown")
+      return "Unknown"
     }
   }
 
@@ -95,7 +106,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5" />
-              {t("healthOverview")}
+              Health Overview
             </DialogTitle>
           </DialogHeader>
           <div className="flex items-center justify-center py-8">
@@ -112,7 +123,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
-            {t("healthOverview")}
+            Health Overview
           </DialogTitle>
           <Button variant="ghost" size="sm" className="absolute right-4 top-4" onClick={onClose}>
             <X className="h-4 w-4" />
@@ -125,7 +136,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5" />
-                {t("overallRiskStatus")}
+                Overall Risk Status
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -143,7 +154,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
                   <div className="text-2xl font-bold" style={{ color: getRiskLevelColor(stats?.overallRisk) }}>
                     {getRiskScore(stats?.overallRisk || "unknown")}%
                   </div>
-                  <div className="text-sm text-muted-foreground">{t("riskScore")}</div>
+                  <div className="text-sm text-muted-foreground">Risk Score</div>
                 </div>
               </div>
               <Progress value={getRiskScore(stats?.overallRisk || "unknown")} className="h-2" />
@@ -156,17 +167,17 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  {t("assessmentSummary")}
+                  Assessment Summary
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">{t("totalAssessments")}</span>
+                    <span className="text-sm text-muted-foreground">Total Assessments</span>
                     <span className="font-medium">{stats?.totalAssessments || 0}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">{t("lastAssessment")}</span>
+                    <span className="text-sm text-muted-foreground">Last Assessment</span>
                     <span className="font-medium">{formatDate(stats?.lastAssessmentDate)}</span>
                   </div>
                 </div>
@@ -177,7 +188,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  {t("nextSteps")}
+                  Next Steps
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -189,7 +200,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
                       </div>
                     ))
                   ) : (
-                    <div className="text-sm text-muted-foreground">{t("noRecommendationsAvailable")}</div>
+                    <div className="text-sm text-muted-foreground">No recommendations available</div>
                   )}
                 </div>
               </CardContent>
@@ -200,7 +211,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
           {stats?.riskFactors && stats.riskFactors.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>{t("riskFactorsBreakdown")}</CardTitle>
+                <CardTitle>Risk Factors Breakdown</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -226,7 +237,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <Button onClick={onClose} variant="outline" className="flex-1 bg-transparent">
-              {t("close")}
+              Close
             </Button>
             <Button
               onClick={() => {
@@ -235,7 +246,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
               }}
               className="flex-1"
             >
-              {t("takeNewAssessment")}
+              Take New Assessment
             </Button>
           </div>
         </div>
