@@ -25,6 +25,21 @@ export function getRiskLevelText(
   }
 }
 
+export function getRiskLevelColor(riskLevel: RiskLevel): string {
+  switch (riskLevel) {
+    case "low":
+      return "#22c55e" // green-500
+    case "medium":
+      return "#f59e0b" // yellow-500
+    case "high":
+      return "#ef4444" // red-500
+    case "very-high":
+      return "#dc2626" // red-600 (darker red for critical)
+    default:
+      return "#6b7280" // gray-500
+  }
+}
+
 export function getRiskLevelDescription(
   riskLevel: "low" | "medium" | "high" | "very-high" | string,
   locale: "th" | "en" = "th",
