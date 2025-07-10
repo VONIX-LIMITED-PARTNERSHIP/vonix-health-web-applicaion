@@ -1,79 +1,63 @@
 "use client"
 
-import { useTranslation } from "@/hooks/use-translation"
-import { useMemo } from "react"
-
-/* ------------------------------------------------------------------ */
-/*  Top-level translation helpers (needed by other modules)           */
-/* ------------------------------------------------------------------ */
-
-export function getRiskLevelText(
-  riskLevel: "low" | "medium" | "high" | "very-high" | string,
-  locale: "th" | "en" = "th",
-): string {
-  switch (riskLevel) {
-    case "low":
-      return locale === "th" ? "ความเสี่ยงต่ำ" : "Low Risk"
-    case "medium":
-      return locale === "th" ? "ความเสี่ยงปานกลาง" : "Medium Risk"
-    case "high":
-      return locale === "th" ? "ความเสี่ยงสูง" : "High Risk"
-    case "very-high":
-      return locale === "th" ? "ความเสี่ยงสูงมาก" : "Very High Risk"
-    default:
-      return locale === "th" ? "ไม่ระบุ" : "Unspecified"
-  }
-}
-
-export function getRiskLevelDescription(
-  riskLevel: "low" | "medium" | "high" | "very-high" | string,
-  locale: "th" | "en" = "th",
-): string {
-  switch (riskLevel) {
-    case "low":
-      return locale === "th"
-        ? "สุขภาพของคุณอยู่ในเกณฑ์ดี ควรรักษาพฤติกรรมสุขภาพที่ดีต่อไป"
-        : "Your health is in good condition. Continue maintaining healthy behaviors."
-    case "medium":
-      return locale === "th"
-        ? "มีปัจจัยเสี่ยงบางอย่าง ควรปรับปรุงพฤติกรรมสุขภาพและติดตามอาการ"
-        : "Some risk factors present. Consider improving health behaviors and monitoring symptoms."
-    case "high":
-      return locale === "th"
-        ? "มีความเสี่ยงสูงต่อปัญหาสุขภาพ ควรปรึกษาแพทย์และปรับเปลี่ยนพฤติกรรม"
-        : "High risk for health problems. Consult a doctor and make lifestyle changes."
-    case "very-high":
-      return locale === "th"
-        ? "มีความเสี่ยงสูงมาก ควรพบแพทย์โดยเร็วเพื่อรับการตรวจสอบและรักษา"
-        : "Very high risk. See a doctor immediately for examination and treatment."
-    default:
-      return ""
-  }
-}
-
+/** Health-risk categories used throughout the app. */
 export type RiskLevel = "low" | "medium" | "high" | "very-high" | "unknown"
 
-/**
- * Hook to get translated risk level text and descriptions.
- * @returns An object with a function to get translated risk level text and descriptions.
- */
-export function useRiskLevelTranslation() {
-  const { t, locale } = useTranslation(["common", "risk_level"])
+/** English / Thai pair for a given risk-level value. */
+export interface BilingualText {
+  en: string
+  th: string
+}
 
-  return useMemo(
-    () => ({
-      getRiskLevelLabel: (riskLevel: string) => getRiskLevelText(riskLevel, locale),
-      getRiskLevelDescription: (riskLevel: string) => getRiskLevelDescription(riskLevel, locale),
-    }),
-    [locale],
-  )
+/** Row model for UI components like <Select>, <RadioGroup>, etc. */
+export interface BilingualRiskLevel extends BilingualText {
+  value: RiskLevel
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  Helpers                                   */
+/* -------------------------------------------------------------------------- */
+
+const RISK_LABELS: Record<RiskLevel, BilingualText> = {
+  low: { en: "Low Risk", th: "ความเสี่ยงต่ำ" },
+  medium: { en: "Medium Risk", th: "ความเสี่ยงปานกลาง" },
+  high: { en: "High Risk", th: "ความเสี่ยงสูง" },
+  "very-high": { en: "Very High Risk", th: "ความเสี่ยงสูงมาก" },
+  unknown: { en: "Unknown", th: "ไม่ทราบ" },
 }
 
 /**
- * Returns the Tailwind CSS classes for a risk level badge.
- * Includes dynamic text color for light/dark mode.
+ * Return a locale-specific label for a risk level.
+ * Defaults to English if the caller passes an unsupported locale.
  */
-export const getRiskLevelBadgeClass = (riskLevel: RiskLevel): string => {
+export function getRiskLevelText(riskLevel: RiskLevel | string, locale: "en" | "th" = "en"): string {
+  const level = (riskLevel as RiskLevel) in RISK_LABELS ? (riskLevel as RiskLevel) : "unknown"
+  return RISK_LABELS[level][locale] ?? RISK_LABELS[level].en
+}
+
+/**
+ * Return both EN & TH labels for a single risk level.
+ */
+export function getBilingualText(riskLevel: RiskLevel | string): BilingualText {
+  const level = (riskLevel as RiskLevel) in RISK_LABELS ? (riskLevel as RiskLevel) : "unknown"
+  return RISK_LABELS[level]
+}
+
+/**
+ * Convenience array of all risk levels with EN / TH labels.
+ * Handy for form options and table rows.
+ */
+export function getBilingualArray(): BilingualRiskLevel[] {
+  return (Object.keys(RISK_LABELS) as RiskLevel[]).map((value) => ({
+    value,
+    ...RISK_LABELS[value],
+  }))
+}
+
+/**
+ * Tailwind classes for colouring a shadcn/ui <Badge>.
+ */
+export function getRiskLevelBadgeClass(riskLevel: RiskLevel | string): string {
   switch (riskLevel) {
     case "low":
       return "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100"
@@ -84,28 +68,43 @@ export const getRiskLevelBadgeClass = (riskLevel: RiskLevel): string => {
     case "very-high":
       return "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100"
     default:
-      return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
+      return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
   }
 }
 
 /**
- * Helper to get bilingual text from an object, falling back to English if locale not found.
- * Assumes the object has 'th' and 'en' properties.
+ * Plain HEX colour for charts / inline styles.
  */
-export const getBilingualText = (obj: any, locale: string): string => {
-  if (!obj) return ""
-  if (locale === "th" && obj.th) return obj.th
-  if (obj.en) return obj.en
-  return "" // Fallback if neither is found
+export function getRiskLevelColor(riskLevel: RiskLevel | string): string {
+  switch (riskLevel) {
+    case "low":
+      return "#22c55e" // emerald-500
+    case "medium":
+      return "#eab308" // yellow-500
+    case "high":
+      return "#f97316" // orange-500
+    case "very-high":
+      return "#ef4444" // red-500
+    default:
+      return "#6b7280" // gray-500
+  }
 }
 
+import { useLanguage } from "@/contexts/language-context"
+
 /**
- * Helper to get bilingual array from an object, falling back to English if locale not found.
- * Assumes the object has 'th' and 'en' properties, each containing an array of strings.
+ * React hook that returns a helper for translating risk‐level
+ * enums/strings into the current UI language.
+ *
+ * Usage:
+ *   const { getRiskLevelLabel } = useRiskLevelTranslation()
+ *   const label = getRiskLevelLabel("high")   // → "High Risk" or "ความเสี่ยงสูง"
  */
-export const getBilingualArray = (obj: any, locale: string): string[] => {
-  if (!obj) return []
-  if (locale === "th" && Array.isArray(obj.th)) return obj.th
-  if (Array.isArray(obj.en)) return obj.en
-  return [] // Fallback if neither is found or not an array
+export function useRiskLevelTranslation() {
+  const { locale } = useLanguage()
+
+  const getRiskLevelLabel = (riskLevel: RiskLevel | string) =>
+    getRiskLevelText(riskLevel, locale === "th" ? "th" : "en")
+
+  return { getRiskLevelLabel }
 }
