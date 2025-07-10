@@ -27,7 +27,6 @@ import {
   Shield,
   Zap,
   Clock,
-  FlaskConical,
   Dumbbell,
   Loader2,
   BarChart,
@@ -112,7 +111,7 @@ export default function HomePage() {
             diabetes: "medium",
           },
           overallRisk: "low",
-          recommendations: ["Continue regular exercise.", "Monitor blood sugar levels.", "Schedule annual check-up."],
+          recommendations: [], // ลบ recommendations ออกไปก่อน
         })
       } else {
         // Reset stats if no one is logged in
@@ -237,7 +236,7 @@ export default function HomePage() {
         diabetes: latestAssessments.find((a) => a.category_id === "nutrition")?.risk_level || "",
       },
       overallRisk: getHealthLevelColor(getRiskLevelLabel(averageScore)), // Use getHealthLevelColor with a derived risk level
-      recommendations: ["Continue regular exercise.", "Monitor blood sugar levels.", "Schedule annual check-up."],
+      recommendations: [], // Ensure recommendations is an empty array
     })
   }
 
@@ -354,6 +353,7 @@ export default function HomePage() {
   }
 
   const handleConsultDoctorClick = () => {
+    // This function will not be called if the button is disabled
     if (isLoggedIn) {
       setIsConsultIntroModalOpen(true)
     } else {
@@ -362,6 +362,7 @@ export default function HomePage() {
   }
 
   const handleViewHealthOverviewClick = () => {
+    // This function will not be called if the button is disabled
     if (isGuestLoggedIn) {
       setIsGuestHealthOverviewModalOpen(true)
     } else if (user) {
@@ -419,8 +420,9 @@ export default function HomePage() {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
                   <Button
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base"
+                    className="bg-gray-200 text-gray-600 cursor-not-allowed font-medium px-4 py-2 rounded-xl shadow-lg transition-all duration-300 text-sm md:text-base dark:bg-gray-700 dark:text-gray-400"
                     onClick={handleConsultDoctorClick}
+                    disabled // เพิ่ม disabled เพื่อให้ไม่สามารถคลิกได้
                   >
                     <Stethoscope className="mr-2 h-4 w-4" />
                     <span className="hidden sm:inline">{t("consult_doctor")}</span>
@@ -566,24 +568,15 @@ export default function HomePage() {
                     size="lg"
                     variant="outline"
                     className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto
-                        border-2 border-gray-300 hover:border-blue-400
-                        bg-white/80 dark:bg-gray-800/80
-                        text-gray-700 dark:text-white
-                        backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700
-                        font-semibold rounded-2xl shadow-lg hover:shadow-xl
-                        transition-all duration-300"
+                        border-2 border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed
+                        dark:border-gray-700 dark:bg-gray-800 dark:text-gray-600
+                        font-semibold rounded-2xl shadow-lg transition-all duration-300"
                     onClick={handleConsultDoctorClick}
+                    disabled // Disabled for now
                   >
                     <Stethoscope className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
                     <span className="hidden sm:inline">{t("consult_doctor_online")}</span>
                     <span className="sm:hidden">{t("consult_doctor")}</span>
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto border-2 border-purple-300 hover:border-purple-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-                    asChild
-                  >
                   </Button>
                 </>
               )}

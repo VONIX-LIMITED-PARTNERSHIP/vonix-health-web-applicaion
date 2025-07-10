@@ -69,10 +69,31 @@ export function GuestAuthProvider({ children }: { children: React.ReactNode }) {
 
   const logoutGuest = useCallback(() => {
     try {
-      GuestAssessmentService.clearAllGuestData() // This should clear all guest-related data
+      // Clear all guest-related data from localStorage
+      GuestAssessmentService.clearAllGuestData()
+
+      // Additional cleanup to ensure everything is cleared
+      if (typeof window !== "undefined") {
+        // Clear specific guest-related keys
+        const keysToRemove: string[] = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && (key.startsWith("guest-") || key.startsWith("guestUser") || key.includes("guest"))) {
+            keysToRemove.push(key)
+          }
+        }
+
+        keysToRemove.forEach((key) => {
+          localStorage.removeItem(key)
+        })
+
+        // Also clear session storage for guest data
+        sessionStorage.clear()
+      }
+
       setGuestUser(null)
       setIsGuestLoggedIn(false)
-      console.log("GuestAuth: Guest user logged out and data cleared.")
+      console.log("GuestAuth: Guest user logged out and all data cleared completely.")
     } catch (error) {
       console.error("GuestAuth: Error clearing guest user data:", error)
     }

@@ -121,7 +121,11 @@ export class GuestAssessmentService {
 
   static clearAllGuestData() {
     try {
+      if (typeof window === "undefined") return
+
       const keysToRemove: string[] = []
+
+      // Get all localStorage keys
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
         if (
@@ -129,16 +133,37 @@ export class GuestAssessmentService {
           (key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX) ||
             key.startsWith(GuestAssessmentService.AI_ANALYSIS_KEY_PREFIX) ||
             key === GuestAssessmentService.DASHBOARD_STATS_KEY ||
-            key === "guestUser") // Explicitly add "guestUser"
+            key === "guestUser" ||
+            key.startsWith("guest-") ||
+            key.includes("guest"))
         ) {
           keysToRemove.push(key)
         }
       }
 
+      // Remove all identified keys
       keysToRemove.forEach((key) => {
         localStorage.removeItem(key)
+        console.log(`Removed localStorage key: ${key}`)
       })
-      console.log("All guest assessment data cleared.")
+
+      // Also clear sessionStorage for any guest data
+      const sessionKeysToRemove: string[] = []
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i)
+        if (key && (key.startsWith("guest-") || key.includes("guest"))) {
+          sessionKeysToRemove.push(key)
+        }
+      }
+
+      sessionKeysToRemove.forEach((key) => {
+        sessionStorage.removeItem(key)
+        console.log(`Removed sessionStorage key: ${key}`)
+      })
+
+      console.log(
+        `All guest assessment data cleared. Removed ${keysToRemove.length} localStorage keys and ${sessionKeysToRemove.length} sessionStorage keys.`,
+      )
     } catch (error) {
       console.error("Error clearing all guest data:", error)
     }

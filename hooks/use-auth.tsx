@@ -51,18 +51,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("sb-hybtdrtuyovowhzinbbu-auth-token")
       localStorage.removeItem("supabase.auth.token")
 
-      // Clear all Supabase auth related items
-      Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith("sb-") && key.includes("auth")) {
-          localStorage.removeItem(key)
+      // Clear all Supabase auth related items and assessment data
+      const keysToRemove: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (
+          key &&
+          ((key.startsWith("sb-") && key.includes("auth")) ||
+            key.startsWith("assessment-") ||
+            key === "user-preferences" ||
+            key === "dashboard-cache")
+        ) {
+          keysToRemove.push(key)
         }
-        if (key.startsWith("assessment-")) {
-          localStorage.removeItem(key)
-        }
+      }
+
+      keysToRemove.forEach((key) => {
+        localStorage.removeItem(key)
+        console.log(`Cleared auth-related key: ${key}`)
       })
 
-      localStorage.removeItem("user-preferences")
-      localStorage.removeItem("dashboard-cache")
+      // Clear session storage
+      sessionStorage.clear()
+
+      console.log(`Auth data cleared. Removed ${keysToRemove.length} keys from localStorage.`)
     }
   }, [])
 
