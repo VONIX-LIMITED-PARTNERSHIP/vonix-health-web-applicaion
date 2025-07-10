@@ -20,7 +20,6 @@ import {
   AlertCircle,
   XCircle,
   Info,
-  ChevronRight,
 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
 import { useLanguage } from "@/contexts/language-context"
@@ -208,20 +207,9 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
             <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
               {t("general_recommendations_title", { ns: "guest_health_overview" })}
             </h3>
-            {dashboardStats?.recommendations && dashboardStats.recommendations.length > 0 ? (
-              <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
-                {dashboardStats.recommendations.map((rec, index) => (
-                  <li key={index} className="flex items-start">
-                    <ChevronRight className="h-4 w-4 mt-1 mr-2 shrink-0 text-blue-500" />
-                    <span>{rec}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                <p>{t("no_recommendations_yet")}</p>
-              </div>
-            )}
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+              <p>{t("no_recommendations_yet")}</p>
+            </div>
           </ScrollArea>
         )}
       </DialogContent>

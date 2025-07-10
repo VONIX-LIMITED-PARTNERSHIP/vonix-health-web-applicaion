@@ -583,7 +583,7 @@ export function HealthOverviewModal({
                           )}
 
                           {/* Risk Factors & Recommendations */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className={`grid grid-cols-1 ${riskFactors.length > 0 ? "md:grid-cols-1" : ""}`}>
                             {/* Risk Factors */}
                             {riskFactors.length > 0 && (
                               <div className="space-y-2">
@@ -606,34 +606,6 @@ export function HealthOverviewModal({
                                   {riskFactors.length > 2 && (
                                     <div className="text-xs text-gray-500 dark:text-gray-500 pl-3">
                                       +{riskFactors.length - 2} {t("items_unit")}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Recommendations */}
-                            {recommendations.length > 0 && (
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <CheckCircle className="h-4 w-4 text-green-500" />
-                                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    {t("recommendations")} ({recommendations.length})
-                                  </span>
-                                </div>
-                                <div className="space-y-1">
-                                  {recommendations.slice(0, 2).map((recommendation, index) => (
-                                    <div
-                                      key={index}
-                                      className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400"
-                                    >
-                                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
-                                      <span className="leading-relaxed">{recommendation}</span>
-                                    </div>
-                                  ))}
-                                  {recommendations.length > 2 && (
-                                    <div className="text-xs text-gray-500 dark:text-gray-500 pl-3">
-                                      +{recommendations.length - 2} {t("items_unit")}
                                     </div>
                                   )}
                                 </div>
