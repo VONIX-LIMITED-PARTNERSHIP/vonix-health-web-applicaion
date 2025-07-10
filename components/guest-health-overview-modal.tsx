@@ -27,6 +27,7 @@ import { GuestAssessmentService } from "@/lib/guest-assessment-service"
 import { getAssessmentCategories } from "@/data/assessment-questions"
 import { getRiskLevelText, getRiskLevelBadgeClass } from "@/utils/risk-level"
 import type { AssessmentResult, DashboardStats } from "@/types/assessment"
+import { useRouter } from "next/navigation"
 
 interface GuestHealthOverviewModalProps {
   isOpen: boolean
@@ -36,6 +37,7 @@ interface GuestHealthOverviewModalProps {
 export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOverviewModalProps) {
   const { t } = useTranslation(["common", "guest_health_overview"])
   const { locale } = useLanguage()
+  const router = useRouter()
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
   const [guestAssessments, setGuestAssessments] = useState<AssessmentResult[]>([])
   const [loading, setLoading] = useState(true)
@@ -114,6 +116,13 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
     )
   }
 
+  // Handle clicking on an assessment card to view results
+  const handleViewAssessmentResults = (assessment: AssessmentResult) => {
+    onClose() // Close the modal first
+    // Navigate to guest assessment results page with category parameter
+    router.push(`/guest-assessment/results?category=${assessment.categoryId}`)
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
@@ -179,24 +188,34 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
             ) : (
               <div className="space-y-4 mb-6">
                 {guestAssessments.map((assessment) => {
-                  const categoryInfo = assessmentCategories.find((cat) => cat.id === assessment.category)
+                  const categoryInfo = assessmentCategories.find((cat) => cat.id === assessment.categoryId)
                   return (
-                    <Card key={assessment.id} className="shadow-sm">
+                    <Card
+                      key={assessment.id}
+                      className="shadow-sm cursor-pointer hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+                      onClick={() => handleViewAssessmentResults(assessment)}
+                    >
                       <CardContent className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                            {getCategoryIcon(assessment.category)}
+                            {getCategoryIcon(assessment.categoryId)}
                           </div>
                           <div>
                             <div className="font-medium text-gray-800 dark:text-gray-200">
-                              {categoryInfo?.title || assessment.category}
+                              {categoryInfo?.title || assessment.categoryId}
                             </div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">
                               {t("completed_on")}: {getFormattedDate(assessment.completedAt)}
                             </div>
+                            <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                              {locale === "th" ? "คลิกเพื่อดูผลลัพธ์" : "Click to view results"}
+                            </div>
                           </div>
                         </div>
-                        {renderRiskBadge(assessment.riskLevel)}
+                        <div className="flex flex-col items-end gap-2">
+                          {renderRiskBadge(assessment.riskLevel)}
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{assessment.percentage}%</div>
+                        </div>
                       </CardContent>
                     </Card>
                   )
@@ -207,9 +226,20 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
             <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
               {t("general_recommendations_title", { ns: "guest_health_overview" })}
             </h3>
-            <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-              <p>{t("no_recommendations_yet")}</p>
-            </div>
+            {dashboardStats?.recommendations && dashboardStats.recommendations.length > 0 ? (
+              <div className="space-y-2 mb-6">
+                {dashboardStats.recommendations.map((recommendation, index) => (
+                  <div key={index} className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-blue-800 dark:text-blue-200">{recommendation}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                <p>{t("no_recommendations_yet")}</p>
+              </div>
+            )}
           </ScrollArea>
         )}
       </DialogContent>
