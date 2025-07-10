@@ -25,9 +25,9 @@ import { useTranslation } from "@/hooks/use-translation"
 import { useLanguage } from "@/contexts/language-context"
 import { getAssessmentCategories } from "@/data/assessment-questions"
 import { getRiskLevelText, getRiskLevelBadgeClass } from "@/utils/risk-level"
-import type { SavedAssessment, DashboardStats } from "@/types/assessment"
-import { createClientComponentClient } from "@/lib/supabase"
+import type { AssessmentResult, DashboardStats } from "@/types/assessment"
 import { useRouter } from "next/navigation"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs" // Correct import path
 
 interface HealthOverviewModalProps {
   isOpen: boolean
@@ -39,84 +39,65 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
   const { locale } = useLanguage()
   const router = useRouter()
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
-  const [userAssessments, setUserAssessments] = useState<SavedAssessment[]>([])
+  const [userAssessments, setUserAssessments] = useState<AssessmentResult[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClientComponentClient()
+  const supabase = createClientComponentClient() // Initialize Supabase client
 
   useEffect(() => {
     if (isOpen) {
-      fetchHealthOverviewData()
-    }
-  }, [isOpen])
+      setLoading(true)
+      const fetchHealthOverview = async () => {
+        try {
+          // Fetch dashboard stats
+          const { data: statsData, error: statsError } = await supabase
+            .from("profiles")
+            .select("dashboard_stats")
+            .single()
 
-  const fetchHealthOverviewData = async () => {
-    setLoading(true)
-    try {
-      const { data: assessments, error } = await supabase
-        .from("assessments")
-        .select("*")
-        .order("completed_at", { ascending: false })
+          if (statsError) {
+            console.error("Error fetching dashboard stats:", statsError)
+            setDashboardStats(null)
+          } else {
+            setDashboardStats(statsData?.dashboard_stats || null)
+          }
 
-      if (error) {
-        console.error("Error fetching assessments:", error)
-        // Handle error, maybe set an error state
-        setUserAssessments([])
-        setDashboardStats(null)
-        return
-      }
+          // Fetch user assessments
+          const { data: assessmentsData, error: assessmentsError } = await supabase
+            .from("assessments")
+            .select("*")
+            .order("completed_at", { ascending: false })
 
-      setUserAssessments(assessments || [])
-
-      // Calculate dashboard stats
-      const calculatedStats: DashboardStats = {
-        totalAssessments: assessments?.length || 0,
-        lastAssessmentDate: assessments?.[0]?.completed_at || null,
-        riskLevels: {},
-        overallRisk: "low", // Default
-        recommendations: [],
-      }
-
-      const riskOrder = ["low", "medium", "high", "very-high"]
-      let overallHighestRisk: SavedAssessment["risk_level"] = "low"
-
-      assessments?.forEach((item) => {
-        calculatedStats.riskLevels[item.category_id] = item.risk_level
-        if (riskOrder.indexOf(item.risk_level) > riskOrder.indexOf(overallHighestRisk)) {
-          overallHighestRisk = item.risk_level
+          if (assessmentsError) {
+            console.error("Error fetching user assessments:", assessmentsError)
+            setUserAssessments([])
+          } else {
+            // Map to AssessmentResult type, assuming column names match
+            const mappedAssessments: AssessmentResult[] = assessmentsData.map((item: any) => ({
+              id: item.id,
+              category: item.category_id, // Assuming category_id from DB maps to category
+              completedAt: item.completed_at,
+              answers: item.answers,
+              totalScore: item.total_score,
+              maxScore: item.max_score,
+              percentage: item.percentage,
+              riskLevel: item.risk_level,
+              riskFactors: item.ai_analysis?.riskFactors, // Assuming AI analysis is nested in DB
+              recommendations: item.ai_analysis?.recommendations,
+              summary: item.ai_analysis?.summary,
+            }))
+            setUserAssessments(mappedAssessments)
+          }
+        } catch (error) {
+          console.error("Failed to load health overview data:", error)
+          setDashboardStats(null)
+          setUserAssessments([])
+        } finally {
+          setLoading(false)
         }
-      })
-      calculatedStats.overallRisk = overallHighestRisk
-
-      // Simplified recommendations for now, can be expanded
-      const highRiskCategories = assessments?.filter((r) => r.risk_level === "high" || r.risk_level === "very-high")
-      const mediumRiskCategories = assessments?.filter((r) => r.risk_level === "medium")
-
-      const recommendations: string[] = []
-      if (highRiskCategories && highRiskCategories.length > 0) {
-        recommendations.push(t("recommendation_consult_doctor"))
       }
-      if (mediumRiskCategories && mediumRiskCategories.length > 0) {
-        recommendations.push(t("recommendation_improve_behavior"))
-      }
-      const allCategories = getAssessmentCategories(locale).map((cat) => cat.id)
-      const completedCategories = new Set(assessments?.map((a) => a.category_id))
-      if (completedCategories.size < allCategories.length) {
-        recommendations.push(t("recommendation_complete_all_assessments"))
-      }
-      if (recommendations.length === 0) {
-        recommendations.push(t("recommendation_maintain_health"))
-      }
-      calculatedStats.recommendations = recommendations
-
-      setDashboardStats(calculatedStats)
-    } catch (error) {
-      console.error("Failed to fetch health overview data:", error)
-      setUserAssessments([])
-      setDashboardStats(null)
-    } finally {
-      setLoading(false)
+      fetchHealthOverview()
     }
-  }
+  }, [isOpen, supabase])
 
   const assessmentCategories = useMemo(() => getAssessmentCategories(locale), [locale])
 
@@ -157,7 +138,7 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
     }
   }
 
-  const renderRiskBadge = (riskLevel: SavedAssessment["risk_level"]) => {
+  const renderRiskBadge = (riskLevel: AssessmentResult["riskLevel"]) => {
     const colorClass = getRiskLevelBadgeClass(riskLevel)
     const label = getRiskLevelText(riskLevel, locale)
     let Icon = Info
@@ -174,9 +155,9 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
     )
   }
 
-  const handleViewResults = (assessment: SavedAssessment) => {
+  const handleViewResults = (assessment: AssessmentResult) => {
     onClose() // Close the modal
-    router.push(`/assessment/${assessment.category_id}/results?id=${assessment.id}`)
+    router.push(`/assessment/${assessment.category}/results?id=${assessment.id}`)
   }
 
   return (
@@ -244,7 +225,7 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
             ) : (
               <div className="space-y-4 mb-6">
                 {userAssessments.map((assessment) => {
-                  const categoryInfo = assessmentCategories.find((cat) => cat.id === assessment.category_id)
+                  const categoryInfo = assessmentCategories.find((cat) => cat.id === assessment.category)
                   return (
                     <Card
                       key={assessment.id}
@@ -254,18 +235,18 @@ export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProp
                       <CardContent className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                            {getCategoryIcon(assessment.category_id)}
+                            {getCategoryIcon(assessment.category)}
                           </div>
                           <div>
                             <div className="font-medium text-gray-800 dark:text-gray-200">
-                              {categoryInfo?.title || assessment.category_id}
+                              {categoryInfo?.title || assessment.category}
                             </div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {t("completed_on")}: {getFormattedDate(assessment.completed_at)}
+                              {t("completed_on")}: {getFormattedDate(assessment.completedAt)}
                             </div>
                           </div>
                         </div>
-                        {renderRiskBadge(assessment.risk_level)}
+                        {renderRiskBadge(assessment.riskLevel)}
                       </CardContent>
                     </Card>
                   )

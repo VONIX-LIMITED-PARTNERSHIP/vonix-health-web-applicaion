@@ -1,4 +1,4 @@
-import type { AssessmentCategory, AssessmentResult, DashboardStats, AIAnalysisResult } from "@/types/assessment"
+import type { AssessmentCategory, AssessmentResult, DashboardStats } from "@/types/assessment"
 import { getAssessmentCategories } from "@/data/assessment-questions" // Import getAssessmentCategories
 import { v4 as uuidv4 } from "uuid" // Import uuid
 
@@ -17,7 +17,6 @@ export class GuestAssessmentService {
   // Changed to store a list of assessments under one key
   private static readonly GUEST_ASSESSMENTS_LIST_KEY = "guest-assessments-list"
   private static readonly DASHBOARD_STATS_KEY = "guest-dashboard-stats"
-  private static readonly AI_ANALYSIS_KEY_PREFIX = "guest-ai-analysis-" // This prefix might become redundant if AI analysis is part of AssessmentResult
 
   // Helper to get all stored guest assessments
   private static getStoredAssessments(): AssessmentResult[] {
@@ -41,7 +40,7 @@ export class GuestAssessmentService {
 
   static saveAssessment(
     category: AssessmentCategory,
-    result: Omit<AssessmentResult, "id" | "completedAt" | "category"> & { aiAnalysis?: AIAnalysisResult },
+    result: Omit<AssessmentResult, "id" | "completedAt" | "category">,
   ) {
     try {
       const assessments = GuestAssessmentService.getStoredAssessments()
