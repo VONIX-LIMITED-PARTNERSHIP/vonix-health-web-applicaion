@@ -27,7 +27,6 @@ import { GuestAssessmentService } from "@/lib/guest-assessment-service"
 import { getAssessmentCategories } from "@/data/assessment-questions"
 import { getRiskLevelText, getRiskLevelBadgeClass } from "@/utils/risk-level"
 import type { AssessmentResult, DashboardStats } from "@/types/assessment"
-import { useRouter } from "next/navigation"
 
 interface GuestHealthOverviewModalProps {
   isOpen: boolean
@@ -37,7 +36,6 @@ interface GuestHealthOverviewModalProps {
 export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOverviewModalProps) {
   const { t } = useTranslation(["common", "guest_health_overview"])
   const { locale } = useLanguage()
-  const router = useRouter()
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
   const [guestAssessments, setGuestAssessments] = useState<AssessmentResult[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,7 +46,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
       try {
         const stats = GuestAssessmentService.getDashboardStats()
         setDashboardStats(stats)
-        const assessments = GuestAssessmentService.getLatestAssessments() // This now returns AssessmentResult[] directly
+        const assessments = GuestAssessmentService.getLatestAssessments().map((item) => item.result)
         setGuestAssessments(assessments)
       } catch (error) {
         console.error("Failed to load guest health overview data:", error)
@@ -114,11 +112,6 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
         {label}
       </Badge>
     )
-  }
-
-  const handleViewGuestResults = (assessment: AssessmentResult) => {
-    onClose() // Close the modal
-    router.push(`/guest-assessment/results?id=${assessment.id}`)
   }
 
   return (
@@ -188,11 +181,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
                 {guestAssessments.map((assessment) => {
                   const categoryInfo = assessmentCategories.find((cat) => cat.id === assessment.category)
                   return (
-                    <Card
-                      key={assessment.id}
-                      className="shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                      onClick={() => handleViewGuestResults(assessment)}
-                    >
+                    <Card key={assessment.id} className="shadow-sm">
                       <CardContent className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
