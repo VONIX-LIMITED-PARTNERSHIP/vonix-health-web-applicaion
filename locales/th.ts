@@ -196,6 +196,7 @@ const th = {
     health_status_needs_improvement: "ต้องปรับปรุง",
     no_risk_factors_found: "ไม่พบปัจจัยเสี่ยงที่สำคัญ",
     not_logged_in: "ยังไม่ได้เข้าสู่ระบบ",
+    completed_on: "เสร็จสิ้นเมื่อ", // Ensure this is present
   },
   assessment: {
     basic_info: "ข้อมูลพื้นฐาน",
