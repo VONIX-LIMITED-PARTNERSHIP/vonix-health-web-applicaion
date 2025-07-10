@@ -1,3 +1,5 @@
+import next from "next"
+
 export type Dictionary = typeof th
 
 const th = {
@@ -140,6 +142,8 @@ const th = {
     ai_summary: "สรุปผลการวิเคราะห์โดย AI",
     overall_risk_level: "ระดับความเสี่ยงโดยรวม",
     score: "คะแนน",
+    retake_assessment: "ทำใหม่",
+    view_answer_details: "ดูคำตอบ",
     questions_answered: "คำถามที่ตอบ",
     recommendations: "คำแนะนำ",
     no_significant_risk_factors: "ไม่พบปัจจัยเสี่ยงที่สำคัญ",
@@ -299,6 +303,12 @@ const th = {
     step_3_wait_for_contact: "รอการติดต่อกลับ",
     step_3_wait_for_contact_desc: "แพทย์จะติดต่อกลับภายใน 24 ชั่วโมง",
     understood: "เข้าใจแล้ว",
+    card_assessment_next: "ต่อไป",
+    card_assessment_previous: "ก่อนหน้า",
+    card_assessment_estimated_time: "เวลาโดยประมาณ",
+    card_assessment_required: "จำเป็น",
+    assessment_back: "กลับสู่หน้าหลัก",
+    assessment_view_results: "ดูผลลัพธ์",
   },
   assessment: {
     basic_info: "ข้อมูลพื้นฐาน",

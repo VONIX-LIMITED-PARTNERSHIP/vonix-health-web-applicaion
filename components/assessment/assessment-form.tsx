@@ -257,7 +257,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
         <div className="mb-8">
           <Button variant="ghost" onClick={handleBack} className="mb-4 hover:bg-white/80">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("common.back")}
+            {t("assessment_back")}
           </Button>
 
           <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80 dark:border-border">
@@ -275,11 +275,11 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                   <p className="text-gray-600 dark:text-muted-foreground">{category.description}</p>
                 </div>
                 <div className="flex items-center space-x-4">
-                  {category.required && <Badge className="bg-red-500 text-white">{t("common.required")}</Badge>}
+                  {category.required && <Badge className="bg-red-500 text-white">{t("card_assessment_required")}</Badge>}
                   <div className="flex items-center text-gray-500 dark:text-gray-400">
                     <Clock className="w-4 h-4 mr-1" />
                     <span className="text-sm">
-                      {category.estimatedTime} {t("common.estimated_time")}
+                      {category.estimatedTime} {t("card_assessment_estimated_time")}
                     </span>
                   </div>
                 </div>
@@ -324,7 +324,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                 className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-transparent"
               >
                 <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">{t("common.previous")}</span>
+                <span className="hidden sm:inline">{t("card_assessment_previous")}</span>
                 <span className="sm:hidden">{locale === "en" ? "Prev" : "ก่อน"}</span>
               </Button>
 
@@ -351,8 +351,8 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                   </>
                 ) : (
                   <>
-                    <span className="hidden sm:inline">{t("common.next")}</span>
-                    <span className="sm:hidden">{t("common.next")}</span>
+                    <span className="hidden sm:inline">{t("card_assessment_next")}</span>
+                    <span className="sm:hidden">{t("card_assessment_next")}</span>
                     <ArrowRight className="ml-1 sm:ml-2 h-4 w-4" />
                   </>
                 )}

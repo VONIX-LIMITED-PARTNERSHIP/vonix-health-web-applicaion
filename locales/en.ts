@@ -72,6 +72,7 @@ const en = {
     logout: "Logout",
     profile: "Profile",
     home: "Home",
+    contact_us: "Contact Us",
     dashboard: "Dashboard",
     basic_assessment: "Basic Health Assessment",
     heart_assessment: "Heart Health Assessment",
@@ -109,8 +110,11 @@ const en = {
     guest_login_description: "Continue as a guest to explore our health assessment features.",
     continue_as_guest: "Continue as Guest",
     or_login_register: "Or login/register for full features",
+    retake_assessment: "Retake",
     assessment_results: "Assessment Results",
     assessment_date: "Date",
+    health_assessments: "Health Assessments",
+    choose_assessment_type: "Choose Assessment",
     questions_answered: "Questions Answered",
     guest_assessment_warning_title: "Guest Mode Limitations",
     guest_assessment_warning_description:
@@ -164,6 +168,13 @@ const en = {
     guest_assessment_results_ai_analysis_overall_health_summary_list: "AI Overall Health Summary List",
     guest_assessment_results_ai_analysis_health_score_summary_list: "AI Health Score Summary List",
     guest_assessment_results_ai_analysis_risk_level_summary_list: "AI Risk Level Summary List",
+    card_assessment_next: "Next",
+    card_assessment_previous: "Previous",
+    card_assessment_estimated_time: "Estimated Time",
+    card_assessment_required: "Required",
+    assessment_back: "Back",
+    view_answer_details: "View Answer",
+    assessment_view_results: "View Results",
   },
 } as const
 

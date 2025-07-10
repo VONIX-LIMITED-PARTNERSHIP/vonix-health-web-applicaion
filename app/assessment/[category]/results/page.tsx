@@ -369,11 +369,6 @@ export default function AssessmentResultsPage({ params }: AssessmentResultsPageP
             <ArrowLeft className="mr-2 h-4 w-4" />
             {t("back")}
           </Button>
-
-          <Button variant="outline" onClick={handleShare}>
-            <Share2 className="mr-2 h-4 w-4" />
-            {t("share_results")}
-          </Button>
         </div>
       </div>
     </div>

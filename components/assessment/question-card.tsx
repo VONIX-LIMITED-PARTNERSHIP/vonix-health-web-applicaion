@@ -45,7 +45,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
         (typeof value === "string" && value.trim() === "") ||
         (Array.isArray(value) && value.length === 0)
       ) {
-        return { valid: false, message: "กรุณาตอบคำถามนี้" }
+        return { valid: false, message: "" }
       }
     }
 
@@ -282,7 +282,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
           {question.required && (
             <div className="flex items-center text-red-500 text-xs bg-red-50 px-2 py-1 rounded-full">
               <AlertCircle className="w-3 h-3 mr-1" />
-              จำเป็น
+              
             </div>
           )}
         </div>
