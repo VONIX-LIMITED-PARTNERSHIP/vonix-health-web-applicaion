@@ -140,7 +140,6 @@ const th = {
     this_data_not_saved: "ข้อมูลนี้ไม่ถูกบันทึก",
     assessment_date: "วันที่ประเมิน",
     ai_summary: "สรุปผลการวิเคราะห์โดย AI",
-    overall_risk_level: "ระดับความเสี่ยงโดยรวม",
     score: "คะแนน",
     retake_assessment: "ทำใหม่",
     view_answer_details: "ดูคำตอบ",
@@ -309,6 +308,14 @@ const th = {
     card_assessment_required: "จำเป็น",
     assessment_back: "กลับสู่หน้าหลัก",
     assessment_view_results: "ดูผลลัพธ์",
+    guest_health_overview_title: "ภาพรวมสุขภาพ",
+    guest_health_overview_description: "สรุปผลการประเมินสุขภาพของคุณจากแบบประเมินทั้งหมด",
+
+    total_assessments: "จำนวนแบบประเมิน",
+    last_assessment: "การประเมินล่าสุด",
+    overall_risk_level: "ระดับความเสี่ยงโดยรวม",
+
+    your_assessments_title: "ประวัติการประเมินของคุณ",
   },
   assessment: {
     basic_info: "ข้อมูลพื้นฐาน",

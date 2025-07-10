@@ -175,6 +175,15 @@ const en = {
     assessment_back: "Back",
     view_answer_details: "View Answer",
     assessment_view_results: "View Results",
+
+    guest_health_overview_title: "Guest Health Overview",
+    guest_health_overview_description: "Summary of your health assessment results. This view is based on your anonymous session.",
+
+    total_assessments: "Total Assessments",
+    last_assessment: "Last Assessment",
+    overall_risk_level: "Overall Risk Level",
+
+    your_assessments_title: "Your Assessment History"
   },
 } as const
 
