@@ -13,7 +13,6 @@ import { Header } from "@/components/header"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/hooks/use-translation" // Import useTranslation
-import { redirect } from "next/navigation" // Import redirect
 
 export default function LoginPage() {
   const router = useRouter()
@@ -25,7 +24,7 @@ export default function LoginPage() {
   const { t } = useTranslation() // Use translation hook
 
   // 👋 Block normal login. Send everyone to the guest-login page.
-  redirect("/guest-login")
+  // redirect("/guest-login")
 
   // Redirect immediately to guest login
   useEffect(() => {

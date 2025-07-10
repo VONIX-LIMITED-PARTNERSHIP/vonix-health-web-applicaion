@@ -1,142 +1,133 @@
 "use client"
 
-/** Health-risk categories used throughout the app. */
-export type RiskLevel = "low" | "medium" | "high" | "very-high" | "unknown"
-
-/** English / Thai pair for a given risk-level value. */
-export interface BilingualText {
-  en: string
-  th: string
-}
-
-/** Row model for UI components like <Select>, <RadioGroup>, etc. */
-export interface BilingualRiskLevel extends BilingualText {
-  value: RiskLevel
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                  Helpers                                   */
-/* -------------------------------------------------------------------------- */
-
-const RISK_LABELS: Record<RiskLevel, BilingualText> = {
-  low: { en: "Low Risk", th: "ความเสี่ยงต่ำ" },
-  medium: { en: "Medium Risk", th: "ความเสี่ยงปานกลาง" },
-  high: { en: "High Risk", th: "ความเสี่ยงสูง" },
-  "very-high": { en: "Very High Risk", th: "ความเสี่ยงสูงมาก" },
-  unknown: { en: "Unknown", th: "ไม่ทราบ" },
-}
-
-const RISK_DESCRIPTIONS: Record<RiskLevel, BilingualText> = {
-  low: {
-    en: "Your health assessment indicates a low risk. Continue with your healthy habits!",
-    th: "ผลการประเมินสุขภาพของคุณมีความเสี่ยงต่ำ โปรดรักษาสุขภาพที่ดีต่อไป!",
-  },
-  medium: {
-    en: "Your health assessment indicates a medium risk. Consider reviewing your habits.",
-    th: "ผลการประเมินสุขภาพของคุณมีความเสี่ยงปานกลาง ควรพิจารณาทบทวนพฤติกรรมของคุณ",
-  },
-  high: {
-    en: "Your health assessment indicates a high risk. It is recommended to consult a doctor.",
-    th: "ผลการประเมินสุขภาพของคุณมีความเสี่ยงสูง แนะนำให้ปรึกษาแพทย์",
-  },
-  "very-high": {
-    en: "Your health assessment indicates a very high risk. Urgent medical consultation is advised.",
-    th: "ผลการประเมินสุขภาพของคุณมีความเสี่ยงสูงมาก แนะนำให้ปรึกษาแพทย์โดยด่วน",
-  },
-  unknown: {
-    en: "Unable to determine risk level. Please ensure all questions are answered.",
-    th: "ไม่สามารถระบุระดับความเสี่ยงได้ โปรดตรวจสอบว่าตอบคำถามครบถ้วน",
-  },
-}
-
 /**
- * Return a locale-specific label for a risk level.
- * Defaults to English if the caller passes an unsupported locale.
+ * Utilities for translating and styling health-risk levels.
  */
-export function getRiskLevelText(riskLevel: RiskLevel | string, locale: "en" | "th" = "en"): string {
-  const level = (riskLevel as RiskLevel) in RISK_LABELS ? (riskLevel as RiskLevel) : "unknown"
-  return RISK_LABELS[level][locale] ?? RISK_LABELS[level].en
-}
-
-/**
- * Return a locale-specific description for a risk level.
- * Defaults to English if the caller passes an unsupported locale.
- */
-export function getRiskLevelDescription(riskLevel: RiskLevel | string, locale: "en" | "th" = "en"): string {
-  const level = (riskLevel as RiskLevel) in RISK_DESCRIPTIONS ? (riskLevel as RiskLevel) : "unknown"
-  return RISK_DESCRIPTIONS[level][locale] ?? RISK_DESCRIPTIONS[level].en
-}
-
-/**
- * Return both EN & TH labels for a single risk level.
- */
-export function getBilingualText(riskLevel: RiskLevel | string): BilingualText {
-  const level = (riskLevel as RiskLevel) in RISK_LABELS ? (riskLevel as RiskLevel) : "unknown"
-  return RISK_LABELS[level]
-}
-
-/**
- * Convenience array of all risk levels with EN / TH labels.
- * Handy for form options and table rows.
- */
-export function getBilingualArray(): BilingualRiskLevel[] {
-  return (Object.keys(RISK_LABELS) as RiskLevel[]).map((value) => ({
-    value,
-    ...RISK_LABELS[value],
-  }))
-}
-
-/**
- * Tailwind classes for colouring a shadcn/ui <Badge>.
- */
-export function getRiskLevelBadgeClass(riskLevel: RiskLevel | string): string {
-  switch (riskLevel) {
-    case "low":
-      return "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100"
-    case "medium":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100"
-    case "high":
-      return "bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-100"
-    case "very-high":
-      return "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100"
-    default:
-      return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
-  }
-}
-
-/**
- * Plain HEX colour for charts / inline styles.
- */
-export function getRiskLevelColor(riskLevel: RiskLevel | string): string {
-  switch (riskLevel) {
-    case "low":
-      return "#22c55e" // emerald-500
-    case "medium":
-      return "#eab308" // yellow-500
-    case "high":
-      return "#f97316" // orange-500
-    case "very-high":
-      return "#ef4444" // red-500
-    default:
-      return "#6b7280" // gray-500
-  }
-}
 
 import { useLanguage } from "@/contexts/language-context"
 
-/**
- * React hook that returns a helper for translating risk‐level
- * enums/strings into the current UI language.
- *
- * Usage:
- *   const { getRiskLevelLabel } = useRiskLevelTranslation()
- *   const label = getRiskLevelLabel("high")   // → "High Risk" or "ความเสี่ยงสูง"
- */
+/* -------------------------------------------------------------------------- */
+/* Types & static tables                                                      */
+/* -------------------------------------------------------------------------- */
+
+export type RiskLevel = "low" | "medium" | "high" | "very-high" | "unknown"
+
+type Lang = "en" | "th"
+
+interface RiskMeta {
+  label: { en: string; th: string }
+  description: { en: string; th: string }
+  color: string // Tailwind text-color class
+}
+
+const RISK_META: Record<RiskLevel, RiskMeta> = {
+  low: {
+    label: { en: "Low", th: "ต่ำ" },
+    description: {
+      en: "Your risk is low. Keep up the healthy lifestyle.",
+      th: "ความเสี่ยงของคุณต่ำ รักษาวิถีชีวิตที่ดีต่อไป",
+    },
+    color: "text-green-600",
+  },
+  medium: {
+    label: { en: "Medium", th: "ปานกลาง" },
+    description: {
+      en: "Your risk is moderate. Some improvements are advised.",
+      th: "ความเสี่ยงปานกลาง ควรปรับปรุงพฤติกรรมบางอย่าง",
+    },
+    color: "text-yellow-600",
+  },
+  high: {
+    label: { en: "High", th: "สูง" },
+    description: {
+      en: "Your risk is high. Consult a health professional.",
+      th: "ความเสี่ยงสูง ควรปรึกษาผู้เชี่ยวชาญด้านสุขภาพ",
+    },
+    color: "text-orange-600",
+  },
+  "very-high": {
+    label: { en: "Very High", th: "สูงมาก" },
+    description: {
+      en: "Your risk is very high! Seek medical advice urgently.",
+      th: "ความเสี่ยงสูงมาก! ควรพบแพทย์โดยด่วน",
+    },
+    color: "text-red-600",
+  },
+  unknown: {
+    label: { en: "Unknown", th: "ไม่ทราบ" },
+    description: {
+      en: "Risk level could not be determined.",
+      th: "ไม่สามารถระบุระดับความเสี่ยงได้",
+    },
+    color: "text-gray-500",
+  },
+}
+
+/* -------------------------------------------------------------------------- */
+/* Pure helpers                                                               */
+/* -------------------------------------------------------------------------- */
+
+/** Normalises any input string into a `RiskLevel` key or "unknown". */
+function normalise(level?: string | null): RiskLevel {
+  const key = level?.toLowerCase?.() as RiskLevel | undefined
+  return key && key in RISK_META ? key : "unknown"
+}
+
+/** e.g. "Low" / "ต่ำ" */
+export function getRiskLevelLabel(level?: string, lang: Lang = "en"): string {
+  return RISK_META[normalise(level)].label[lang]
+}
+
+/** Localised sentence-length explanation */
+export function getRiskLevelDescription(level?: string, lang: Lang = "en"): string {
+  return RISK_META[normalise(level)].description[lang]
+}
+
+/** Alias kept for backwards compatibility */
+export const getRiskLevelText = getRiskLevelLabel
+
+/** Tailwind text-color class (e.g. "text-red-600") */
+export function getRiskLevelColor(level?: string): string {
+  return RISK_META[normalise(level)].color
+}
+
+/** Tailwind classes for a coloured badge background/foreground */
+export function getRiskLevelBadgeClass(level?: string): string {
+  switch (normalise(level)) {
+    case "low":
+      return "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
+    case "medium":
+      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200"
+    case "high":
+      return "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200"
+    case "very-high":
+      return "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200"
+    default:
+      return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+  }
+}
+
+/* Generic bilingual helpers some pages call directly */
+export function getBilingualText(en: string, th: string, lang: Lang = "en") {
+  return lang === "th" ? th : en
+}
+export function getBilingualArray<T>(enArr: T[], thArr: T[], lang: Lang = "en") {
+  return lang === "th" ? thArr : enArr
+}
+
+/* -------------------------------------------------------------------------- */
+/* React-aware hook                                                           */
+/* -------------------------------------------------------------------------- */
+
 export function useRiskLevelTranslation() {
   const { locale } = useLanguage()
+  const lang: Lang = locale === "th" ? "th" : "en"
 
-  const getRiskLevelLabel = (riskLevel: RiskLevel | string) =>
-    getRiskLevelText(riskLevel, locale === "th" ? "th" : "en")
-
-  return { getRiskLevelLabel }
+  return {
+    getRiskLevelLabel: (level?: string) => getRiskLevelLabel(level, lang),
+    getRiskLevelDescription: (level?: string) => getRiskLevelDescription(level, lang),
+    // handy extras
+    getRiskLevelColor,
+    getRiskLevelBadgeClass,
+  }
 }
