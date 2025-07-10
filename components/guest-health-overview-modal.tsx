@@ -26,7 +26,6 @@ import {
   Award,
   Zap,
   Eye,
-  ChevronRight,
 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
 import { useLanguage } from "@/contexts/language-context"
@@ -378,8 +377,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
                       return (
                         <Card
                           key={assessment.id}
-                          className="group relative overflow-hidden bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 rounded-2xl"
-                          onClick={() => handleViewAssessmentResults(assessment)}
+                          className="group relative overflow-hidden bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-default border-0 rounded-2xl"
                         >
                           <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-black/20 dark:to-transparent"></div>
                           <CardContent className="p-6 relative">
@@ -400,7 +398,6 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
                                   </p>
                                 </div>
                               </div>
-                              <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all duration-300" />
                             </div>
 
                             <div className="space-y-4">
@@ -438,42 +435,42 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
               {/* Recommendations Section */}
               {/* ลบส่วนนี้ออกไปก่อนตามคำขอ */}
               {/*
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white">
-                    <CheckCircle className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {t("general_recommendations_title", { ns: "guest_health_overview" })}
-                  </h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+                  <CheckCircle className="h-6 w-6" />
                 </div>
-
-                {dashboardStats?.recommendations && dashboardStats.recommendations.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {dashboardStats.recommendations.map((recommendation, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800"
-                      >
-                        <div className="p-1 rounded-full bg-green-500 text-white flex-shrink-0 mt-1">
-                          <CheckCircle className="h-4 w-4" />
-                        </div>
-                        <span className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
-                          {recommendation}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-200 dark:border-gray-600">
-                    <div className="p-3 rounded-full bg-gray-200 dark:bg-gray-600 w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                      <Info className="h-6 w-6 text-gray-500 dark:text-gray-400" />
-                    </div>
-                    <p className="text-gray-500 dark:text-gray-400">{t("no_recommendations_yet")}</p>
-                  </div>
-                )}
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {t("general_recommendations_title", { ns: "guest_health_overview" })}
+                </h3>
               </div>
-              */}
+
+              {dashboardStats?.recommendations && dashboardStats.recommendations.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {dashboardStats.recommendations.map((recommendation, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800"
+                    >
+                      <div className="p-1 rounded-full bg-green-500 text-white flex-shrink-0 mt-1">
+                        <CheckCircle className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
+                        {recommendation}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-200 dark:border-gray-600">
+                  <div className="p-3 rounded-full bg-gray-200 dark:bg-gray-600 w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                    <Info className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400">{t("no_recommendations_yet")}</p>
+                </div>
+              )}
+            </div>
+            */}
             </div>
           </ScrollArea>
         )}
