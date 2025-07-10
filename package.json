@@ -8,6 +8,9 @@
     "lint": "next lint",
     "start": "next start"
   },
+  "resolutions": {
+    "zod": "3.22.4"
+  },
   "overrides": {
     "zod": "3.22.4"
   },
@@ -53,11 +56,11 @@
     "embla-carousel-react": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
-    "next": "14.2.16",
+    "next": "15.2.4",
     "next-themes": "latest",
-    "react": "^18",
+    "react": "^19",
     "react-day-picker": "latest",
-    "react-dom": "^18",
+    "react-dom": "^19",
     "react-hook-form": "latest",
     "react-icons": "latest",
     "react-resizable-panels": "latest",
@@ -70,15 +73,12 @@
   },
   "devDependencies": {
     "@types/node": "^22",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "eslint": "^8.57.1",
     "eslint-config-next": "15.0.3",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.14",
     "typescript": "^5"
-  },
-  "pnpm": {
-    "packageManager": "pnpm@8.15.4"
   }
 }

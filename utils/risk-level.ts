@@ -1,112 +1,116 @@
-/**
- * Central helpers for mapping risk-level strings to display text, colors, etc.
- * Every function is pure so it can be re-used in Server or Client Components.
- */
+import { useTranslation } from "@/hooks/use-translation"
 
-export type RiskLevel = "low" | "medium" | "high" | "critical" | "unknown"
+export type RiskLevel = "low" | "moderate" | "high" | "critical" | "unknown"
 
-interface RiskMeta {
-  label: { en: string; th: string }
-  description: { en: string; th: string }
-  color: string // tailwind color e.g. bg-green-500
-  badgeClass: string // ready-to-use badge classes
+export interface BilingualText {
+  en: string
+  th: string
 }
 
-const RISK_META: Record<RiskLevel, RiskMeta> = {
+export interface RiskLevelMeta {
+  label: BilingualText
+  description: BilingualText
+  color: string
+  badgeClass: string
+}
+
+const RISK_META: Record<RiskLevel, RiskLevelMeta> = {
   low: {
-    label: { en: "Low", th: "ต่ำ" },
-    description: {
-      en: "Your current health risk is low.",
-      th: "ความเสี่ยงด้านสุขภาพของคุณอยู่ในระดับต่ำ",
-    },
-    color: "green-500",
-    badgeClass: "bg-green-500 text-white",
+    label: { en: "Low Risk", th: "ความเสี่ยงต่ำ" },
+    description: { en: "Your health indicators are within normal ranges.", th: "ตัวชี้วัดสุขภาพของคุณอยู่ในเกณฑ์ปกติ" },
+    color: "#22c55e",
+    badgeClass: "bg-green-100 text-green-800 border-green-200",
   },
-  medium: {
-    label: { en: "Medium", th: "ปานกลาง" },
-    description: {
-      en: "You have a moderate health risk.",
-      th: "คุณมีความเสี่ยงปานกลางด้านสุขภาพ",
-    },
-    color: "yellow-500",
-    badgeClass: "bg-yellow-500 text-black",
+  moderate: {
+    label: { en: "Moderate Risk", th: "ความเสี่ยงปานกลาง" },
+    description: { en: "Some health indicators need attention.", th: "ตัวชี้วัดสุขภาพบางอย่างต้องการความใส่ใจ" },
+    color: "#f59e0b",
+    badgeClass: "bg-yellow-100 text-yellow-800 border-yellow-200",
   },
   high: {
-    label: { en: "High", th: "สูง" },
+    label: { en: "High Risk", th: "ความเสี่ยงสูง" },
     description: {
-      en: "Your health risk is high.",
-      th: "คุณมีความเสี่ยงด้านสุขภาพสูง",
+      en: "Multiple health indicators require immediate attention.",
+      th: "ตัวชี้วัดสุขภาพหลายอย่างต้องการความใส่ใจทันที",
     },
-    color: "orange-500",
-    badgeClass: "bg-orange-500 text-white",
+    color: "#ef4444",
+    badgeClass: "bg-red-100 text-red-800 border-red-200",
   },
   critical: {
-    label: { en: "Critical", th: "วิกฤต" },
-    description: {
-      en: "Immediate attention required!",
-      th: "ต้องการการดูแลทันที!",
-    },
-    color: "red-600",
-    badgeClass: "bg-red-600 text-white",
+    label: { en: "Critical Risk", th: "ความเสี่ยงวิกฤต" },
+    description: { en: "Urgent medical consultation recommended.", th: "แนะนำให้ปรึกษาแพทย์อย่างเร่งด่วน" },
+    color: "#dc2626",
+    badgeClass: "bg-red-200 text-red-900 border-red-300",
   },
   unknown: {
     label: { en: "Unknown", th: "ไม่ทราบ" },
-    description: {
-      en: "Risk data is unavailable.",
-      th: "ไม่พบข้อมูลความเสี่ยง",
-    },
-    color: "gray-400",
-    badgeClass: "bg-gray-400 text-black",
+    description: { en: "Unable to determine risk level.", th: "ไม่สามารถระบุระดับความเสี่ยงได้" },
+    color: "#6b7280",
+    badgeClass: "bg-gray-100 text-gray-800 border-gray-200",
   },
 }
 
-/* ────────────────────────────  Normalisation  ─────────────────────────────── */
-
-function normalise(level?: string | null): RiskLevel {
+function normalizeRiskLevel(level: string | null | undefined): RiskLevel {
   if (!level) return "unknown"
-  const key = level.toLowerCase() as RiskLevel
-  return (Object.keys(RISK_META) as RiskLevel[]).includes(key) ? key : "unknown"
+  const normalized = level.toLowerCase().trim()
+  if (normalized === "low") return "low"
+  if (normalized === "moderate" || normalized === "medium") return "moderate"
+  if (normalized === "high") return "high"
+  if (normalized === "critical" || normalized === "severe") return "critical"
+  return "unknown"
 }
 
-/* ────────────────────────────  Basic helpers  ─────────────────────────────── */
-
-export function getRiskLevelLabel(level?: string | null, lang: "en" | "th" = "en") {
-  return RISK_META[normalise(level)].label[lang]
+export function getRiskLevelLabel(level: string | null | undefined): BilingualText {
+  const normalizedLevel = normalizeRiskLevel(level)
+  return RISK_META[normalizedLevel].label
 }
 
-// Alias kept for backwards-compat
+export function getRiskLevelDescription(level: string | null | undefined): BilingualText {
+  const normalizedLevel = normalizeRiskLevel(level)
+  return RISK_META[normalizedLevel].description
+}
+
+export function getRiskLevelColor(level: string | null | undefined): string {
+  const normalizedLevel = normalizeRiskLevel(level)
+  return RISK_META[normalizedLevel].color
+}
+
+export function getRiskLevelBadgeClass(level: string | null | undefined): string {
+  const normalizedLevel = normalizeRiskLevel(level)
+  return RISK_META[normalizedLevel].badgeClass
+}
+
+// Alias for backward compatibility
 export const getRiskLevelText = getRiskLevelLabel
 
-export function getRiskLevelDescription(level?: string | null, lang: "en" | "th" = "en") {
-  return RISK_META[normalise(level)].description[lang]
+export function getBilingualText(text: BilingualText, language: "en" | "th" = "en"): string {
+  return text[language] || text.en || "N/A"
 }
 
-export function getRiskLevelColor(level?: string | null) {
-  return RISK_META[normalise(level)].color
+export function getBilingualArray<T extends { label: BilingualText }>(
+  items: T[],
+  language: "en" | "th" = "en",
+): Array<T & { displayLabel: string }> {
+  return items.map((item) => ({
+    ...item,
+    displayLabel: getBilingualText(item.label, language),
+  }))
 }
 
-export function getRiskLevelBadgeClass(level?: string | null) {
-  return RISK_META[normalise(level)].badgeClass
-}
+export function useRiskLevelTranslation() {
+  const { language } = useTranslation()
 
-/* ────────────────────────────  i18n helpers  ──────────────────────────────── */
-
-export function getBilingualText(enText: string, thText: string, lang: "en" | "th") {
-  return lang === "th" ? thText : enText
-}
-
-export function getBilingualArray<T extends { en: string; th: string }>(items: T[], lang: "en" | "th") {
-  return items.map((i) => (lang === "th" ? i.th : i.en))
-}
-
-/**
- * React-ish helper returning memoised label / description getters
- * but can safely be called outside React.
- */
-export function useRiskLevelTranslation(lang: "en" | "th" = "en") {
   return {
-    getRiskLevelLabel: (lvl?: string | null) => getRiskLevelLabel(lvl, lang),
-    getRiskLevelText: (lvl?: string | null) => getRiskLevelLabel(lvl, lang),
-    getRiskLevelDescription: (lvl?: string | null) => getRiskLevelDescription(lvl, lang),
+    getRiskLevelLabel: (level: string | null | undefined) => {
+      const label = getRiskLevelLabel(level)
+      return getBilingualText(label, language as "en" | "th")
+    },
+    getRiskLevelDescription: (level: string | null | undefined) => {
+      const description = getRiskLevelDescription(level)
+      return getBilingualText(description, language as "en" | "th")
+    },
+    getRiskLevelColor,
+    getRiskLevelBadgeClass,
+    language,
   }
 }
