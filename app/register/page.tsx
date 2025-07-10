@@ -1,6 +1,8 @@
 "use client"
 
 import type React from "react"
+import { redirect } from "next/navigation"
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -16,6 +18,9 @@ import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/hooks/use-translation"
 
 export default function RegisterPage() {
+  // 👋 Block normal register. Send everyone to the guest-login page.
+  redirect("/guest-login")
+
   const router = useRouter()
   const { signUp, user, loading: authLoading } = useAuth()
   const { toast } = useToast()

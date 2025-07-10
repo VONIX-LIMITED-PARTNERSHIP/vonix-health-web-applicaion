@@ -1,5 +1,5 @@
 {
-  "name": "vonix-health-dashboard",
+  "name": "my-v0-project",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,16 +8,9 @@
     "lint": "next lint",
     "start": "next start"
   },
-  "resolutions": {
-    "zod": "3.22.4"
-  },
-  "overrides": {
-    "zod": "3.22.4"
-  },
   "dependencies": {
     "@ai-sdk/openai": "latest",
     "@hookform/resolvers": "latest",
-    "@neondatabase/serverless": "^0.10.1",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",
@@ -46,9 +39,9 @@
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@supabase/auth-helpers-nextjs": "latest",
-    "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "latest",
     "ai": "latest",
+    "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "latest",
@@ -56,11 +49,11 @@
     "embla-carousel-react": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
-    "next": "15.2.4",
+    "next": "14.2.16",
     "next-themes": "latest",
-    "react": "^19",
+    "react": "^18",
     "react-day-picker": "latest",
-    "react-dom": "^19",
+    "react-dom": "^18",
     "react-hook-form": "latest",
     "react-icons": "latest",
     "react-resizable-panels": "latest",
@@ -73,12 +66,10 @@
   },
   "devDependencies": {
     "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^8.57.1",
-    "eslint-config-next": "15.0.3",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
     "postcss": "^8.5",
-    "tailwindcss": "^3.4.14",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }
 }
