@@ -536,7 +536,7 @@ export function HealthOverviewModal({
                             <div className="text-right">
                               {assessment.category_id !== "basic" ? (
                                 <Badge
-                                  className={`${getRiskLevelBadgeClass(assessment.risk_level)} text-white px-3 py-1 text-sm font-medium`}
+                                  className={`${getRiskLevelBadgeClass(assessment.risk_level)} px-3 py-1 text-sm font-medium`}
                                 >
                                   {getRiskLevelLabel(assessment.risk_level)}
                                 </Badge>

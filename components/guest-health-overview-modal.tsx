@@ -108,7 +108,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
     if (riskLevel === "very-high") Icon = XCircle
 
     return (
-      <Badge className={`flex items-center gap-1 ${colorClass} text-white px-2 py-1 rounded-full text-xs font-medium`}>
+      <Badge className={`flex items-center gap-1 ${colorClass} px-2 py-1 rounded-full text-xs font-medium`}>
         <Icon className="h-3 w-3" />
         {label}
       </Badge>
