@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,7 +10,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import {
-  Calendar,
   Clock,
   Video,
   Stethoscope,
@@ -17,8 +17,9 @@ import {
   ArrowRight,
   Users,
   Star,
-  CalendarDays,
-  History,
+  CalendarIcon,
+  HistoryIcon,
+  PhoneCall,
 } from "lucide-react"
 
 // Mock data
@@ -78,6 +79,12 @@ const mockDoctors = [
 
 export default function TelemedicinePage() {
   const [mounted, setMounted] = useState(false)
+  const router = useRouter()
+
+  const handleJoinConsultation = () => {
+    // Navigate to a mock consultation room, using a placeholder ID '1'
+    router.push("/telemedicine/consultation/1")
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -167,7 +174,7 @@ export default function TelemedicinePage() {
             <CardContent className="p-8">
               <div className="flex items-center mb-6">
                 <div className="p-3 rounded-full bg-blue-500 text-white mr-4">
-                  <Calendar className="h-6 w-6" />
+                  <CalendarIcon className="h-6 w-6" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 dark:text-white">จองนัดหมาย</h3>
@@ -187,7 +194,7 @@ export default function TelemedicinePage() {
             <CardContent className="p-8">
               <div className="flex items-center mb-6">
                 <div className="p-3 rounded-full bg-green-500 text-white mr-4">
-                  <History className="h-6 w-6" />
+                  <HistoryIcon className="h-6 w-6" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 dark:text-white">ประวัติการปรึกษา</h3>
@@ -212,7 +219,7 @@ export default function TelemedicinePage() {
         <Card className="mb-12">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5" />
+              <CalendarIcon className="h-5 w-5" />
               นัดหมายที่จะมาถึง
             </CardTitle>
           </CardHeader>
@@ -244,7 +251,7 @@ export default function TelemedicinePage() {
                           <MessageCircle className="h-4 w-4 mr-1" />
                           แชท
                         </Button>
-                        <Button size="sm" className="bg-green-500 hover:bg-green-600">
+                        <Button size="sm" className="bg-green-500 hover:bg-green-600" onClick={handleJoinConsultation}>
                           <Video className="h-4 w-4 mr-1" />
                           เข้าห้องปรึกษา
                         </Button>
@@ -254,10 +261,10 @@ export default function TelemedicinePage() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 dark:text-gray-400">ไม่มีนัดหมายที่จะมาถึง</p>
-                <Button asChild className="mt-4">
-                  <Link href="/telemedicine/book-appointment">จองนัดหมายใหม่</Link>
+                <Button asChild className="mt-4" onClick={() => router.push("/telemedicine/book-appointment")}>
+                  <Link href="#">จองนัดหมายใหม่</Link>
                 </Button>
               </div>
             )}
@@ -316,6 +323,26 @@ export default function TelemedicinePage() {
                 </Card>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Consultation Room */}
+        <Card className="shadow-lg border-blue-300 border-2 bg-blue-50 mt-10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xl font-bold text-blue-700">
+              <PhoneCall className="inline-block mr-2 h-6 w-6" />
+              เข้าห้องปรึกษาออนไลน์
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-gray-700 mb-6 text-lg">เมื่อถึงเวลานัดหมาย ท่านสามารถเข้าห้องปรึกษาเพื่อพบแพทย์ได้ทันที</p>
+            <Button
+              onClick={handleJoinConsultation}
+              className="w-full max-w-xs py-3 text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              เข้าห้องปรึกษา
+            </Button>
+            <p className="text-sm text-gray-500 mt-4">โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและอุปกรณ์ (กล้อง/ไมโครโฟน) ให้พร้อม</p>
           </CardContent>
         </Card>
       </main>

@@ -507,7 +507,7 @@ export const assessmentData = {
           },
           {
             id: "nutrition-8",
-            type: "checkbox",
+            type: "multi-select-combobox-with-other", // Changed from checkbox to multi-select-combobox-with-other
             question: "ประเภทการออกกำลังกายที่คุณทำ (เลือกได้หลายข้อ)",
             options: ["เดิน/วิ่ง", "ปั่นจักรยาน", "ว่ายน้ำ", "ยิมนาสติก/ฟิตเนส", "โยคะ", "กีฬาประเภททีม", "ไม่ออกกำลังกาย"],
             required: true,
@@ -1058,7 +1058,7 @@ export const assessmentData = {
           },
           {
             id: "nutrition-8",
-            type: "checkbox",
+            type: "multi-select-combobox-with-other", // Changed from checkbox to multi-select-combobox-with-other
             question: "Types of exercise you do (select multiple)",
             options: ["Walking/Running", "Cycling", "Swimming", "Gym/Fitness", "Yoga", "Team sports", "No exercise"],
             required: true,
