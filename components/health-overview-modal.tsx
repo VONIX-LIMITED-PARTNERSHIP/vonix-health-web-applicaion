@@ -308,7 +308,9 @@ export function HealthOverviewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
+      <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col">
+        {" "}
+        {/* Added flex flex-col */}
         <DialogHeader className="pb-6">
           <div className="flex items-center justify-between">
             <div>
@@ -333,23 +335,28 @@ export function HealthOverviewModal({
             </button>
           </div>
         </DialogHeader>
-
         {loading ? (
-          <div className="flex items-center justify-center py-16">
+          <div className="flex-1 flex items-center justify-center py-16">
+            {" "}
+            {/* Added flex-1 */}
             <div className="text-center">
               <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
               <p className="text-lg text-gray-600 dark:text-gray-400">{t("loading_details")}</p>
             </div>
           </div>
         ) : error ? (
-          <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+          <Alert className="flex-1 border-red-200 bg-red-50 dark:bg-red-900/20">
+            {" "}
+            {/* Added flex-1 */}
             <AlertTriangle className="h-5 w-5 text-red-600" />
             <AlertDescription className="text-red-800 dark:text-red-200">
               {t("error_loading_details")}: {error}
             </AlertDescription>
           </Alert>
         ) : assessments.length === 0 ? (
-          <div className="text-center py-16">
+          <div className="flex-1 text-center py-16">
+            {" "}
+            {/* Added flex-1 */}
             <div className="p-6 rounded-full bg-gray-100 dark:bg-gray-800 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
               <FileText className="h-12 w-12 text-gray-400" />
             </div>
@@ -357,8 +364,12 @@ export function HealthOverviewModal({
             <p className="text-gray-600 dark:text-gray-400 text-lg">{t("start_assessment_to_view")}</p>
           </div>
         ) : (
-          <ScrollArea className="max-h-[75vh]">
-            <div className="space-y-8">
+          <ScrollArea className="flex-1">
+            {" "}
+            {/* Changed max-h-[75vh] to flex-1 */}
+            <div className="space-y-8 pb-4">
+              {" "}
+              {/* Added pb-4 for padding at bottom of scroll area */}
               {/* Dashboard Overview Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Health Score */}
@@ -485,9 +496,7 @@ export function HealthOverviewModal({
                   </CardContent>
                 </Card>
               </div>
-
               <Separator className="my-8" />
-
               {/* Assessment Categories */}
               <div>
                 <div className="flex items-center gap-3 mb-6">
@@ -641,7 +650,6 @@ export function HealthOverviewModal({
             </div>
           </ScrollArea>
         )}
-
         <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
           <Button
             onClick={() => onOpenChange(false)}
