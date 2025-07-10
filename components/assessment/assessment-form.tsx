@@ -242,7 +242,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       }
     } else {
       return {
-        full: t("common.view_results"),
+        full: t("common.view_results"), // This is where common.view_results is used
         short: locale === "en" ? "View Results" : "ดูผล",
       }
     }
