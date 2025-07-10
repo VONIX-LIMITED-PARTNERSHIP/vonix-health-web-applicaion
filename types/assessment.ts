@@ -1,5 +1,12 @@
 // Define the AssessmentCategory type
-export type AssessmentCategory = "basic" | "heart" | "nutrition" | "mental" | "physical" | "sleep"
+export interface AssessmentCategory {
+  id: string
+  title: string
+  description: string
+  icon: string
+  questions: AssessmentQuestion[]
+  estimatedTime: number
+}
 
 // Define the AssessmentQuestion type
 export interface AssessmentQuestion {
@@ -49,9 +56,7 @@ export interface BilingualArray {
 
 // Updated AssessmentResult interface with bilingual support
 export interface AssessmentResult {
-  id: string // Add unique ID for each assessment result
-  categoryId: AssessmentCategory // Change to use AssessmentCategory type
-  completedAt: string // ISO string date of completion
+  categoryId: string
   totalScore: number
   maxScore: number
   percentage: number
@@ -59,7 +64,6 @@ export interface AssessmentResult {
   riskFactors: string[] | BilingualArray
   recommendations: string[] | BilingualArray
   summary?: string | BilingualText
-  answers: AssessmentAnswer[] // Add answers to store the actual responses
 }
 
 // AI Analysis result type
@@ -69,15 +73,6 @@ export interface AIAnalysisResult {
   riskFactors: BilingualArray
   recommendations: BilingualArray
   summary: BilingualText
-}
-
-// Dashboard stats interface
-export interface DashboardStats {
-  totalAssessments: number
-  lastAssessmentDate: string | null
-  riskLevels: { [key in AssessmentCategory]?: "low" | "medium" | "high" | "very-high" }
-  overallRisk: "low" | "medium" | "high" | "very-high" | "unknown"
-  recommendations: string[]
 }
 
 // Saved assessment type

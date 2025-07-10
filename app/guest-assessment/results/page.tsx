@@ -13,7 +13,6 @@ import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { useTranslation } from "@/hooks/use-translation"
 import { useLanguage } from "@/contexts/language-context"
 import { getRiskLevelBadgeClass } from "@/utils/risk-level"
-import { getAssessmentCategories } from "@/data/assessment-questions"
 
 export default function GuestAssessmentResultsPage() {
   const router = useRouter()
@@ -40,7 +39,7 @@ export default function GuestAssessmentResultsPage() {
     }
 
     loadAssessmentResults()
-  }, [guestUser, categoryId, locale])
+  }, [guestUser, categoryId])
 
   const loadAssessmentResults = () => {
     try {
@@ -95,13 +94,6 @@ export default function GuestAssessmentResultsPage() {
       hour: "2-digit",
       minute: "2-digit",
     })
-  }
-
-  // Get category title from assessment categories
-  const getCategoryTitle = (categoryId: string) => {
-    const categories = getAssessmentCategories(locale)
-    const category = categories.find((cat) => cat.id === categoryId)
-    return category?.title || categoryId
   }
 
   if (!guestUser) {
@@ -176,7 +168,7 @@ export default function GuestAssessmentResultsPage() {
                   {locale === "th" ? "ทดลองใช้งาน" : "Guest Mode"}
                 </Badge>
               </CardTitle>
-              <p className="text-gray-600 dark:text-gray-400">{getCategoryTitle(assessment.category_id)}</p>
+              <p className="text-gray-600 dark:text-gray-400">{assessment.category_title}</p>
             </CardHeader>
           </Card>
         </div>
@@ -222,11 +214,9 @@ export default function GuestAssessmentResultsPage() {
                 <div className="text-lg text-gray-600 dark:text-gray-400">
                   {assessment.percentage}% {locale === "th" ? "จากคะแนนเต็ม" : "of total score"}
                 </div>
-                {assessment.answers && (
-                  <div className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-                    {assessment.answers.length} {t("questions_answered")}
-                  </div>
-                )}
+                <div className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                  {assessment.answers.length} {t("questions_answered")}
+                </div>
               </CardContent>
             </Card>
 
@@ -256,8 +246,8 @@ export default function GuestAssessmentResultsPage() {
                 <CardContent>
                   <ul className="space-y-2">
                     {(locale === "th"
-                      ? assessment.ai_analysis.riskFactors.th || assessment.ai_analysis.riskFactors
-                      : assessment.ai_analysis.riskFactors.en || assessment.ai_analysis.riskFactors
+                      ? assessment.ai_analysis.riskFactors.th
+                      : assessment.ai_analysis.riskFactors.en
                     ).map((factor: string, index: number) => (
                       <li key={index} className="flex items-start gap-2">
                         <span className="text-orange-500 mt-1">•</span>
@@ -281,8 +271,8 @@ export default function GuestAssessmentResultsPage() {
                 <CardContent>
                   <ul className="space-y-2">
                     {(locale === "th"
-                      ? assessment.ai_analysis.recommendations.th || assessment.ai_analysis.recommendations
-                      : assessment.ai_analysis.recommendations.en || assessment.ai_analysis.recommendations
+                      ? assessment.ai_analysis.recommendations.th
+                      : assessment.ai_analysis.recommendations.en
                     ).map((recommendation: string, index: number) => (
                       <li key={index} className="flex items-start gap-2">
                         <span className="text-green-500 mt-1">•</span>
@@ -305,9 +295,7 @@ export default function GuestAssessmentResultsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-700 dark:text-gray-300">
-                    {locale === "th"
-                      ? assessment.ai_analysis.summary.th || assessment.ai_analysis.summary
-                      : assessment.ai_analysis.summary.en || assessment.ai_analysis.summary}
+                    {locale === "th" ? assessment.ai_analysis.summary.th : assessment.ai_analysis.summary.en}
                   </p>
                 </CardContent>
               </Card>
@@ -326,7 +314,7 @@ export default function GuestAssessmentResultsPage() {
                   <Link href="/">{locale === "th" ? "กลับหน้าหลัก" : "Back to Home"}</Link>
                 </Button>
                 <Button variant="outline" className="w-full bg-transparent" asChild>
-                  <Link href={`/guest-assessment?category=${assessment.category_id}`}>
+                  <Link href={`/assessment/${assessment.category_id}`}>
                     {locale === "th" ? "ทำแบบประเมินใหม่" : "Retake Assessment"}
                   </Link>
                 </Button>

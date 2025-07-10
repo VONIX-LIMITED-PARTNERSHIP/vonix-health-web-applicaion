@@ -1,5 +1,4 @@
 import type { AssessmentCategory, AssessmentResult, DashboardStats } from "@/types/assessment"
-import { v4 as uuidv4 } from "uuid"
 
 // This is a workaround to use useTranslation in a static class method.
 // In a real application, you might pass the `t` function as an argument
@@ -17,22 +16,11 @@ export class GuestAssessmentService {
   private static readonly DASHBOARD_STATS_KEY = "guest-dashboard-stats"
   private static readonly AI_ANALYSIS_KEY_PREFIX = "guest-ai-analysis-"
 
-  static saveAssessment(
-    category: AssessmentCategory,
-    result: Omit<AssessmentResult, "id" | "categoryId" | "completedAt">,
-  ) {
+  static saveAssessment(category: AssessmentCategory, result: AssessmentResult) {
     try {
-      // Create a complete AssessmentResult with ID and timestamp
-      const completeResult: AssessmentResult = {
-        ...result,
-        id: uuidv4(), // Generate unique ID
-        categoryId: category,
-        completedAt: new Date().toISOString(),
-      }
-
       const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
-      localStorage.setItem(key, JSON.stringify(completeResult))
-      GuestAssessmentService.updateDashboardStats(category, completeResult)
+      localStorage.setItem(key, JSON.stringify(result))
+      GuestAssessmentService.updateDashboardStats(category, result)
     } catch (error) {
       console.error("Error saving guest assessment:", error)
     }
@@ -188,7 +176,6 @@ export class GuestAssessmentService {
     return GuestAssessmentService.getDashboardStats()
   }
 
-  // Updated method to get assessment by category for results page
   static getAssessmentByCategory(categoryId: string): any | null {
     try {
       const assessment = GuestAssessmentService.getAssessment(categoryId as AssessmentCategory)
@@ -197,21 +184,17 @@ export class GuestAssessmentService {
       // Convert to format expected by results page
       return {
         id: assessment.id,
-        category_id: assessment.categoryId,
+        category_id: assessment.category,
         category_title: categoryId, // You might want to get the actual title from assessment categories
         answers: assessment.answers,
-        total_score: assessment.totalScore,
-        max_score: assessment.maxScore,
-        percentage: assessment.percentage,
+        total_score: assessment.score,
+        max_score: 100,
+        percentage: assessment.score,
         risk_level: assessment.riskLevel,
-        risk_factors: Array.isArray(assessment.riskFactors) ? assessment.riskFactors : [],
-        recommendations: Array.isArray(assessment.recommendations) ? assessment.recommendations : [],
+        risk_factors: assessment.aiAnalysis?.riskFactors?.th || [],
+        recommendations: assessment.aiAnalysis?.recommendations?.th || [],
         completed_at: assessment.completedAt,
-        ai_analysis: {
-          riskFactors: assessment.riskFactors,
-          recommendations: assessment.recommendations,
-          summary: assessment.summary,
-        },
+        ai_analysis: assessment.aiAnalysis,
       }
     } catch (error) {
       console.error("Error getting guest assessment by category:", error)
