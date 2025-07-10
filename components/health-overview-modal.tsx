@@ -513,7 +513,8 @@ export function HealthOverviewModal({
                     return (
                       <Card
                         key={assessment.id}
-                        className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+                        className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm cursor-pointer" // Add cursor-pointer
+                        onClick={() => handleViewResults(assessment)} // Add onClick handler
                       >
                         <CardHeader className="pb-4">
                           <div className="flex items-start justify-between">
@@ -622,6 +623,7 @@ export function HealthOverviewModal({
                           )}
 
                           {/* View Results Button */}
+                          {/* This button is now redundant as the whole card is clickable, but keeping it for now if it has other functionality */}
                           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                             <Button
                               onClick={() => handleViewResults(assessment)}
