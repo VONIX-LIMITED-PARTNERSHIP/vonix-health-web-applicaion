@@ -407,6 +407,9 @@ const en: Dictionary = {
     view_detailed_results_button: "View Detailed Results",
     no_risk_factors_found: "No significant risk factors or recommendations found for this assessment.",
     completed_on: "Completed on", // Ensure this is present
+    retake_assessment: "Retake Assessment",
+    view_answer_details: "View Answer Details",
+    hide_answer_details: "Hide Answer Details",
   },
   assessment: {
     basic_info: "Basic Information",

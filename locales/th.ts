@@ -40,7 +40,6 @@ const th = {
     theme: "ธีม",
     dark: "มืด",
     light: "แสง",
-    loading: "กำลังโหลด",
     signing_out: "กำลังออกจากระบบ",
     sign_out: "ออกจากระบบ",
     no_profile: "ไม่มีโปรไฟล์",
@@ -156,14 +155,10 @@ const th = {
     // Guest health overview specific translations
     guest_health_overview: "ภาพรวมสุขภาพ (ทดลองใช้งาน)",
     guest_health_overview_description: "สรุปผลการประเมินสุขภาพของคุณในฐานะผู้เยี่ยมชม",
-    loading_health_data: "กำลังโหลดข้อมูลสุขภาพ",
-    total_assessments: "การประเมินทั้งหมด",
-    last_assessment: "ประเมินล่าสุด",
-    not_assessed: "ยังไม่ได้ประเมิน",
     your_assessments: "ผลการประเมินของคุณ",
-    no_assessments_found: "ไม่พบข้อมูลการประเมิน",
     general_recommendations: "คำแนะนำทั่วไป",
-    no_general_recommendations: "ไม่มีคำแนะนำทั่วไป",
+    no_assessments_found: "ไม่พบข้อมูลการประเมิน",
+    no_general_recommendations: "ยังไม่มีคำแนะนำเฉพาะเจาะจง กรุณาทำการประเมินเพิ่มเติมเพื่อรับคำแนะนำส่วนบุคคล",
     // Assessment category names
     basic_assessment: "ข้อมูลพื้นฐาน",
     heart_assessment: "สุขภาพหัวใจ",
@@ -197,6 +192,9 @@ const th = {
     no_risk_factors_found: "ไม่พบปัจจัยเสี่ยงที่สำคัญ",
     not_logged_in: "ยังไม่ได้เข้าสู่ระบบ",
     completed_on: "เสร็จสิ้นเมื่อ", // Ensure this is present
+    retake_assessment: "ทำแบบประเมินใหม่",
+    view_answer_details: "ดูรายละเอียดคำตอบ",
+    hide_answer_details: "ซ่อนรายละเอียดคำตอบ",
   },
   assessment: {
     basic_info: "ข้อมูลพื้นฐาน",

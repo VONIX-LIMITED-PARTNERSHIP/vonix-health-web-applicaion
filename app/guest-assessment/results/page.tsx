@@ -15,8 +15,6 @@ import {
   FileText,
   Loader2,
   AlertTriangle,
-  CheckCircle,
-  Shield,
   XCircle,
   TrendingUp,
   Heart,
@@ -27,6 +25,8 @@ import {
   Download,
   Share2,
   RefreshCw,
+  Shield,
+  CheckCircle,
 } from "lucide-react"
 import { GuestAssessmentService } from "@/lib/guest-assessment-service"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
