@@ -10,6 +10,7 @@ import { GuestAuthProvider } from "@/hooks/use-guest-auth"
 import { useEffect } from "react"
 import { useTranslation } from "@/hooks/use-translation"
 import { setGuestServiceTranslation } from "@/lib/guest-assessment-service"
+import { ChatWidget } from "@/components/chatbot/chat-widget" // Import ChatWidget
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation()
@@ -26,6 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <GuestAuthProvider>{children}</GuestAuthProvider>
         </AuthProvider>
         <Toaster />
+        <ChatWidget /> {/* Add ChatWidget here to render it globally */}
       </LanguageProviderClient>
     </ThemeProvider>
   )
