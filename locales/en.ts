@@ -188,7 +188,8 @@ const en = {
     overall_risk_level: "Overall Risk Level",
     your_assessments_title: "Your Assessment History",
     no_assessments_completed: "No assessments completed yet.",
-
+    processing: "Processing",
+    processing_short: "Processing",
     share_results: "Share",
 
     download_pdf: "Download PDF",
