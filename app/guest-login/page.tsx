@@ -185,8 +185,8 @@ export default function GuestLoginPage() {
                 <div className="text-sm text-yellow-800 dark:text-yellow-200">
                   <strong>{locale === "th" ? "หมายเหตุ:" : "Note:"}</strong>{" "}
                   {locale === "th"
-                    ? "ข้อมูลในโหมดทดลองใช้งานจะถูกเก็บไว้ในเครื่องของคุณเท่านั้น และจะหายไปเมื่อล้างข้อมูลเบราว์เซอร์ หากต้องการเก็บข้อมูลถาวร กรุณาสมัครสมาชิก"
-                    : "Data in trial mode is stored locally on your device only and will be lost when browser data is cleared. For permanent data storage, please register for an account."}
+                    ? "ข้อมูลในโหมดทดลองใช้งานจะถูกเก็บไว้ในเครื่องของคุณเท่านั้น และจะหายไปเมื่อล้างข้อมูลเบราว์เซอร์"
+                    : "Data in trial mode is stored locally on your device only and will be lost when browser data is cleared."}
                 </div>
               </div>
             </CardContent>

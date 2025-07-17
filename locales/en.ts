@@ -92,6 +92,7 @@ const en = {
     risk_level_high: "High",
     risk_level_very_high: "Very High",
     risk_level_unknown: "Unknown",
+    view_results: "View Results",
     health_overview_modal_title: "Health Overview",
     health_overview_modal_description: "Detailed insights into your health assessments.",
     guest_health_overview_modal_title: "Guest Health Overview",
@@ -113,6 +114,7 @@ const en = {
     retake_assessment: "Retake",
     assessment_results: "Assessment Results",
     assessment_date: "Date",
+    select_or_search:"Select or Search",
     health_assessments: "Health Assessments",
     choose_assessment_type: "Choose Assessment",
     questions_answered: "Questions Answered",
@@ -182,8 +184,157 @@ const en = {
     total_assessments: "Total Assessments",
     last_assessment: "Last Assessment",
     overall_risk_level: "Overall Risk Level",
+    your_assessments_title: "Your Assessment History",
+    no_assessments_completed: "No assessments completed yet.",
 
-    your_assessments_title: "Your Assessment History"
+    share_results: "Share",
+
+    download_pdf: "Download PDF",
+
+    sign_out: "Sign Out",
+    hide_answer_details : "Hide Answer",
+
+    language: "Language",
+    theme: "Theme",
+    dark: "Dark Mode",
+    light: "Light Mode",
+
+    enter_number_placeholder: "Please enter a number",
+    enter_answer_placeholder: "Please enter your answer",
+  },
+
+  // About page translations
+// About page translations
+  about: {
+    // Hero Section
+    hero_badge: "Empowering Digital Health",
+    hero_title_line1: "Health for",
+    hero_title_line2: "Everyone",
+    hero_subtitle: "Accessible, secure, and intelligent healthcare at your fingertips",
+    hero_description:
+      "VONIX combines AI, blockchain, and telemedicine to deliver personalized healthcare that puts you in control.",
+    cta_try_platform: "Try Our Platform",
+    cta_learn_more: "Learn More",
+
+    // Mission Section
+    mission_title: "Built for the Future of Digital Health",
+    mission_description:
+      "VONIX is a Thailand-based healthtech startup transforming how people access and manage their health through secure, intelligent digital solutions.",
+
+    // Values
+    value_accessible_title: "Accessible",
+    value_accessible_desc: "Healthcare available to everyone, everywhere, anytime.",
+    value_secure_title: "Secure",
+    value_secure_desc: "Enterprise-grade security protecting your health data with complete privacy.",
+    value_intelligent_title: "Intelligent",
+    value_intelligent_desc: "AI-powered insights for better health decisions and personalized care.",
+
+    // Solutions Section
+    solutions_title: "Our Core Solutions",
+    solutions_description: "Advanced technologies creating comprehensive digital health solutions.",
+
+    // AI Health Assessment
+    solution_ai_badge: "AI-Powered",
+    solution_ai_title: "Smart Health Assessment",
+    solution_ai_description:
+      "AI-powered health assessments using validated questionnaires for personalized insights and risk analysis.",
+    solution_ai_feature1: "Evidence-based health questionnaires (DASS, PHQ-9)",
+    // solution_ai_feature2: "Instant AI analysis and recommendations", // Removed as it's covered by description
+    solution_ai_feature2: "Personalized risk assessment and guidance",
+    solution_ai_feature3: "IoT & Wearable Device Integration for real-time monitoring",
+
+    // Telemedicine
+    solution_telemedicine_badge: "Telemedicine",
+    solution_telemedicine_title: "Connect with Real Doctors",
+    solution_telemedicine_description:
+      "Secure video consultations with licensed doctors, bringing expert care directly to you.",
+    solution_telemedicine_feature1: "Secure video consultations with licensed doctors",
+    solution_telemedicine_feature2: "Appointment scheduling and management",
+    solution_telemedicine_feature3: "Digital prescriptions and follow-up care",
+
+    // Blockchain
+    solution_blockchain_badge: "Blockchain-Secured",
+    solution_blockchain_title: "Immutable Health Records",
+    solution_blockchain_description:
+      "Secure blockchain storage ensuring data integrity and complete control over your health records.",
+    solution_blockchain_feature1: "Tamper-proof medical records on IPFS",
+    solution_blockchain_feature2: "Smart contract-based access control",
+    solution_blockchain_feature3: "Complete data ownership and portability",
+
+    // Privacy
+    solution_privacy_badge: "Privacy-First",
+    solution_privacy_title: "Privacy by Design",
+    solution_privacy_description:
+      "Privacy-first platform ensuring secure data control, compliant with PDPA and global standards.",
+    solution_privacy_feature1: "End-to-end encryption for all data",
+    solution_privacy_feature2: "PDPA compliant data handling",
+    solution_privacy_feature3: "Granular consent and access controls",
+
+    // Why VONIX Section
+    why_vonix_title: "Why VONIX Stands Out",
+    why_vonix_description:
+      "We differentiate ourselves by combining cutting-edge technology with a strong commitment to social impact and patient empowerment.",
+    why_privacy_title: "Privacy & Security",
+    why_privacy_description:
+      "All health data is encrypted and never stored without consent, adhering to global compliance standards.",
+    why_ai_insights_title: "AI-Powered Insights",
+    why_ai_insights_description: "Deep analysis for personalized health recommendations and predictive analytics.",
+    why_community_focus_title: "Community-Driven",
+    why_community_focus_description: "Commitment to underserved communities and promoting digital health literacy.",
+    why_regulatory_title: "Regulatory Compliance",
+    why_regulatory_description: "HIPAA, GDPR, and PDPA certified, ensuring highest data protection standards.",
+
+    // Impact & Social Value Section
+    impact_title: "Our Impact & Social Value",
+    impact_description:
+      "VONIX is dedicated to creating a positive societal impact by improving public health and digital inclusion.",
+    impact_community_title: "Community Health Support",
+    impact_community_description:
+      "Offering AI-driven health assessments and free telemedicine access to underserved communities.",
+    impact_collaboration_title: "Public-Private Collaboration",
+    impact_collaboration_description:
+      "Establishing partnerships with hospitals, NGOs, and government health initiatives to enhance healthcare access.",
+    impact_advocacy_title: "HealthTech Advocacy",
+    impact_advocacy_description:
+      "Promoting digital health awareness, literacy, and accessibility for long-term impact.",
+
+    // Partnerships Section (Existing, but updated descriptions)
+    partnerships_title: "Strategic Partnerships",
+    partnerships_description:
+      "We collaborate with leading healthcare institutions, universities, and technology partners to deliver the best possible care.",
+
+    partnership_hospitals_title: "Healthcare Institutions",
+    partnership_hospitals_desc:
+      "Partnering with hospitals and clinics to integrate our platform into existing healthcare workflows.",
+
+    partnership_universities_title: "Academic Partners",
+    partnership_universities_desc:
+      "Collaborating with universities for research and development of innovative health technologies.",
+
+    partnership_tech_title: "Technology Partners",
+    partnership_tech_desc: "Working with tech companies to enhance our platform capabilities and reach.",
+    partnership_hospitals_type: "Hospital",
+    partnership_universities_type: "University",
+    partnership_tech_type: "Tech Company",
+    partnership_cta_text: "Interested in partnering with us?",
+    partnership_cta_button: "Get in Touch",
+
+    // Team Section
+    team_title: "Meet Our Visionaries",
+    team_description: "The dedicated team behind VONIX, committed to transforming digital healthcare.",
+    team_ceo: "CEO, Co-Founder",
+    team_cto: "Acting CTO",
+    team_coo: "COO",
+    team_cfo: "CFO",
+
+    // Get Involved / Final CTA
+    get_involved_title: "Ready to Get Involved?",
+    get_involved_description:
+      "Join us in building the future of AI-driven healthcare. Whether you're a user or a potential partner, we welcome you.",
+    get_involved_try_now: "Try Now for Free",
+    get_involved_contact: "Contact Us",
+
+    
   },
 } as const
 

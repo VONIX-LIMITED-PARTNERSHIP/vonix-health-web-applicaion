@@ -19,6 +19,12 @@ export class GuestAssessmentService {
   static saveAssessment(category: AssessmentCategory, result: AssessmentResult) {
     try {
       const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
+
+      // Ensure the result has a proper percentage calculation
+      if (!result.percentage || result.percentage === 0) {
+        result.percentage = this.calculatePercentageFromScore(result.score || 0)
+      }
+
       localStorage.setItem(key, JSON.stringify(result))
       GuestAssessmentService.updateDashboardStats(category, result)
     } catch (error) {
@@ -26,11 +32,34 @@ export class GuestAssessmentService {
     }
   }
 
+  private static calculatePercentageFromScore(score: number): number {
+    // Convert score to percentage (assuming score is out of 100)
+    // If score is already a percentage, return as is
+    if (score >= 0 && score <= 100) {
+      return Math.round(score)
+    }
+
+    // If score seems to be out of a different scale, normalize it
+    // This is a fallback calculation
+    return Math.min(100, Math.max(0, Math.round(score)))
+  }
+
   static getAssessment(category: AssessmentCategory): AssessmentResult | null {
     try {
       const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
       const stored = localStorage.getItem(key)
-      return stored ? JSON.parse(stored) : null
+      if (!stored) return null
+
+      const result = JSON.parse(stored) as AssessmentResult
+
+      // Ensure percentage is calculated if missing
+      if (!result.percentage || result.percentage === 0) {
+        result.percentage = this.calculatePercentageFromScore(result.score || 0)
+        // Update the stored result with calculated percentage
+        localStorage.setItem(key, JSON.stringify(result))
+      }
+
+      return result
     } catch (error) {
       console.error("Error getting guest assessment:", error)
       return null
@@ -46,6 +75,10 @@ export class GuestAssessmentService {
           const category = key.replace(GuestAssessmentService.STORAGE_KEY_PREFIX, "") as AssessmentCategory
           const result = GuestAssessmentService.getAssessment(category)
           if (result) {
+            // Ensure percentage is properly set
+            if (!result.percentage || result.percentage === 0) {
+              result.percentage = this.calculatePercentageFromScore(result.score || 0)
+            }
             assessments.push({ category, result })
           }
         }
@@ -206,6 +239,9 @@ export class GuestAssessmentService {
       const assessment = GuestAssessmentService.getAssessment(categoryId as AssessmentCategory)
       if (!assessment) return null
 
+      // Ensure percentage is calculated
+      const percentage = assessment.percentage || this.calculatePercentageFromScore(assessment.score || 0)
+
       // Convert to format expected by results page
       return {
         id: assessment.id,
@@ -214,7 +250,7 @@ export class GuestAssessmentService {
         answers: assessment.answers,
         total_score: assessment.score,
         max_score: 100,
-        percentage: assessment.score,
+        percentage: percentage,
         risk_level: assessment.riskLevel,
         risk_factors: assessment.aiAnalysis?.riskFactors?.th || [],
         recommendations: assessment.aiAnalysis?.recommendations?.th || [],
@@ -224,6 +260,28 @@ export class GuestAssessmentService {
     } catch (error) {
       console.error("Error getting guest assessment by category:", error)
       return null
+    }
+  }
+
+  // Helper method to recalculate all percentages for existing assessments
+  static recalculateAllPercentages() {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX)) {
+          const stored = localStorage.getItem(key)
+          if (stored) {
+            const result = JSON.parse(stored) as AssessmentResult
+            if (!result.percentage || result.percentage === 0) {
+              result.percentage = this.calculatePercentageFromScore(result.score || 0)
+              localStorage.setItem(key, JSON.stringify(result))
+              console.log(`Updated percentage for ${key}: ${result.percentage}%`)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error recalculating percentages:", error)
     }
   }
 }

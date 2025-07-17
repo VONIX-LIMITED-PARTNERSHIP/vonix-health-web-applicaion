@@ -2,13 +2,14 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Activity, Bell, LogOut, RefreshCw, Loader2, Settings, Sun, Moon, Languages, User } from "lucide-react"
+import { Activity, Bell, LogOut, RefreshCw, Loader2, Settings, Sun, Moon, Languages, User, Menu } from "lucide-react" // Added Menu icon
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet" // Added Sheet components
 import { useAuth } from "@/hooks/use-auth"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useLanguage } from "@/contexts/language-context"
 import { useTranslation } from "@/hooks/use-translation"
 import { useTheme } from "next-themes"
@@ -19,6 +20,7 @@ export function Header() {
   const [refreshing, setRefreshing] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
   const { locale, setLocale } = useLanguage()
   const { t } = useTranslation(["common", "profile"])
   const { setTheme, theme } = useTheme()
@@ -98,7 +100,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60">
       <div className="container flex h-16 sm:h-20 items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center space-x-2 sm:space-x-3">
+        {/* Combined Logo and Desktop Navigation Menu */}
+        <div className="flex items-center space-x-4 sm:space-x-6">
           <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group">
             <div className="relative">
               <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
@@ -112,9 +115,75 @@ export function Header() {
               </span>
             </div>
           </Link>
+
+          {/* Desktop Navigation Menu - hidden on mobile */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link
+              href="/"
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${
+                pathname === "/" ? "text-blue-600" : "text-gray-600 dark:text-gray-300"
+              }`}
+            >
+              {locale === "th" ? "หน้าหลัก" : "Home"}
+            </Link>
+            <Link
+              href="/about"
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${
+                pathname === "/about" ? "text-blue-600" : "text-gray-600 dark:text-gray-300"
+              }`}
+            >
+              {locale === "th" ? "เกี่ยวกับเรา" : "About"}
+            </Link>
+          </nav>
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-4">
+          {/* Mobile Navigation Toggle (Hamburger Menu) */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-2 md:hidden">
+                {" "}
+                {/* Visible only on mobile */}
+                <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="sr-only">{t("common.menu")}</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[250px] sm:w-[300px] flex flex-col">
+              <div className="flex items-center space-x-2 sm:space-x-3 group mb-6">
+                <div className="relative">
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg">
+                    <Activity className="h-5 w-5 sm:h-7 sm:w-7" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+                </div>
+                <div>
+                  <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    VONIX
+                  </span>
+                </div>
+              </div>
+              <nav className="flex flex-col gap-4">
+                <Link
+                  href="/"
+                  className={`text-lg font-medium transition-colors hover:text-blue-600 ${
+                    pathname === "/" ? "text-blue-600" : "text-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  {locale === "th" ? "หน้าหลัก" : "Home"}
+                </Link>
+                <Link
+                  href="/about"
+                  className={`text-lg font-medium transition-colors hover:text-blue-600 ${
+                    pathname === "/about" ? "text-blue-600" : "text-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  {locale === "th" ? "เกี่ยวกับเรา" : "About"}
+                </Link>
+                {/* Add other mobile-specific navigation items here if needed */}
+              </nav>
+            </SheetContent>
+          </Sheet>
+
           {/* Settings Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

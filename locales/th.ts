@@ -114,7 +114,7 @@ const th = {
     can_generate_report: "สร้างรายงานได้",
     must_complete_3_categories: "ต้องทำแบบประเมิน 3 ประเภท",
     health_assessments: "แบบประเมินสุขภาพ",
-    choose_assessment_type: "เลือกแบบประเมินที่ต้องการทำ เพื่อวิเคราะห์สุขภาพของคุณ",
+    choose_assessment_type: "เลือกแบบประเมินที่ต้องการ",
     finished: "เสร็จสิ้นแล้ว",
     start_assessment: "เริ่มประเมิน",
     re_assess: "ประเมินใหม่",
@@ -139,6 +139,7 @@ const th = {
     assessment_results: "ผลการประเมิน",
     this_data_not_saved: "ข้อมูลนี้ไม่ถูกบันทึก",
     assessment_date: "วันที่ประเมิน",
+    select_or_search:"เลือกหรือพิมค้นหา",
     ai_summary: "สรุปผลการวิเคราะห์โดย AI",
     score: "คะแนน",
     retake_assessment: "ทำใหม่",
@@ -279,6 +280,7 @@ const th = {
     score_label: "คะแนน",
     recommendations_label: "คำแนะนำ",
     no_risk_factors_found: "ไม่พบปัจจัยเสี่ยงที่สำคัญ",
+    no_assessments_completed: "ไม่พบแบบประเมิน",
     // --- Health level labels -----------------
     health_level_excellent: "ดีเยี่ยม",
     health_level_very_good: "ดีมาก",
@@ -316,6 +318,16 @@ const th = {
     overall_risk_level: "ระดับความเสี่ยงโดยรวม",
 
     your_assessments_title: "ประวัติการประเมินของคุณ",
+
+    hide_answer_details: "ซ่อนคำตอบ",
+
+    language: "ภาษา",
+    theme: "ธีม",
+    dark: "กลางคืน",
+    light: "กลางวัน",
+
+    enter_number_placeholder: "กรุณากรอกตัวเลข",
+    enter_answer_placeholder: "กรุณากรอกคำตอบ",
   },
   assessment: {
     basic_info: "ข้อมูลพื้นฐาน",
@@ -370,6 +382,128 @@ const th = {
     welcome_message: "สวัสดีครับ! ผมเป็นแพทย์ AI ที่พร้อมให้คำปรึกษาเกี่ยวกับสุขภาพ มีอะไรให้ช่วยไหมครับ?",
     disclaimer:
       "คำแนะนำจากแพทย์ AI นี้เป็นเพียงข้อมูลเบื้องต้นเท่านั้น ไม่สามารถใช้แทนการตรวจวินิจฉัยจากแพทย์จริงได้ หากมีอาการรุนแรงหรือเป็นเหตุฉุกเฉิน กรุณาติดต่อแพทย์หรือโรงพยาบาลทันที",
+  },
+
+ // About page translations
+  about: {
+    // Hero Section
+    hero_badge: "พลิกโฉมสุขภาพด้วยเทคโนโลยีดิจิทัล",
+    hero_title_line1: "สุขภาพสำหรับ",
+    hero_title_line2: "ทุกคน",
+    hero_subtitle: "ดูแลสุขภาพด้วยตัวคุณเอง",
+    hero_description: "VONIX ผสาน AI, บล็อกเชน และเทเลเมดิซีน เพื่อมอบประสบการณ์การดูแลสุขภาพ",
+    cta_try_platform: "ทดลองใช้แพลตฟอร์ม",
+    cta_learn_more: "เรียนรู้เพิ่มเติม",
+
+    // Mission Section
+    mission_title: "ก้าวสู่อนาคตของสุขภาพดิจิทัลไปกับเรา",
+    mission_description: "VONIX เป็นสตาร์ทอัพเฮลธ์เทคจากไทย ที่เปลี่ยนแปลงการเข้าถึงและจัดการสุขภาพด้วยโซลูชันดิจิทัลที่ปลอดภัยและชาญฉลาด",
+
+    // Values
+    value_accessible_title: "เข้าถึงได้",
+    value_accessible_desc: "ดูแลสุขภาพได้ทุกที่สำหรับทุกคน",
+    value_secure_title: "ปลอดภัย",
+    value_secure_desc: "ปกป้องข้อมูลสุขภาพของคุณด้วยระบบของเรา",
+    value_intelligent_title: "ชาญฉลาด",
+    value_intelligent_desc: "ข้อมูลวิเคราะห์จาก AI เพื่อการดูแลสุขภาพที่แม่นยำและตรงจุด",
+
+    // Solutions Section
+    solutions_title: "โซลูชันหลักของเรา",
+    solutions_description: "โซลูชันสุขภาพดิจิทัลครบวงจร",
+
+    // AI Health Assessment
+    solution_ai_badge: "ขับเคลื่อนด้วย AI",
+    solution_ai_title: "การประเมินสุขภาพอัจฉริยะ",
+    solution_ai_description: "ประเมินสุขภาพด้วย AI ผ่านแบบสอบถามมาตรฐาน พร้อมวิเคราะห์เชิงลึกและประเมินความเสี่ยง",
+    solution_ai_feature1: "แบบสอบถามสุขภาพที่อิงหลักฐานทางวิทยาศาสตร์",
+    // solution_ai_feature2: "การวิเคราะห์และคำแนะนำจาก AI ทันที", // Removed as it's covered by description
+    solution_ai_feature2: "การประเมินความเสี่ยงและคำแนะนำเฉพาะบุคคล",
+    solution_ai_feature3: "การรวม IoT และอุปกรณ์สวมใส่สำหรับการตรวจสอบแบบเรียลไทม์",
+
+    // Telemedicine
+    solution_telemedicine_badge: "เทเลเมดิซีน",
+    solution_telemedicine_title: "เชื่อมต่อกับแพทย์จริง",
+    solution_telemedicine_description: "วิดีโอคอลปรึกษาแพทย์ที่ได้รับใบอนุญาตได้อย่างปลอดภัย",
+    solution_telemedicine_feature1: "การปรึกษาทางวิดีโอที่ปลอดภัยกับแพทย์ที่ได้รับใบอนุญาต",
+    solution_telemedicine_feature2: "การจัดตารางและจัดการนัดหมาย",
+    solution_telemedicine_feature3: "ใบสั่งยาดิจิทัลและการดูแลติดตาม",
+
+    // Blockchain
+    solution_blockchain_badge: "ปลอดภัยด้วยบล็อกเชน",
+    solution_blockchain_title: "บันทึกสุขภาพที่ไม่สามารถเปลี่ยนแปลงได้",
+    solution_blockchain_description: "จัดเก็บข้อมูลด้วยบล็อกเชนที่ปลอดภัย",
+    solution_blockchain_feature1: "บันทึกการรักษาที่ป้องกันการปลอมแปลงบน IPFS",
+    solution_blockchain_feature2: "การควบคุมการเข้าถึงด้วยสมาร์ทคอนแทรค",
+    solution_blockchain_feature3: "ความเป็นเจ้าของข้อมูลและการพกพาข้อมูลที่สมบูรณ์",
+
+    // Privacy
+    solution_privacy_badge: "ความเป็นส่วนตัวเป็นหลัก",
+    solution_privacy_title: "ความเป็นส่วนตัวตั้งแต่การออกแบบ",
+    solution_privacy_description:
+      "แพลตฟอร์มที่ออกแบบโดยคำนึงถึงความเป็นส่วนตัว ปลอดภัยตามมาตรฐาน PDPA และกฎสากล",
+    solution_privacy_feature1: "การเข้ารหัสแบบ end-to-end สำหรับข้อมูลทั้งหมด",
+    solution_privacy_feature2: "การจัดการข้อมูลที่สอดคล้องกับ PDPA",
+    solution_privacy_feature3: "การควบคุมความยินยอมและการเข้าถึงแบบละเอียด",
+
+    // Why VONIX Section
+    why_vonix_title: "ทำไม VONIX จึงโดดเด่น",
+    why_vonix_description:
+      "เราแตกต่างด้วยเทคโนโลยี และหัวใจที่มุ่งมั่นสร้างผลกระทบเชิงบวกต่อสังคมและผู้ป่วย",
+    why_privacy_title: "ความเป็นส่วนตัวและความปลอดภัย",
+    why_privacy_description:
+      "การเข้ารหัสโดยปฏิบัติตามมาตรฐานการปฏิบัติตามกฎระเบียบสากล",
+    why_ai_insights_title: "วิเคราะห์ข้อมูลเชิงลึกด้วย AI",
+    why_ai_insights_description: "วิเคราะห์เชิงลึกเพื่อแนะนำการดูแลสุขภาพเฉพาะบุคคลและคาดการณ์ล่วงหน้า",
+    why_community_focus_title: "มุ่งเน้นชุมชน",
+    why_community_focus_description: "สนับสนุนชุมชนที่ขาดโอกาส และส่งเสริมความรู้ด้านสุขภาพดิจิทัล",
+    why_regulatory_title: "การปฏิบัติตามกฎระเบียบสากล",
+    why_regulatory_description: "ได้รับการรับรองเพื่อให้มั่นใจถึงมาตรฐานการปกป้องข้อมูลสูงสุด",
+
+    // Impact & Social Value Section
+    impact_title: "ผลกระทบและคุณค่าทางสังคมของเรา",
+    impact_description: "VONIX มุ่งมั่นขับเคลื่อนสังคมด้วยการยกระดับสาธารณสุขและการเข้าถึงเทคโนโลยีดิจิทัลอย่างเท่าเทียม",
+    impact_community_title: "การสนับสนุนสุขภาพชุมชน",
+    impact_community_description: "นำเสนอการประเมินสุขภาพที่ขับเคลื่อนด้วย AI และการเข้าถึงเทเลเมดิซีนฟรีสำหรับชุมชนที่ด้อยโอกาส",
+    impact_collaboration_title: "ความร่วมมือภาครัฐและเอกชน",
+    impact_collaboration_description:
+      "ร่วมมือกับโรงพยาบาล องค์กรภาคสังคม และหน่วยงานรัฐ เพื่อขยายการเข้าถึงบริการสุขภาพ",
+    impact_advocacy_title: "การสนับสนุน HealthTech",
+    impact_advocacy_description: "ส่งเสริมความตระหนักรู้ด้านสุขภาพดิจิทัล ความรู้ และการเข้าถึงเพื่อผลกระทบระยะยาว",
+
+    // Partnerships Section (Existing, but updated descriptions)
+    partnerships_title: "ความร่วมมือเชิงกลยุทธ์",
+    partnerships_description: "เราร่วมมือกับสถาบันการดูแลสุขภาพชั้นนำ มหาวิทยาลัย และพาร์ทเนอร์ด้านเทคโนโลยีเพื่อมอบการดูแลที่ดีที่สุด",
+
+    partnership_hospitals_title: "สถาบันการดูแลสุขภาพ",
+    partnership_hospitals_desc: "ร่วมมือกับโรงพยาบาลและคลินิกเพื่อรวมแพลตฟอร์มของเราเข้ากับขั้นตอนการดูแลสุขภาพที่มีอยู่",
+
+    partnership_universities_title: "พาร์ทเนอร์ทางวิชาการ",
+    partnership_universities_desc: "ร่วมมือกับมหาวิทยาลัยเพื่อการวิจัยและพัฒนาเทคโนโลยีสุขภาพที่นวัตกรรม",
+
+    partnership_tech_title: "พาร์ทเนอร์ด้านเทคโนโลยี",
+    partnership_tech_desc: "ทำงานร่วมกับบริษัทเทคโนโลยีเพื่อเพิ่มความสามารถของแพลตฟอร์มและการเข้าถึง",
+
+    partnership_cta_text: "สนใจร่วมเป็นพาร์ทเนอร์กับเราหรือไม่?",
+    partnership_cta_button: "ติดต่อเรา",
+
+    partnership_hospitals_type: "โรงพยาบาล",
+    partnership_universities_type: "สถาบันการศึกษา",
+    partnership_tech_type: "Tech Company",
+
+    // Team Section
+    team_title: "พบกับผู้บุกเบิกของเรา",
+    team_description: "ทีม VONIX คือผู้ผลักดันการเปลี่ยนแปลงวงการสุขภาพดิจิทัลด้วยความมุ่งมั่น",
+    team_ceo: "CEO, ผู้ร่วมก่อตั้ง",
+    team_cto: "รักษาการ CTO",
+    team_coo: "COO",
+    team_cfo: "CFO",
+
+    // Get Involved / Final CTA
+    get_involved_title: "พร้อมที่จะเข้าร่วมกับเราแล้วหรือยัง?",
+    get_involved_description:
+      "มาร่วมสร้างอนาคตของการดูแลสุขภาพที่ขับเคลื่อนด้วย AI ไม่ว่าคุณจะเป็นผู้ใช้หรือพาร์ทเนอร์ที่มีศักยภาพ เรายินดีต้อนรับคุณ",
+    get_involved_try_now: "ทดลองใช้ฟรีตอนนี้",
+    get_involved_contact: "ติดต่อเรา",
   },
 }
 

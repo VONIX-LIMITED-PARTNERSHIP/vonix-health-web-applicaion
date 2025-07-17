@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { ForceLogoutBanner } from "@/components/force-logout-banner"
 import { useAuth } from "@/hooks/use-auth"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { AssessmentService } from "@/lib/assessment-service"
@@ -30,6 +31,9 @@ import {
   Dumbbell,
   Loader2,
   BarChart,
+  CheckCircle,
+  TrendingUp,
+  Award,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -384,340 +388,361 @@ export default function HomePage() {
 
     if (!isLoggedIn) {
       return (
-        <div className="text-center py-12 px-4">
-          <User className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">{t("welcome_to_vonix")}</h2>
-          <p className="text-gray-600 mb-6">{t("login_or_try_guest")}</p>
-          <Button
-            onClick={() => router.push("/guest-login")}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            {t("try_now_as_guest")}
-          </Button>
+        <div className="text-center py-16 px-4">
+          <div className="max-w-md mx-auto">
+            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+              <User className="h-10 w-10 text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{t("welcome_to_vonix")}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">{t("login_or_try_guest")}</p>
+            <Button
+              onClick={() => router.push("/guest-login")}
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <Play className="mr-2 h-5 w-5" />
+              {t("try_now_as_guest")}
+            </Button>
+          </div>
         </div>
       )
     }
 
     return (
-      <Card className="mb-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-2xl rounded-3xl overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1">
-          <div className="bg-white dark:bg-gray-900 rounded-3xl">
-            <CardHeader className="pb-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-3 text-2xl">
-                    <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                      <Activity className="h-6 w-6" />
-                    </div>
-                    {t("your_health_overview")}
-                    {isGuestLoggedIn && (
-                      <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200">
-                        {locale === "th" ? "ทดลองใช้งาน" : "Guest Mode"}
-                      </Badge>
-                    )}
-                  </CardTitle>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">{t("assessment_progress")}</p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-                  <Button
-                    className="bg-gray-200 text-gray-600 cursor-not-allowed font-medium px-4 py-2 rounded-xl shadow-lg transition-all duration-300 text-sm md:text-base dark:bg-gray-700 dark:text-gray-400"
-                    onClick={handleConsultDoctorClick}
-                    disabled // เพิ่ม disabled เพื่อให้ไม่สามารถคลิกได้
-                  >
-                    <Stethoscope className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">{t("consult_doctor")}</span>
-                    <span className="sm:hidden">{t("consult_doctor")}</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="border-2 border-gray-300 hover:border-blue-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm md:text-base
-                    dark:border-gray-700 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200"
-                    onClick={handleViewHealthOverviewClick}
-                  >
-                    <BarChart className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">{t("health_overview")}</span>
-                    <span className="sm:hidden">{t("health_overview")}</span>
-                  </Button>
-                </div>
+      <Card className="mb-16 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-xl rounded-2xl overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200/50 dark:border-gray-700/50 pb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg">
+                <Activity className="h-6 w-6" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
-                  <div className="relative">
-                    <div
-                      className={`text-3xl font-bold mb-1 ${getHealthLevelColor(dashboardStats?.overallRisk || "")}`}
-                    >
-                      {dashboardStats?.overallRisk ? getRiskLevelLabel(dashboardStats.overallRisk) : t("no_data")}
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                      {t("overall_health_score")}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {dashboardStats?.lastAssessmentDate ? t("updated_at") : t("no_data")}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-orange-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
-                  <div className="relative">
-                    <div className="text-3xl font-bold text-orange-600 mb-1">
-                      {dashboardStats?.totalAssessments || 0}
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("risk_factors")}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                      <Activity className="w-3 h-3 mr-1" />
-                      {t("identified")}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-green-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
-                  <div className="relative">
-                    <div className="text-3xl font-bold text-green-600 mb-1">
-                      {dashboardStats?.totalAssessments || 0}/6
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("assessments")}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                      <Activity className="w-3 h-3 mr-1" />
-                      {t("completed")}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-purple-200 rounded-full -mr-10 -mt-10 opacity-50"></div>
-                  <div className="relative">
-                    <div className="text-2xl font-bold text-purple-600 mb-1">
-                      {dashboardStats?.totalAssessments && dashboardStats.totalAssessments >= 3
-                        ? t("report_ready")
-                        : t("report_not_ready")}
-                    </div>
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                      {t("health_report")}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center mb-1">
-                      <Activity className="w-3 h-3 mr-1" />
-                      {dashboardStats?.totalAssessments && dashboardStats.totalAssessments >= 3
-                        ? t("can_generate_report")
-                        : t("can_generate_report")}
-                    </div>
-                    {!(dashboardStats?.totalAssessments && dashboardStats.totalAssessments >= 3) && (
-                      <div className="text-xs text-gray-400">{t("must_complete_3_categories")}</div>
-                    )}
-                  </div>
-                </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                  {t("your_health_overview")}
+                  {isGuestLoggedIn && (
+                    <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200 font-medium">
+                      {locale === "th" ? "ทดลองใช้งาน" : "Guest Mode"}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">{t("assessment_progress")}</p>
               </div>
-            </CardContent>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                variant="outline"
+                className="border-2 border-gray-300 hover:border-blue-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300
+                dark:border-gray-600 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200"
+                onClick={handleViewHealthOverviewClick}
+              >
+                <BarChart className="mr-2 h-4 w-4" />
+                {t("health_overview")}
+              </Button>
+              <Button
+                className="bg-gray-200 text-gray-500 cursor-not-allowed font-medium rounded-xl shadow-md transition-all duration-300
+                dark:bg-gray-700 dark:text-gray-500"
+                onClick={handleConsultDoctorClick}
+                disabled
+              >
+                <Stethoscope className="mr-2 h-4 w-4" />
+                {t("consult_doctor")}
+              </Button>
+            </div>
           </div>
-        </div>
+        </CardHeader>
+        <CardContent className="p-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="relative p-4 sm:p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border border-blue-200/50 dark:border-gray-600/50 overflow-hidden group hover:shadow-lg transition-all duration-300">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-blue-200/30 rounded-full -mr-8 -mt-8"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-3">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                  <div
+                    className={`text-xl sm:text-2xl font-bold ${getHealthLevelColor(dashboardStats?.overallRisk || "")}`}
+                  >
+                    {dashboardStats?.overallRisk ? getRiskLevelLabel(dashboardStats.overallRisk) : t("no_data")}
+                  </div>
+                </div>
+                <div className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                  {t("overall_health_score")}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                  <Clock className="w-3 h-3 mr-1" />
+                  {dashboardStats?.lastAssessmentDate ? t("updated_at") : t("no_data")}
+                </div>
+              </div>
+            </div>
+
+            <div className="relative p-4 sm:p-6 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-800 dark:to-gray-700 border border-orange-200/50 dark:border-gray-600/50 overflow-hidden group hover:shadow-lg transition-all duration-300">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-orange-200/30 rounded-full -mr-8 -mt-8"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-3">
+                  <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+                  <div className="text-xl sm:text-2xl font-bold text-orange-600">
+                    {dashboardStats?.totalAssessments || 0}
+                  </div>
+                </div>
+                <div className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                  {t("risk_factors")}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                  <Activity className="w-3 h-3 mr-1" />
+                  {t("identified")}
+                </div>
+              </div>
+            </div>
+
+            <div className="relative p-4 sm:p-6 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-800 dark:to-gray-700 border border-green-200/50 dark:border-gray-600/50 overflow-hidden group hover:shadow-lg transition-all duration-300">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-green-200/30 rounded-full -mr-8 -mt-8"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-3">
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                  <div className="text-xl sm:text-2xl font-bold text-green-600">
+                    {dashboardStats?.totalAssessments || 0}/6
+                  </div>
+                </div>
+                <div className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                  {t("assessments")}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  {t("completed")}
+                </div>
+              </div>
+            </div>
+
+            <div className="relative p-4 sm:p-6 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-800 dark:to-gray-700 border border-purple-200/50 dark:border-gray-600/50 overflow-hidden group hover:shadow-lg transition-all duration-300">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-purple-200/30 rounded-full -mr-8 -mt-8"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-3">
+                  <Award className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                  <div className="text-xl font-bold text-purple-600">
+                    {dashboardStats?.totalAssessments && dashboardStats.totalAssessments >= 3
+                      ? t("report_ready")
+                      : t("report_not_ready")}
+                  </div>
+                </div>
+                <div className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
+                  {t("health_report")}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  {dashboardStats?.totalAssessments && dashboardStats.totalAssessments >= 3
+                    ? t("can_generate_report")
+                    : t("must_complete_3_categories")}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
       <Header />
+      <ForceLogoutBanner />
 
-      <main className="flex-1 container mx-auto px-6 py-12 relative z-10">
-        {/* Decorative Elements */}
+      <main className="relative">
+        {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
-          <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-2000"></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+          <div className="absolute top-40 right-10 w-72 h-72 bg-purple-300/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-pink-300/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-2000"></div>
         </div>
 
-        <div className="container mx-auto px-6 py-12 relative z-10">
+        <div className="relative z-10">
           {/* Hero Section */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-blue-200 text-blue-700 text-sm font-medium mb-6 shadow-lg">
-              <Sparkles className="w-4 h-4 mr-2" />
-              {t("smart_health_assessment_system")}
-            </div>
+          <section className="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20">
+            <div className="text-center max-w-5xl mx-auto">
+              {/* Trust Badge */}
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/90 backdrop-blur-sm border border-blue-200/50 text-blue-700 text-sm font-medium mb-8 shadow-lg">
+                <Shield className="w-4 h-4 mr-2" />
+                {t("smart_health_assessment_system")}
+                <Sparkles className="w-4 h-4 ml-2" />
+              </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                {t("assess_health_with_ai")}
-              </span>
-            </h1>
+              {/* Main Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-tight">
+                <span className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-purple-200">
+                  {t("assess_health_with_ai")}
+                </span>
+              </h1>
 
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-4 font-semibold">
-              {t("easy_fast_accurate")}
-            </p>
-            <p className="text-gray-500 dark:text-gray-400 max-w-3xl mx-auto mb-12 text-lg leading-relaxed">
-              {t("ai_powered_description")}
-            </p>
+              {/* Subtitle */}
+              <p className="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 mb-4 font-semibold">
+                {t("easy_fast_accurate")}
+              </p>
+              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed">
+                {t("ai_powered_description")}
+              </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button
-                size="lg"
-                className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-                onClick={handleStartAssessment}
-              >
-                <Play className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="hidden sm:inline">{t("start_health_assessment")}</span>
-                <span className="sm:hidden">{t("start_health_assessment")}</span>
-              </Button>
-              {isLoggedIn && (
-                <>
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+                <Button
+                  size="lg"
+                  className="text-lg px-8 py-4 h-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                  onClick={handleStartAssessment}
+                >
+                  <Play className="mr-3 h-6 w-6" />
+                  {t("start_health_assessment")}
+                </Button>
+                {isLoggedIn && (
                   <Button
                     size="lg"
                     variant="outline"
-                    className="text-base sm:text-lg px-6 sm:px-10 py-3 sm:py-4 h-auto
-                        border-2 border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed
-                        dark:border-gray-700 dark:bg-gray-800 dark:text-gray-600
-                        font-semibold rounded-2xl shadow-lg transition-all duration-300"
+                    className="text-lg px-8 py-4 h-auto border-2 border-gray-300 bg-white/80 backdrop-blur-sm hover:bg-white text-gray-700 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300
+                    dark:border-gray-600 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200"
                     onClick={handleConsultDoctorClick}
-                    disabled // Disabled for now
+                    disabled
                   >
-                    <Stethoscope className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-                    <span className="hidden sm:inline">{t("consult_doctor_online")}</span>
-                    <span className="sm:hidden">{t("consult_doctor")}</span>
+                    <Stethoscope className="mr-3 h-6 w-6" />
+                    {t("consult_doctor_online")}
                   </Button>
-                </>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Features */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              <div className="flex items-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                  <Sparkles className="w-5 h-5" />
+              {/* Trust Indicators */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div className="flex items-center justify-center space-x-3 p-6 rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-gray-900 dark:text-white">{t("smart_ai")}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{t("analyze_with_openai")}</div>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <div className="font-semibold text-gray-800 dark:text-gray-200">{t("smart_ai")}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("analyze_with_openai")}</div>
+                <div className="flex items-center justify-center space-x-3 p-6 rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="p-3 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg">
+                    <Shield className="w-6 h-6" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-gray-900 dark:text-white">{t("secure")}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{t("encrypted_data_pdpa")}</div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                  <Shield className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold text-gray-800 dark:text-gray-200">{t("secure")}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("encrypted_data_pdpa")}</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                  <Zap className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold text-gray-800 dark:text-gray-200">{t("fast_results")}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("results_in_minutes")}</div>
+                <div className="flex items-center justify-center space-x-3 p-6 rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-lg">
+                    <Zap className="w-6 h-6" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-gray-900 dark:text-white">{t("fast_results")}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{t("results_in_minutes")}</div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
+          {/* Dashboard Section */}
           {isLoggedIn && (
-            <>
-              {/* Dashboard Stats */}
-              <section className="mb-12">{renderDashboardContent()}</section>
+            <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">{renderDashboardContent()}</section>
+          )}
 
-              {/* Assessment Categories */}
-              <div className="mb-16" id="assessment-section">
-                <div className="text-center mb-12">
-                  <h2 className="text-4xl font-bold mb-4">
-                    <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text dark:bg-red-900 dark:text-red-200 text-transparent">
-                      {t("health_assessments")}
-                    </span>
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-lg">{t("choose_assessment_type")}</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {getUpdatedCategories().map((category, index) => (
-                    <Card
-                      key={category.id}
-                      className={`group relative overflow-hidden 
-                        bg-gradient-to-br ${category.bgGradient} ${category.darkBgGradient} 
-                        border-0 shadow-xl hover:shadow-2xl transition-all duration-500 
-                        transform hover:scale-105 cursor-pointer rounded-3xl`}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-black/30 dark:to-transparent"></div>
-                      <CardContent className="relative p-8">
-                        <div className="flex items-start justify-between mb-6">
-                          <div
-                            className={`p-4 rounded-2xl bg-gradient-to-br ${category.gradient} text-white shadow-lg group-hover:shadow-xl transition-all duration-300`}
-                          >
-                            <category.icon className="h-8 w-8" />
-                          </div>
-                          <div className="flex flex-col items-end space-y-2">
-                            {category.required ? (
-                              <Badge className="bg-red-500 text-white font-medium px-3 py-1 rounded-full dark:bg-red-700">
-                                {t("required")}
-                              </Badge>
-                            ) : (
-                              <Badge
-                                variant="secondary"
-                                className="bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full dark:bg-blue-800 dark:text-white"
-                              >
-                                {t("optional")}
-                              </Badge>
-                            )}
-                            {category.progress > 0 && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-                                <div className="font-medium">{t("completed")}</div>
-                                {category.id !== "basic" && category.riskLevel && (
-                                  <div
-                                    className={`font-semibold text-sm mt-1 ${
-                                      category.riskLevel === "low"
-                                        ? "text-green-600 dark:text-green-400"
-                                        : category.riskLevel === "medium"
-                                          ? "text-yellow-600 dark:text-yellow-400"
-                                          : category.riskLevel === "high"
-                                            ? "text-orange-600 dark:text-orange-400"
-                                            : category.riskLevel === "very-high"
-                                              ? "text-red-600 dark:text-red-400"
-                                              : "text-gray-600 dark:text-gray-300"
-                                    }`}
-                                  >
-                                    ({getRiskLevelLabel(category.riskLevel)})
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <h3 className="font-bold text-xl mb-3 text-gray-800 group-hover:text-gray-900 transition-colors dark:text-white dark:group-hover:text-gray-100">
-                          {category.title}
-                        </h3>
-                        <p className="text-gray-600 mb-4 leading-relaxed dark:text-gray-300">{category.description}</p>
-                        <p className="text-sm text-gray-500 mb-6 flex items-center dark:text-gray-400">
-                          <Clock className="w-4 h-4 mr-2" />
-                          {category.status}
-                          {category.lastCompleted && <span className="ml-2 text-xs">({category.lastCompleted})</span>}
-                        </p>
-
-                        <Button
-                          className={`w-full font-semibold py-3 rounded-xl transition-all duration-300 ${
-                            category.required
-                              ? `bg-gradient-to-r ${category.gradient} hover:shadow-lg text-white`
-                              : `bg-white/90 hover:bg-white text-gray-700 border border-gray-200 hover:border-gray-300 
-                                dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700 dark:hover:border-gray-600`
-                          }`}
-                          asChild
-                        >
-                          <Link href={`/assessment/${category.id}`}>
-                            {category.progress > 0 ? t("re_assess") : t("start_assessment")}
-                            <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+          {/* Assessment Categories */}
+          {isLoggedIn && (
+            <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20" id="assessment-section">
+              <div className="text-center mb-16">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+                  <span className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-purple-200">
+                    {t("health_assessments")}
+                  </span>
+                </h2>
+                <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mb-6 rounded-full"></div>
+                <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                  {t("choose_assessment_type")}
+                </p>
               </div>
-            </>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {getUpdatedCategories().map((category, index) => (
+                  <Card
+                    key={category.id}
+                    className="group relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 cursor-pointer rounded-2xl"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-black/20 dark:to-transparent"></div>
+                    <CardContent className="relative p-8">
+                      <div className="flex items-start justify-between mb-6">
+                        <div
+                          className={`p-4 rounded-xl bg-gradient-to-br ${category.gradient} text-white shadow-lg group-hover:shadow-xl transition-all duration-300`}
+                        >
+                          <category.icon className="h-8 w-8" />
+                        </div>
+                        <div className="flex flex-col items-end space-y-2">
+                          {category.required ? (
+                            <Badge className="bg-red-500 text-white font-medium px-3 py-1 rounded-full shadow-sm">
+                              {t("required")}
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="secondary"
+                              className="bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full shadow-sm dark:bg-blue-800 dark:text-blue-200"
+                            >
+                              {t("optional")}
+                            </Badge>
+                          )}
+                          {category.progress > 0 && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                              <div className="font-semibold text-green-600 dark:text-green-400 flex items-center">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                {t("completed")}
+                              </div>
+                              {category.id !== "basic" && category.riskLevel && (
+                                <div
+                                  className={`font-semibold text-sm mt-1 ${
+                                    category.riskLevel === "low"
+                                      ? "text-green-600 dark:text-green-400"
+                                      : category.riskLevel === "medium"
+                                        ? "text-yellow-600 dark:text-yellow-400"
+                                        : category.riskLevel === "high"
+                                          ? "text-orange-600 dark:text-orange-400"
+                                          : category.riskLevel === "very-high"
+                                            ? "text-red-600 dark:text-red-400"
+                                            : "text-gray-600 dark:text-gray-300"
+                                  }`}
+                                >
+                                  ({getRiskLevelLabel(category.riskLevel)})
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <h3 className="font-bold text-xl mb-3 text-gray-900 group-hover:text-gray-800 transition-colors dark:text-white dark:group-hover:text-gray-100">
+                        {category.title}
+                      </h3>
+                      <p className="text-gray-600 mb-6 leading-relaxed dark:text-gray-300">{category.description}</p>
+                      <div className="flex items-center text-sm text-gray-500 mb-6 dark:text-gray-400">
+                        <Clock className="w-4 h-4 mr-2" />
+                        {category.status}
+                        {category.lastCompleted && <span className="ml-2 text-xs">({category.lastCompleted})</span>}
+                      </div>
+
+                      <Button
+                        className={`w-full font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl ${
+                          category.required
+                            ? `bg-gradient-to-r ${category.gradient} hover:shadow-lg text-white`
+                            : `bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 
+                              dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:border-gray-500`
+                        }`}
+                        asChild
+                      >
+                        <Link href={`/assessment/${category.id}`}>
+                          {category.progress > 0 ? t("re_assess") : t("start_assessment")}
+                          <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
           )}
         </div>
       </main>
+
       <Footer />
 
       <ConsultDoctorIntroModal

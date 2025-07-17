@@ -18,7 +18,6 @@ import {
   XCircle,
   TrendingUp,
   Heart,
-  Target,
   Sparkles,
   Award,
   Activity,
@@ -216,7 +215,7 @@ export default function GuestAssessmentResultsPage() {
 
   if (!guestUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-slate-900 dark:to-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-bold mb-4">{t("not_logged_in")}</h2>
@@ -234,7 +233,7 @@ export default function GuestAssessmentResultsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-slate-900 dark:to-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-600" />
@@ -250,7 +249,7 @@ export default function GuestAssessmentResultsPage() {
 
   if (error || !assessment) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-slate-900 dark:to-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <AlertTriangle className="h-8 w-8 mx-auto mb-4 text-red-600" />
@@ -270,40 +269,66 @@ export default function GuestAssessmentResultsPage() {
   const categoryTitle = getCategoryTitle(assessment.category_id)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Animated Header */}
-        <div className="flex items-center justify-between animate-fade-in-up">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-slate-900 dark:to-gray-900 p-3 sm:p-4 lg:p-6">
+      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+        {/* Professional Header with Trust Indicators */}
+        <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 text-white p-6 sm:p-8 rounded-t-3xl overflow-hidden">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
+                  <Shield className="h-6 w-6" />
+                </div>
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold">
+                    {t("assessment_results")} {categoryTitle}
+                  </h1>
+                  <p className="text-white/80 text-sm">
+                    {locale === "th" ? "ผลการประเมินสุขภาพแบบทดลอง" : "Trial Health Assessment Results"}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {/* Responsive Header Actions */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up">
           <Button
             variant="ghost"
             onClick={() => router.push("/")}
-            className="flex items-center gap-2 hover:bg-white/80 transition-all duration-200"
+            className="flex items-center gap-2 hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all duration-200 text-sm sm:text-base"
           >
             <ArrowLeft className="h-4 w-4" />
             {t("back")}
           </Button>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               size="sm"
-              className="hover:bg-white/80 transition-all duration-200 bg-transparent"
+              className="hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all duration-200 bg-transparent text-xs sm:text-sm px-3 py-2"
             >
-              <Share2 className="h-4 w-4 mr-2" />
+              <Share2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               {t("share_results")}
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="hover:bg-white/80 transition-all duration-200 bg-transparent"
+              className="hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all duration-200 bg-transparent text-xs sm:text-sm px-3 py-2"
             >
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               {t("download_pdf")}
             </Button>
           </div>
         </div>
 
         {/* Main Results Card with Enhanced Design */}
-        <Card className="bg-white/90 backdrop-blur-xl border-0 shadow-2xl rounded-3xl overflow-hidden animate-fade-in-up animation-delay-200">
+        <Card className="bg-white/90 dark:bg-gray-900/95 backdrop-blur-xl border-0 shadow-2xl dark:shadow-black/50 rounded-3xl overflow-hidden animate-fade-in-up animation-delay-200">
           {/* Gradient Header */}
           <div
             className={`bg-gradient-to-r ${riskInfo.gradientFrom} ${riskInfo.gradientTo} p-8 text-white relative overflow-hidden`}
@@ -332,100 +357,91 @@ export default function GuestAssessmentResultsPage() {
           </div>
 
           <CardContent className="p-8 space-y-8">
-            {/* Guest Mode Notice */}
-            <Alert className="mb-8 border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950 rounded-xl">
-              <Shield className="h-4 w-4 text-purple-600" />
-              <AlertDescription className="text-purple-800 dark:text-purple-200">
-                {locale === "th"
-                  ? "ข้อมูลนี้เป็นการทดลองใช้งานและจะไม่ถูกบันทึกถาวร หากต้องการบันทึกข้อมูลและใช้งานฟีเจอร์เต็มรูปแบบ กรุณาสมัครสมาชิก"
-                  : "This is guest mode data and will not be permanently saved. To save your data and access full features, please register for an account."}
-              </AlertDescription>
+            {/* Professional Guest Mode Notice */}
+            <Alert className="mb-8 border-0 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-start gap-4">
+                <div className="p-2 rounded-full bg-purple-100 dark:bg-purple-800">
+                  <Shield className="h-5 w-5 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">
+                    {locale === "th" ? "โหมดทดลองใช้งาน" : "Trial Mode"}
+                  </h4>
+                  <AlertDescription className="text-purple-700 dark:text-purple-300 text-sm leading-relaxed">
+                    {locale === "th"
+                      ? "ข้อมูลนี้เป็นการทดลองใช้งานและจะไม่ถูกบันทึกถาวร หากต้องการบันทึกข้อมูลและใช้งานฟีเจอร์เต็มรูปแบบ กรุณาสมัครสมาชิก"
+                      : "This is trial mode data and will not be permanently saved. To save your data and access full features, please register for an account."}
+                  </AlertDescription>
+                </div>
+              </div>
             </Alert>
 
-            {/* Score Visualization */}
-            <div className="text-center space-y-6">
-              {/* Circular Progress */}
-              <div className="relative inline-flex items-center justify-center">
-                <div className="w-48 h-48 relative">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    {/* Background circle */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="currentColor"
-                      strokeWidth="6"
-                      fill="none"
-                      className="text-gray-200 dark:text-gray-700"
-                    />
-                    {/* Progress circle */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="url(#gradient)"
-                      strokeWidth="6"
-                      fill="none"
-                      strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - (isAnimating ? 0 : assessment.percentage / 100))}`}
-                      className="transition-all duration-2000 ease-out"
-                      strokeLinecap="round"
-                    />
-                    <defs>
-                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" className={riskInfo.gradientFrom.replace("from-", "stop-")} />
-                        <stop offset="100%" className={riskInfo.gradientTo.replace("to-", "stop-")} />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className={`text-4xl font-bold ${riskInfo.color} animate-count-up`}>
-                        {isAnimating ? 0 : assessment.percentage}%
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                        {locale === "th" ? "คะแนนสุขภาพ" : "Health Score"}
+            {/* Professional Score Visualization */}
+            <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-600">
+              <div className="text-center space-y-6">
+                {/* Enhanced Circular Progress */}
+                <div className="relative inline-flex items-center justify-center">
+                  <div className="w-40 h-40 sm:w-48 sm:h-48 relative">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                      {/* Background circle */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        fill="none"
+                        className="text-gray-200 dark:text-gray-600"
+                      />
+                      {/* Progress circle */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        stroke="url(#gradient)"
+                        strokeWidth="8"
+                        fill="none"
+                        strokeDasharray={`${2 * Math.PI * 40}`}
+                        strokeDashoffset={`${2 * Math.PI * 40 * (1 - (isAnimating ? 0 : assessment.percentage / 100))}`}
+                        className="transition-all duration-2000 ease-out drop-shadow-lg"
+                        strokeLinecap="round"
+                      />
+                      <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" className={riskInfo.gradientFrom.replace("from-", "stop-")} />
+                          <stop offset="100%" className={riskInfo.gradientTo.replace("to-", "stop-")} />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className={`text-3xl sm:text-4xl font-bold ${riskInfo.color} animate-count-up`}>
+                          {isAnimating ? 0 : assessment.percentage}%
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-300 font-medium mt-1">
+                          {locale === "th" ? "คะแนนสุขภาพ" : "Health Score"}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Risk Level Badge */}
-              {assessment.category_id !== "basic" && (
-                <div className="flex justify-center">
-                  <Badge
-                    className={`${getRiskLevelBadgeClass(
-                      assessment.risk_level,
-                    )} text-xl px-8 py-4 rounded-full font-semibold shadow-lg animate-bounce-subtle`}
-                  >
-                    <Award className="h-5 w-5 mr-2" />
-                    {getRiskLevelLabel(assessment.risk_level)}
-                  </Badge>
-                </div>
-              )}
-
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-4 text-center">
-                  <Activity className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-600">{assessment.answers.length}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("questions_answered")}</div>
-                </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-4 text-center">
-                  <Target className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-green-600">
-                    {assessment.ai_analysis?.riskFactors?.th?.length || 0}
+                {/* Professional Risk Level Badge */}
+                {assessment.category_id !== "basic" && (
+                  <div className="flex justify-center">
+                    <div className="relative">
+                      <Badge
+                        className={`${getRiskLevelBadgeClass(
+                          assessment.risk_level,
+                        )} text-lg sm:text-xl px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold shadow-xl animate-bounce-subtle`}
+                      >
+                        <Award className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                        {getRiskLevelLabel(assessment.risk_level)}
+                      </Badge>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("risk_factors")}</div>
-                </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-4 text-center">
-                  <Shield className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-purple-600">
-                    {assessment.ai_analysis?.recommendations?.th?.length || 0}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{t("recommendations")}</div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -438,7 +454,7 @@ export default function GuestAssessmentResultsPage() {
                 {/* Risk Factors */}
                 {assessment.ai_analysis?.riskFactors?.th?.length > 0 && (
                   <div className="space-y-4">
-                    <h3 className="font-bold text-xl text-gray-800 dark:text-gray-200 flex items-center gap-3">
+                    <h3 className="font-bold text-xl text-gray-800 dark:text-gray-100 flex items-center gap-3">
                       <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/20">
                         <AlertTriangle className="h-6 w-6 text-orange-600" />
                       </div>
@@ -451,12 +467,12 @@ export default function GuestAssessmentResultsPage() {
                       ).map((factor: string, index: number) => (
                         <div
                           key={index}
-                          className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 rounded-xl p-4 border-l-4 border-orange-400 animate-slide-in-left"
+                          className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-gray-800/80 dark:to-gray-700/80 dark:border dark:border-orange-500/40 rounded-xl p-4 border-l-4 border-orange-400 animate-slide-in-left"
                           style={{ animationDelay: `${index * 100}ms` }}
                         >
                           <div className="flex items-start gap-3">
                             <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-700 dark:text-gray-300 font-medium">{factor}</span>
+                            <span className="text-gray-700 dark:text-gray-200 font-medium">{factor}</span>
                           </div>
                         </div>
                       ))}
@@ -467,7 +483,7 @@ export default function GuestAssessmentResultsPage() {
                 {/* Recommendations */}
                 {assessment.ai_analysis?.recommendations?.th?.length > 0 && (
                   <div className="space-y-4">
-                    <h3 className="font-bold text-xl text-gray-800 dark:text-gray-200 flex items-center gap-3">
+                    <h3 className="font-bold text-xl text-gray-800 dark:text-gray-100 flex items-center gap-3">
                       <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20">
                         <TrendingUp className="h-6 w-6 text-green-600" />
                       </div>
@@ -480,12 +496,12 @@ export default function GuestAssessmentResultsPage() {
                       ).map((recommendation: string, index: number) => (
                         <div
                           key={index}
-                          className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-xl p-4 border-l-4 border-green-400 animate-slide-in-right"
+                          className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-800/80 dark:to-gray-700/80 dark:border dark:border-green-500/40 rounded-xl p-4 border-l-4 border-green-400 animate-slide-in-right"
                           style={{ animationDelay: `${index * 100}ms` }}
                         >
                           <div className="flex items-start gap-3">
                             <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-700 dark:text-gray-300 font-medium">{recommendation}</span>
+                            <span className="text-gray-700 dark:text-gray-200 font-medium">{recommendation}</span>
                           </div>
                         </div>
                       ))}
@@ -497,7 +513,7 @@ export default function GuestAssessmentResultsPage() {
 
             {/* AI Summary (if available) */}
             {assessment.ai_analysis?.summary && (
-              <Card className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+              <Card className="bg-white dark:bg-gray-800/90 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-600">
                 <CardHeader className="p-0 pb-4">
                   <CardTitle className="flex items-center gap-2 text-xl font-bold">
                     <FileText className="h-5 w-5 text-blue-600" />
@@ -505,7 +521,7 @@ export default function GuestAssessmentResultsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="text-gray-700 dark:text-gray-200">
                     {locale === "th" ? assessment.ai_analysis.summary.th : assessment.ai_analysis.summary.en}
                   </p>
                 </CardContent>
@@ -513,48 +529,48 @@ export default function GuestAssessmentResultsPage() {
             )}
 
             {/* Assessment Info Card */}
-            <div className="bg-gradient-to-r from-gray-50 to-slate-100 dark:from-gray-800 dark:to-slate-800 rounded-2xl p-6 space-y-4">
-              <h4 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+            <div className="bg-gradient-to-r from-gray-50 to-slate-100 dark:from-gray-800/90 dark:to-gray-700/90 dark:border dark:border-gray-600 rounded-2xl p-6 space-y-4">
+              <h4 className="font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 {locale === "th" ? "ข้อมูลการประเมิน" : "Assessment Information"}
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <span className="text-gray-600 dark:text-gray-300 flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     {t("assessment_date")}
                   </span>
-                  <span className="font-semibold text-gray-800 dark:text-gray-200">
+                  <span className="font-semibold text-gray-800 dark:text-gray-100">
                     {formatDate(assessment.completed_at)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <span className="text-gray-600 dark:text-gray-300 flex items-center gap-2">
                     <Activity className="h-4 w-4" />
                     {t("questions_answered")}
                   </span>
-                  <span className="font-semibold text-gray-800 dark:text-gray-200">
+                  <span className="font-semibold text-gray-800 dark:text-gray-100">
                     {assessment.answers.length} {locale === "th" ? "ข้อ" : "questions"}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-6">
+            {/* Professional Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-8">
               <Button
                 onClick={() => router.push(`/guest-assessment?category=${assessment.category_id}`)}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 sm:py-4 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
               >
-                <RefreshCw className="h-5 w-5 mr-2" />
+                <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 {t("retake_assessment")}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => setShowDetails(!showDetails)}
-                className="flex-1 border-2 hover:bg-gray-50 dark:hover:bg-gray-800 py-3 rounded-xl font-semibold transition-all duration-200"
+                className="flex-1 border-2 hover:bg-gray-50 dark:hover:bg-gray-700 py-3 sm:py-4 px-6 rounded-xl font-semibold transition-all duration-200 text-sm sm:text-base shadow-md hover:shadow-lg"
               >
-                <FileText className="h-5 w-5 mr-2" />
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 {showDetails ? t("hide_answer_details") : t("view_answer_details")}
               </Button>
             </div>
@@ -563,7 +579,7 @@ export default function GuestAssessmentResultsPage() {
             {showDetails && assessment.answers.length > 0 && (
               <div className="mt-8 space-y-4 animate-fade-in">
                 <Separator />
-                <h3 className="font-bold text-xl text-gray-800 dark:text-gray-200">
+                <h3 className="font-bold text-xl text-gray-800 dark:text-gray-100">
                   {locale === "th" ? "รายละเอียดคำตอบ" : "Answer Details"}
                 </h3>
                 <ScrollArea className="h-80">
@@ -571,12 +587,12 @@ export default function GuestAssessmentResultsPage() {
                     {assessment.answers.map((answer: AssessmentAnswer, index: number) => (
                       <div
                         key={answer.questionId}
-                        className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700"
+                        className="bg-white dark:bg-gray-800/90 dark:border-gray-600 rounded-xl p-4 shadow-sm border border-gray-100"
                       >
-                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
                           {locale === "th" ? "คำถามที่" : "Question"} {index + 1}: {answer.questionId}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">
                           {locale === "th" ? "คำตอบ" : "Answer"}:{" "}
                           {Array.isArray(answer.answer) ? answer.answer.join(", ") : answer.answer}
                         </div>

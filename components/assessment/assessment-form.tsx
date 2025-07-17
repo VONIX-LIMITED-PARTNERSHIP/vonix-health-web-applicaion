@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2, Shield, Award, FileCheck } from "lucide-react"
 import { QuestionCard } from "./question-card"
 import { getAssessmentCategories } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
@@ -242,7 +242,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       }
     } else {
       return {
-        full: t("common.view_results"), // This is where common.view_results is used
+        full: t("common.view_results"),
         short: locale === "en" ? "View Results" : "ดูผล",
       }
     }
@@ -252,111 +252,174 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Button variant="ghost" onClick={handleBack} className="mb-4 hover:bg-white/80">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
+        {/* Professional Header with Trust Indicators */}
+        <div className="mb-6 sm:mb-8">
+          <Button
+            variant="ghost"
+            onClick={handleBack}
+            className="mb-4 sm:mb-6 hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-200"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             {t("assessment_back")}
           </Button>
 
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl dark:bg-card/80 dark:border-border">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-2xl mb-2 dark:text-foreground flex items-center gap-2">
-                    {category.title}
-                    {isGuestLoggedIn && (
-                      <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200">
-                        {locale === "th" ? "ทดลองใช้งาน" : "Guest Mode"}
+          <Card className="bg-white/95 backdrop-blur-xl border-0 shadow-2xl rounded-3xl overflow-hidden dark:bg-gray-900/95 dark:border-gray-800/50">
+            <CardHeader className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white relative overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.1))]" />
+
+              <div className="relative z-10">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 sm:p-3 rounded-full bg-white/20 backdrop-blur-sm">
+                        <FileCheck className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 flex items-center gap-2">
+                          {category.title}
+                          {isGuestLoggedIn && (
+                            <Badge className="bg-purple-500/20 text-purple-100 border-purple-300/30 text-xs sm:text-sm">
+                              {locale === "th" ? "ทดลองใช้งาน" : "Guest Mode"}
+                            </Badge>
+                          )}
+                        </CardTitle>
+                        <p className="text-blue-100 text-sm sm:text-base leading-relaxed">{category.description}</p>
+                      </div>
+                    </div>
+
+                    {/* Trust Indicators */}
+                    
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                    {category.required && (
+                      <Badge className="bg-red-500/20 text-red-100 border-red-300/30 text-xs sm:text-sm">
+                        {t("card_assessment_required")}
                       </Badge>
                     )}
-                  </CardTitle>
-                  <p className="text-gray-600 dark:text-muted-foreground">{category.description}</p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  {category.required && <Badge className="bg-red-500 text-white">{t("card_assessment_required")}</Badge>}
-                  <div className="flex items-center text-gray-500 dark:text-gray-400">
-                    <Clock className="w-4 h-4 mr-1" />
-                    <span className="text-sm">
-                      {category.estimatedTime} {t("card_assessment_estimated_time")}
-                    </span>
                   </div>
+                </div>
+              </div>
+
+              {/* Decorative Elements */}
+              <div className="absolute top-4 right-4 opacity-20">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 flex items-center justify-center">
+                  <FileCheck className="h-8 w-8 sm:h-10 sm:w-10" />
                 </div>
               </div>
             </CardHeader>
           </Card>
         </div>
 
-        {/* Progress */}
-        <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                {locale === "en"
-                  ? `Question ${currentQuestionIndex + 1} of ${category.questions.length}`
-                  : `คำถามที่ ${currentQuestionIndex + 1} จาก ${category.questions.length}`}
-              </span>
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                {Math.round(progress)}% {locale === "en" ? "Complete" : "เสร็จสิ้น"}
-              </span>
+        {/* Enhanced Progress Section */}
+        <Card className="mb-6 sm:mb-8 bg-white/95 backdrop-blur-xl border-0 shadow-xl rounded-2xl dark:bg-gray-900/95 dark:border-gray-800/50">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30">
+                  <FileCheck className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <span className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-200">
+                    {locale === "en"
+                      ? `Question ${currentQuestionIndex + 1} of ${category.questions.length}`
+                      : `คำถามที่ ${currentQuestionIndex + 1} จาก ${category.questions.length}`}
+                  </span>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                    {locale === "th" ? "กรุณาตอบคำถามให้ครบถ้วน" : "Please answer all questions completely"}
+                  </p>
+                </div>
+              </div>
+
+            
             </div>
-            <Progress value={progress} className="h-3 bg-gray-200 dark:bg-gray-700" />
+
+            <Progress value={progress} className="h-2 sm:h-3 bg-gray-200 dark:bg-gray-700" />
           </CardContent>
         </Card>
 
-        {/* Question */}
-        <QuestionCard
-          key={currentQuestion.id}
-          question={currentQuestion}
-          answer={getCurrentAnswer()}
-          onAnswer={handleAnswer}
-        />
+        {/* Question Card */}
+        <div className="mb-6 sm:mb-8">
+          <QuestionCard
+            key={currentQuestion.id}
+            question={currentQuestion}
+            answer={getCurrentAnswer()}
+            onAnswer={handleAnswer}
+          />
+        </div>
 
-        {/* Navigation */}
-        <Card className="mt-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl dark:bg-card/80 dark:border-border">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center gap-4">
+        {/* Enhanced Navigation */}
+        <Card className="bg-white/95 backdrop-blur-xl border-0 shadow-xl rounded-2xl dark:bg-gray-900/95 dark:border-gray-800/50">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
               <Button
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={currentQuestionIndex === 0 || isSubmitting}
-                className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-transparent"
+                className="flex-1 sm:flex-none px-4 sm:px-8 py-3 text-sm sm:text-base bg-white/80 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:border-gray-600"
               >
-                <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">{t("card_assessment_previous")}</span>
-                <span className="sm:hidden">{locale === "en" ? "Prev" : "ก่อน"}</span>
+                <span className="sm:hidden">{locale === "en" ? "Previous" : "ก่อนหน้า"}</span>
               </Button>
+
+              <div className="flex-1 sm:flex-none flex justify-center">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                  {Array.from({ length: category.questions.length }, (_, i) => (
+                    <div
+                      key={i}
+                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                        i < currentQuestionIndex
+                          ? "bg-green-500"
+                          : i === currentQuestionIndex
+                            ? "bg-blue-500 scale-125"
+                            : "bg-gray-300 dark:bg-gray-600"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
 
               <Button
                 onClick={handleNext}
                 disabled={!canProceed() || isSubmitting}
-                className={`px-4 sm:px-6 py-2 text-sm sm:text-base ${
+                className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 ${
                   isGuestLoggedIn
-                    ? "bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
-                    : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                } text-white`}
+                    ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span className="hidden sm:inline">{locale === "en" ? "Saving..." : "กำลังบันทึก..."}</span>
-                    <span className="sm:hidden">{locale === "en" ? "Saving..." : "บันทึก..."}</span>
+                    <span className="hidden sm:inline">{locale === "en" ? "Processing..." : "กำลังประมวลผล..."}</span>
+                    <span className="sm:hidden">{locale === "en" ? "Processing..." : "ประมวลผล..."}</span>
                   </>
                 ) : isLastQuestion ? (
                   <>
                     <span className="hidden sm:inline">{submitButtonText.full}</span>
                     <span className="sm:hidden">{submitButtonText.short}</span>
-                    <CheckCircle className="ml-1 sm:ml-2 h-4 w-4" />
+                    <CheckCircle className="ml-2 h-4 w-4" />
                   </>
                 ) : (
                   <>
                     <span className="hidden sm:inline">{t("card_assessment_next")}</span>
-                    <span className="sm:hidden">{t("card_assessment_next")}</span>
-                    <ArrowRight className="ml-1 sm:ml-2 h-4 w-4" />
+                    <span className="sm:hidden">{locale === "en" ? "Next" : "ถัดไป"}</span>
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
+            </div>
+
+            {/* Progress Indicator Text */}
+            <div className="mt-4 text-center">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                {locale === "th"
+                  ? `เหลืออีก ${category.questions.length - currentQuestionIndex - 1} คำถาม`
+                  : `${category.questions.length - currentQuestionIndex - 1} questions remaining`}
+              </p>
             </div>
           </CardContent>
         </Card>

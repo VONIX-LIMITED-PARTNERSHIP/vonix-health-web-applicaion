@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
 import {
   Activity,
@@ -52,10 +51,15 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
     if (isOpen) {
       setLoading(true)
       try {
+        // First, try to recalculate any missing percentages
+        GuestAssessmentService.recalculateAllPercentages()
+
         const stats = GuestAssessmentService.getDashboardStats()
         setDashboardStats(stats)
         const assessments = GuestAssessmentService.getLatestAssessments().map((item) => item.result)
         setGuestAssessments(assessments)
+
+        console.log("Loaded assessments:", assessments) // Debug log
       } catch (error) {
         console.error("Failed to load guest health overview data:", error)
         setDashboardStats(null)
@@ -145,32 +149,33 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
   const handleViewAssessmentResults = (assessment: AssessmentResult) => {
     onClose() // Close the modal first
     // Navigate to guest assessment results page with category parameter
-    router.push(`/guest-assessment/results?category=${assessment.categoryId}`)
+    router.push(`/guest-assessment/results?category=${assessment.category}`)
   }
 
   const getHealthScore = () => {
-    if (!dashboardStats || guestAssessments.length === 0) return 0
+    if (!guestAssessments || guestAssessments.length === 0) return 0
 
-    const riskScores = { low: 90, medium: 70, high: 50, "very-high": 30, unknown: 60 }
-    let totalScore = 0
-    let validAssessments = 0
+    // Calculate average percentage from all assessments
+    const totalPercentage = guestAssessments.reduce((sum, assessment) => {
+      // Use the actual percentage score from each assessment
+      const percentage = assessment.percentage || 0
+      console.log(`Assessment ${assessment.category}: ${percentage}%`) // Debug log
+      return sum + percentage
+    }, 0)
 
-    guestAssessments.forEach((assessment) => {
-      if (assessment.riskLevel && assessment.riskLevel !== "unknown") {
-        totalScore += riskScores[assessment.riskLevel as keyof typeof riskScores] || 60
-        validAssessments++
-      }
-    })
+    const averageScore = Math.round(totalPercentage / guestAssessments.length)
+    console.log(`Total: ${totalPercentage}, Count: ${guestAssessments.length}, Average: ${averageScore}`) // Debug log
 
-    return validAssessments > 0 ? Math.round(totalScore / validAssessments) : 60
+    // Ensure the score is within 0-100 range
+    return Math.max(0, Math.min(100, averageScore))
   }
 
   const healthScore = getHealthScore()
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[900px] max-h-[95vh] flex flex-col overflow-hidden">
-        <DialogHeader className="pb-4">
+      <DialogContent className="sm:max-w-[900px] h-[95vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-4 flex-shrink-0">
           <DialogTitle className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
             <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg">
               <BarChart className="h-8 w-8" />
@@ -185,12 +190,23 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
         </DialogHeader>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-64">
+          <div className="flex flex-col items-center justify-center flex-1">
             <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
             <span className="mt-4 text-lg text-gray-600 dark:text-gray-400">{t("loading_data")}...</span>
           </div>
         ) : (
-          <ScrollArea className="flex-1 pr-4 -mr-4">
+          <div
+            className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide"
+            style={{
+              scrollbarWidth: "none" /* Firefox */,
+              msOverflowStyle: "none" /* Internet Explorer 10+ */,
+            }}
+          >
+            <style jsx>{`
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none; /* Safari and Chrome */
+              }
+            `}</style>
             <div className="space-y-8">
               {/* Health Score Hero Section */}
               <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 p-8 border border-blue-200 dark:border-gray-700">
@@ -372,21 +388,23 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {guestAssessments.map((assessment) => {
                       const categoryInfo = assessmentCategories.find((cat) => cat.id === assessment.category)
-                      const gradient = getCategoryGradient(assessment.categoryId)
+                      const gradient = getCategoryGradient(assessment.category)
+                      const displayPercentage = assessment.percentage || 0
 
                       return (
                         <Card
                           key={assessment.id}
-                          className="group relative overflow-hidden bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-default border-0 rounded-2xl"
+                          onClick={() => handleViewAssessmentResults(assessment)}
+                          className="group relative overflow-hidden bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 rounded-2xl"
                         >
                           <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-black/20 dark:to-transparent"></div>
-                          <CardContent className="p-6 relative">
+                          <CardContent className="p-6 relative group-hover:scale-[1.02] transition-transform duration-200">
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex items-center gap-4">
                                 <div
                                   className={`p-4 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}
                                 >
-                                  {getCategoryIcon(assessment.categoryId)}
+                                  {getCategoryIcon(assessment.category)}
                                 </div>
                                 <div>
                                   <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -405,7 +423,7 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
                                 {renderRiskBadge(assessment.riskLevel)}
                                 <div className="text-right">
                                   <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                    {assessment.percentage}%
+                                    {displayPercentage}%
                                   </div>
                                   <div className="text-xs text-gray-500 dark:text-gray-400">
                                     {locale === "th" ? "คะแนน" : "Score"}
@@ -414,13 +432,16 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
                               </div>
 
                               <div className="space-y-2">
-                                <Progress value={assessment.percentage} className="h-2" />
+                                <Progress
+                                  value={displayPercentage}
+                                  className="h-3 bg-gray-200 dark:bg-gray-700 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-purple-600"
+                                />
                                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                                   <span className="flex items-center gap-1">
                                     <Eye className="h-3 w-3" />
                                     {locale === "th" ? "คลิกเพื่อดูรายละเอียด" : "Click to view details"}
                                   </span>
-                                  <span>{assessment.percentage}%</span>
+                                  <span className="font-medium">{displayPercentage}%</span>
                                 </div>
                               </div>
                             </div>
@@ -431,48 +452,8 @@ export function GuestHealthOverviewModal({ isOpen, onClose }: GuestHealthOvervie
                   </div>
                 )}
               </div>
-
-              {/* Recommendations Section */}
-              {/* ลบส่วนนี้ออกไปก่อนตามคำขอ */}
-              {/*
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white">
-                  <CheckCircle className="h-6 w-6" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {t("general_recommendations_title", { ns: "guest_health_overview" })}
-                </h3>
-              </div>
-
-              {dashboardStats?.recommendations && dashboardStats.recommendations.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {dashboardStats.recommendations.map((recommendation, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800"
-                    >
-                      <div className="p-1 rounded-full bg-green-500 text-white flex-shrink-0 mt-1">
-                        <CheckCircle className="h-4 w-4" />
-                      </div>
-                      <span className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
-                        {recommendation}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-200 dark:border-gray-600">
-                  <div className="p-3 rounded-full bg-gray-200 dark:bg-gray-600 w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                    <Info className="h-6 w-6 text-gray-500 dark:text-gray-400" />
-                  </div>
-                  <p className="text-gray-500 dark:text-gray-400">{t("no_recommendations_yet")}</p>
-                </div>
-              )}
             </div>
-            */}
-            </div>
-          </ScrollArea>
+          </div>
         )}
       </DialogContent>
     </Dialog>
