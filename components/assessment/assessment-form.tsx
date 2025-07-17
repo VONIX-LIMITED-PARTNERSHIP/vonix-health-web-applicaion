@@ -1,12 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, ArrowRight, Clock, CheckCircle, Loader2, Shield, Award, FileCheck } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle, Loader2, FileCheck } from "lucide-react"
 import { QuestionCard } from "./question-card"
 import { getAssessmentCategories } from "@/data/assessment-questions"
 import { AssessmentService } from "@/lib/assessment-service"
@@ -15,8 +14,9 @@ import { useAuth } from "@/hooks/use-auth"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { useLanguage } from "@/contexts/language-context"
 import { useTranslation } from "@/hooks/use-translation"
-import type { AssessmentAnswer, AssessmentResult, AssessmentCategory, RiskLevel } from "@/types/assessment"
+import type { AssessmentAnswer, AssessmentResult, AssessmentCategory, AIAnalysisResult } from "@/types/assessment"
 import { createClientComponentClient } from "@/lib/supabase"
+import { useToast } from "@/hooks/use-toast"
 
 interface AssessmentFormProps {
   categoryId: string
@@ -29,21 +29,53 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   const { locale } = useLanguage()
   const { t } = useTranslation()
   const supabase = createClientComponentClient()
+  const { toast } = useToast()
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
-  // Get assessment categories based on current language
   const assessmentCategories = getAssessmentCategories(locale)
   const category = assessmentCategories.find((cat) => cat.id === categoryId)
+
+  const userId = isGuestLoggedIn ? guestUser?.id : user?.id
+
+  const [isLastQuestion, setIsLastQuestion] = useState(false)
+  const [progress, setProgress] = useState(0)
+
+  const currentQuestion = category?.questions[currentQuestionIndex]
+  const totalQuestions = category?.questions.length || 0
+
+  useEffect(() => {
+    setIsLastQuestion(currentQuestionIndex === totalQuestions - 1)
+    setProgress(((currentQuestionIndex + 1) / totalQuestions) * 100)
+  }, [currentQuestionIndex, totalQuestions])
+
+  useEffect(() => {
+    if (userId) {
+      const storedAnswers = sessionStorage.getItem(`assessment_answers_${userId}_${category.id}`)
+      if (storedAnswers) {
+        setAnswers(JSON.parse(storedAnswers))
+      }
+      const storedIndex = sessionStorage.getItem(`assessment_index_${userId}_${category.id}`)
+      if (storedIndex) {
+        setCurrentQuestionIndex(Number.parseInt(storedIndex, 10))
+      }
+    }
+  }, [userId, category.id])
+
+  useEffect(() => {
+    if (userId) {
+      sessionStorage.setItem(`assessment_answers_${userId}_${category.id}`, JSON.stringify(answers))
+      sessionStorage.setItem(`assessment_index_${userId}_${category.id}`, currentQuestionIndex.toString())
+    }
+  }, [answers, currentQuestionIndex, userId, category.id])
 
   if (!category) {
     return <div>{t("assessment.error_loading_answers")}</div>
   }
-
-  const currentQuestion = category.questions[currentQuestionIndex]
-  const progress = ((currentQuestionIndex + 1) / category.questions.length) * 100
-  const isLastQuestion = currentQuestionIndex === category.questions.length - 1
 
   const handleAnswer = (
     questionId: string,
@@ -56,171 +88,209 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
       newAnswers.push({ questionId, answer, score, isValid })
       return newAnswers
     })
+    setFormErrors((prev) => {
+      const newErrors = { ...prev }
+      delete newErrors[questionId]
+      return newErrors
+    })
   }
 
   const getCurrentAnswer = () => {
-    return answers.find((a) => a.questionId === currentQuestion.id)
+    return answers.find((a) => a.questionId === currentQuestion?.id)
   }
 
-  const canProceed = () => {
-    const answerEntry = getCurrentAnswer()
-    if (currentQuestion.required) {
-      const hasAnswer = answerEntry?.answer !== null && answerEntry?.answer !== undefined
-      const isAnswerNotEmpty =
-        hasAnswer &&
-        (Array.isArray(answerEntry.answer) ? answerEntry.answer.length > 0 : String(answerEntry.answer).trim() !== "")
-
-      return answerEntry?.isValid === true && isAnswerNotEmpty
+  const validateCurrentQuestion = (): boolean => {
+    const currentAnswer = getCurrentAnswer()
+    if (currentQuestion?.required) {
+      if (
+        !currentAnswer ||
+        currentAnswer.answer === null ||
+        currentAnswer.answer === undefined ||
+        (typeof currentAnswer.answer === "string" && currentAnswer.answer.trim() === "") ||
+        (Array.isArray(currentAnswer.answer) && currentAnswer.answer.length === 0)
+      ) {
+        setFormErrors((prev) => ({ ...prev, [currentQuestion.id]: t("common.field_required") }))
+        toast({
+          title: t("common.error"),
+          description: t("assessment.please_answer_current_question"),
+          variant: "destructive",
+        })
+        return false
+      }
+      if (currentQuestion.type === "number") {
+        const numAnswer = Number(currentAnswer.answer)
+        if (isNaN(numAnswer)) {
+          setFormErrors((prev) => ({ ...prev, [currentQuestion.id]: t("common.enter_valid_number") }))
+          toast({
+            title: t("common.error"),
+            description: t("common.enter_valid_number"),
+            variant: "destructive",
+          })
+          return false
+        }
+        if (currentQuestion.min !== undefined && numAnswer < currentQuestion.min) {
+          setFormErrors((prev) => ({
+            ...prev,
+            [currentQuestion.id]: t("common.value_at_least", { min: currentQuestion.min }),
+          }))
+          toast({
+            title: t("common.error"),
+            description: t("common.value_at_least", { min: currentQuestion.min }),
+            variant: "destructive",
+          })
+          return false
+        }
+        if (currentQuestion.max !== undefined && numAnswer > currentQuestion.max) {
+          setFormErrors((prev) => ({
+            ...prev,
+            [currentQuestion.id]: t("common.value_at_most", { max: currentQuestion.max }),
+          }))
+          toast({
+            title: t("common.error"),
+            description: t("common.value_at_most", { max: currentQuestion.max }),
+            variant: "destructive",
+          })
+          return false
+        }
+      }
+      if (currentQuestion.type === "multi-choice" && Array.isArray(currentAnswer.answer)) {
+        const otherOption = currentQuestion.options?.find((opt) => opt.value === "อื่นๆ" || opt.value === "Other")
+        if (otherOption && currentAnswer.answer.includes(otherOption.value) && currentAnswer.answer.length === 1) {
+          setFormErrors((prev) => ({ ...prev, [currentQuestion.id]: t("common.select_more_or_provide_details") }))
+          toast({
+            title: t("common.error"),
+            description: t("common.select_more_or_provide_details"),
+            variant: "destructive",
+          })
+          return false
+        }
+      }
     }
     return true
   }
 
   const handleNext = async () => {
-    const currentAnswerForSubmission = getCurrentAnswer()
-    let finalAnswersToSave: AssessmentAnswer[] = []
-
-    if (currentAnswerForSubmission) {
-      finalAnswersToSave = answers.filter((a) => a.questionId !== currentQuestion.id)
-      finalAnswersToSave.push(currentAnswerForSubmission)
+    if (!validateCurrentQuestion()) {
+      return
+    }
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1)
     } else {
-      finalAnswersToSave = [...answers]
+      await handleSubmit()
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!validateCurrentQuestion()) {
+      return
     }
 
-    if (isLastQuestion) {
-      setIsSubmitting(true)
-      console.log("🚀 AssessmentForm: เริ่มบันทึกแบบประเมิน...")
+    const allAnswersValid = category.questions.every((q) => {
+      const answer = answers.find((a) => a.questionId === q.id)
+      return answer && (typeof answer.answer !== "string" || answer.answer.trim() !== "")
+    })
 
-      try {
-        if (isGuestLoggedIn) {
-          // Handle guest assessment
-          console.log("👤 AssessmentForm: บันทึกแบบประเมินสำหรับ Guest User...")
+    if (!allAnswersValid) {
+      toast({
+        title: t("common.error"),
+        description: t("assessment.please_answer_all_questions"),
+        variant: "destructive",
+      })
+      return
+    }
 
-          let aiAnalysis = null
-          let riskFactors: string[] = []
-          let recommendations: string[] = []
+    setIsSubmitting(true)
+    setIsAnalyzing(true)
 
-          if (categoryId !== "basic") {
-            console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI สำหรับ Guest...")
-            const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(
-              categoryId,
-              finalAnswersToSave,
-            )
-            if (aiError) {
-              console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
-              // Fallback to basic calculation
-              if (finalAnswersToSave.reduce((sum, answer) => sum + (answer.score || 0), 0) >= 60) {
-                recommendations.push(locale === "th" ? "ควรปรึกษาแพทย์" : "Should consult a doctor")
-              }
-            } else {
-              aiAnalysis = aiData
-              console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
+    if (!userId) {
+      toast({
+        title: t("common.error"),
+        description: t("assessment.not_authenticated_login_guest"),
+        variant: "destructive",
+      })
+      setIsSubmitting(false)
+      setIsAnalyzing(false)
+      return
+    }
 
-              // Use AI analysis results
-              if (aiAnalysis.riskFactors) {
-                riskFactors = locale === "th" ? aiAnalysis.riskFactors.th : aiAnalysis.riskFactors.en
-              }
-              if (aiAnalysis.recommendations) {
-                recommendations = locale === "th" ? aiAnalysis.recommendations.th : aiAnalysis.recommendations.en
-              }
-            }
-          } else {
-            // Basic assessment recommendations
-            if (finalAnswersToSave.reduce((sum, answer) => sum + (answer.score || 0), 0) >= 60) {
-              recommendations.push(locale === "th" ? "ควรปรึกษาแพทย์" : "Should consult a doctor")
-            }
-          }
+    let aiAnalysisResult: AIAnalysisResult | null = null
 
-          // Calculate basic scoring
-          const totalScore = finalAnswersToSave.reduce((sum, answer) => sum + (answer.score || 0), 0)
-          const maxScore = category.questions.length * 5 // Assuming max score per question is 5
-          const percentage = Math.round((totalScore / maxScore) * 100)
-
-          // Use AI analysis score if available, otherwise use calculated percentage
-          const finalScore = aiAnalysis ? aiAnalysis.score : percentage
-          const finalRiskLevel: RiskLevel = aiAnalysis
-            ? aiAnalysis.riskLevel
-            : percentage >= 80
-              ? "very-high"
-              : percentage >= 60
-                ? "high"
-                : percentage >= 40
-                  ? "medium"
-                  : "low"
-
-          const guestResult: AssessmentResult = {
-            id: `guest_${categoryId}_${Date.now()}`,
-            category: categoryId as AssessmentCategory,
-            score: finalScore,
-            riskLevel: finalRiskLevel,
-            completedAt: new Date().toISOString(),
-            answers: finalAnswersToSave,
-            aiAnalysis: aiAnalysis,
-          }
-
-          GuestAssessmentService.saveAssessment(categoryId as AssessmentCategory, guestResult)
-          console.log("✅ AssessmentForm: บันทึกแบบประเมิน Guest สำเร็จ")
-
-          if (categoryId === "basic") {
-            console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
-            router.push(`/?openHealthOverview=basic&assessmentId=${guestResult.id}`)
-          } else {
-            console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
-            router.push(`/guest-assessment/results?category=${categoryId}`)
-          }
-        } else {
-          // Handle regular user assessment
-          if (!user?.id) {
-            alert(t("assessment.not_logged_in"))
-            return
-          }
-
-          let aiAnalysis = null
-          if (categoryId !== "basic") {
-            console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
-            const { data: aiData, error: aiError } = await AssessmentService.analyzeWithAI(
-              categoryId,
-              finalAnswersToSave,
-            )
-            if (aiError) {
-              console.error("❌ AssessmentForm: การวิเคราะห์ AI ล้มเหลว:", aiError)
-            } else {
-              aiAnalysis = aiData
-              console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
-            }
-          }
-
-          console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
-          const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
-            supabase,
-            user.id,
-            categoryId,
-            category.title,
-            finalAnswersToSave,
-            aiAnalysis,
-          )
-
-          if (saveError) {
-            throw new Error(saveError)
-          }
-
-          console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
-
-          if (categoryId === "basic") {
-            console.log("🏠 AssessmentForm: แบบประเมิน basic เสร็จสิ้น กลับหน้าหลักพร้อมเปิด popup ข้อมูลส่วนตัว")
-            router.push(`/?openHealthOverview=basic&assessmentId=${savedData.id}`)
-          } else {
-            console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
-            router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
-          }
-        }
-      } catch (error) {
-        console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
-        alert(t("assessment.save_failed").replace("{{message}}", String(error)))
-      } finally {
-        setIsSubmitting(false)
+    try {
+      console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
+      const { data: aiAnalysis, error: aiError } = await AssessmentService.analyzeWithAI(category.id, answers)
+      if (aiError) {
+        throw new Error(aiError.message || "AI analysis failed.")
       }
-    } else {
-      setCurrentQuestionIndex((prev) => prev + 1)
+      aiAnalysisResult = aiAnalysis
+      console.log("✅ AssessmentForm: การวิเคราะห์ AI เสร็จสิ้น")
+
+      if (isGuestLoggedIn) {
+        console.log("👤 AssessmentForm: บันทึกแบบประเมินสำหรับ Guest User...")
+
+        const guestResult: AssessmentResult = {
+          id: `guest_${categoryId}_${Date.now()}`,
+          category: categoryId as AssessmentCategory,
+          score: aiAnalysisResult.score,
+          percentage: aiAnalysisResult.score,
+          riskLevel: aiAnalysisResult.riskLevel,
+          completedAt: new Date().toISOString(),
+          answers: answers,
+          aiAnalysis: aiAnalysisResult,
+          riskFactors: aiAnalysisResult.riskFactors[locale === "th" ? "th" : "en"],
+          recommendations: aiAnalysisResult.recommendations[locale === "th" ? "th" : "en"],
+          summary: aiAnalysisResult.summary[locale === "th" ? "th" : "en"],
+        }
+
+        GuestAssessmentService.saveAssessment(categoryId as AssessmentCategory, guestResult)
+        console.log("✅ AssessmentForm: บันทึกแบบประเมิน Guest สำเร็จ")
+
+        sessionStorage.removeItem(`assessment_answers_${userId}_${category.id}`)
+        sessionStorage.removeItem(`assessment_index_${userId}_${category.id}`)
+
+        console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
+        router.push(`/guest-assessment/results?category=${categoryId}&id=${guestResult.id}`)
+      } else {
+        if (!user?.id) {
+          toast({
+            title: t("common.error"),
+            description: t("assessment.not_logged_in"),
+            variant: "destructive",
+          })
+          return
+        }
+
+        console.log("💾 AssessmentForm: กำลังบันทึกลง Supabase...")
+        const { data: savedData, error: saveError } = await AssessmentService.saveAssessment(
+          supabase,
+          user.id,
+          categoryId,
+          category.title,
+          answers,
+          aiAnalysisResult,
+        )
+
+        if (saveError) {
+          throw new Error(saveError)
+        }
+
+        console.log("✅ AssessmentForm: บันทึกแบบประเมินสำเร็จ รหัส:", savedData.id)
+
+        sessionStorage.removeItem(`assessment_answers_${userId}_${category.id}`)
+        sessionStorage.removeItem(`assessment_index_${userId}_${category.id}`)
+
+        console.log("📊 AssessmentForm: ไปหน้าผลลัพธ์")
+        router.push(`/assessment/${categoryId}/results?id=${savedData.id}`)
+      }
+    } catch (error) {
+      console.error("❌ AssessmentForm: การบันทึกล้มเหลว:", error)
+      toast({
+        title: t("common.error"),
+        description: (error as Error).message || t("assessment.save_failed_generic"),
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+      setIsAnalyzing(false)
     }
   }
 
@@ -253,7 +323,6 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
   return (
     <div className="min-h-screen">
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
-        {/* Professional Header with Trust Indicators */}
         <div className="mb-6 sm:mb-8">
           <Button
             variant="ghost"
@@ -266,7 +335,6 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
           <Card className="bg-white/95 backdrop-blur-xl border-0 shadow-2xl rounded-3xl overflow-hidden dark:bg-gray-900/95 dark:border-gray-800/50">
             <CardHeader className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white relative overflow-hidden">
-              {/* Background Pattern */}
               <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.1))]" />
 
               <div className="relative z-10">
@@ -288,9 +356,6 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                         <p className="text-blue-100 text-sm sm:text-base leading-relaxed">{category.description}</p>
                       </div>
                     </div>
-
-                    {/* Trust Indicators */}
-                    
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
@@ -303,7 +368,6 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                 </div>
               </div>
 
-              {/* Decorative Elements */}
               <div className="absolute top-4 right-4 opacity-20">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 flex items-center justify-center">
                   <FileCheck className="h-8 w-8 sm:h-10 sm:w-10" />
@@ -313,7 +377,6 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
           </Card>
         </div>
 
-        {/* Enhanced Progress Section */}
         <Card className="mb-6 sm:mb-8 bg-white/95 backdrop-blur-xl border-0 shadow-xl rounded-2xl dark:bg-gray-900/95 dark:border-gray-800/50">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
@@ -324,8 +387,8 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                 <div>
                   <span className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-200">
                     {locale === "en"
-                      ? `Question ${currentQuestionIndex + 1} of ${category.questions.length}`
-                      : `คำถามที่ ${currentQuestionIndex + 1} จาก ${category.questions.length}`}
+                      ? `Question ${currentQuestionIndex + 1} of ${totalQuestions}`
+                      : `คำถามที่ ${currentQuestionIndex + 1} จาก ${totalQuestions}`}
                   </span>
                   <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     {locale === "th" ? "กรุณาตอบคำถามให้ครบถ้วน" : "Please answer all questions completely"}
@@ -333,24 +396,31 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
                 </div>
               </div>
 
-            
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                  {Math.round(progress)}% {locale === "en" ? "Complete" : "เสร็จสิ้น"}
+                </span>
+                <div className="w-12 sm:w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
             </div>
-
-            <Progress value={progress} className="h-2 sm:h-3 bg-gray-200 dark:bg-gray-700" />
           </CardContent>
         </Card>
 
-        {/* Question Card */}
         <div className="mb-6 sm:mb-8">
           <QuestionCard
-            key={currentQuestion.id}
+            key={currentQuestion?.id}
             question={currentQuestion}
             answer={getCurrentAnswer()}
             onAnswer={handleAnswer}
+            error={formErrors[currentQuestion?.id]}
           />
         </div>
 
-        {/* Enhanced Navigation */}
         <Card className="bg-white/95 backdrop-blur-xl border-0 shadow-xl rounded-2xl dark:bg-gray-900/95 dark:border-gray-800/50">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
@@ -367,7 +437,7 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
               <div className="flex-1 sm:flex-none flex justify-center">
                 <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                  {Array.from({ length: category.questions.length }, (_, i) => (
+                  {Array.from({ length: totalQuestions }, (_, i) => (
                     <div
                       key={i}
                       className={`w-2 h-2 rounded-full transition-all duration-200 ${
@@ -384,18 +454,18 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
               <Button
                 onClick={handleNext}
-                disabled={!canProceed() || isSubmitting}
+                disabled={isSubmitting || isAnalyzing}
                 className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 ${
                   isGuestLoggedIn
                     ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                     : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {isSubmitting ? (
+                {isSubmitting || isAnalyzing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span className="hidden sm:inline">{locale === "en" ? "Processing..." : "กำลังประมวลผล..."}</span>
-                    <span className="sm:hidden">{locale === "en" ? "Processing..." : "ประมวลผล..."}</span>
+                    <span className="hidden sm:inline">{t("common.processing")}</span>
+                    <span className="sm:hidden">{t("common.processing_short")}</span>
                   </>
                 ) : isLastQuestion ? (
                   <>
@@ -413,12 +483,11 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
               </Button>
             </div>
 
-            {/* Progress Indicator Text */}
             <div className="mt-4 text-center">
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 {locale === "th"
-                  ? `เหลืออีก ${category.questions.length - currentQuestionIndex - 1} คำถาม`
-                  : `${category.questions.length - currentQuestionIndex - 1} questions remaining`}
+                  ? `เหลืออีก ${totalQuestions - currentQuestionIndex - 1} คำถาม`
+                  : `${totalQuestions - currentQuestionIndex - 1} questions remaining`}
               </p>
             </div>
           </CardContent>

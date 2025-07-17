@@ -44,7 +44,7 @@ export interface AssessmentResult {
   recommendations: string[] // AI-generated recommendations
   completedAt: string // ISO date string
   answers: Answer[]
-  aiAnalysis?: string // AI-generated detailed analysis
+  aiAnalysis?: AIAnalysisResult | null // AI-generated detailed analysis
 }
 
 export interface DashboardStats {
@@ -67,3 +67,39 @@ export interface AssessmentCategoryInfo {
   bgGradient: string
   darkBgGradient: string
 }
+
+// Added missing types for AI analysis
+export interface AIAnalysisResult {
+  score: number
+  riskLevel: "low" | "medium" | "high" | "very-high"
+  riskFactors: BilingualArray
+  recommendations: BilingualArray
+  summary: BilingualString
+}
+
+export interface BilingualString {
+  th: string
+  en: string
+}
+
+export interface BilingualArray {
+  th: string[]
+  en: string[]
+}
+
+export interface UserAssessment {
+  id: string
+  user_id: string
+  category_id: string
+  category_title: string
+  answers: Answer[] // Updated from AssessmentAnswer[] to Answer[]
+  total_score: number
+  max_score: number
+  percentage: number
+  risk_level: "low" | "medium" | "high" | "very-high"
+  risk_factors: string[]
+  recommendations: string[]
+  completed_at: string
+  ai_analysis?: AIAnalysisResult | null
+}
+</merged_code>

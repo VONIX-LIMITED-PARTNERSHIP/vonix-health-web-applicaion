@@ -34,6 +34,7 @@ import { useLanguage } from "@/contexts/language-context"
 import { getRiskLevelBadgeClass } from "@/utils/risk-level"
 import type { AssessmentAnswer } from "@/types/assessment"
 import { getRiskLevelDescription } from "@/utils/risk-level" // Import getRiskLevelDescription
+import { getAssessmentCategories } from "@/data/assessment-questions" // Import getAssessmentCategories
 
 export default function GuestAssessmentResultsPage() {
   const router = useRouter()
@@ -72,15 +73,17 @@ export default function GuestAssessmentResultsPage() {
 
   const loadAssessmentResults = () => {
     try {
-      const assessmentData = GuestAssessmentService.getAssessmentByCategory(categoryId!)
+      const rawAssessmentData = GuestAssessmentService.getLatestGuestAssessmentForCategory(categoryId!)
 
-      if (!assessmentData) {
+      if (!rawAssessmentData) {
         setError(locale === "th" ? "ไม่พบผลการประเมิน" : "Assessment results not found")
         setLoading(false)
         return
       }
 
-      setAssessment(assessmentData)
+      // Format the assessment data for display
+      const formattedAssessment = GuestAssessmentService.formatAssessmentResultForDisplay(rawAssessmentData, locale)
+      setAssessment(formattedAssessment)
     } catch (err) {
       console.error("Error loading guest assessment results:", err)
       setError(locale === "th" ? "เกิดข้อผิดพลาดในการโหลดผลการประเมิน" : "Error loading assessment results")
@@ -179,18 +182,9 @@ export default function GuestAssessmentResultsPage() {
   }
 
   const getCategoryTitle = (catId: string) => {
-    switch (catId) {
-      case "basic":
-        return locale === "th" ? "ข้อมูลส่วนตัว" : "Basic Information"
-      case "mental":
-        return locale === "th" ? "สุขภาพจิต" : "Mental Health"
-      case "physical":
-        return locale === "th" ? "สุขภาพกาย" : "Physical Health"
-      case "lifestyle":
-        return locale === "th" ? "วิถีชีวิต" : "Lifestyle"
-      default:
-        return locale === "th" ? "แบบประเมิน" : "Assessment"
-    }
+    const categories = getAssessmentCategories(locale)
+    const category = categories.find((c) => c.id === catId)
+    return category ? category.title : locale === "th" ? "แบบประเมิน" : "Assessment"
   }
 
   const formatDate = (dateString: string) => {
@@ -293,6 +287,17 @@ export default function GuestAssessmentResultsPage() {
                 </div>
               </div>
 
+              {/* Trust Badges */}
+              <div className="flex flex-wrap gap-2">
+                <Badge className="bg-white/20 text-white border-white/30 text-xs px-2 py-1">
+                  <Shield className="h-3 w-3 mr-1" />
+                  {locale === "th" ? "ปลอดภัย" : "Secure"}
+                </Badge>
+                <Badge className="bg-white/20 text-white border-white/30 text-xs px-2 py-1">
+                  <Award className="h-3 w-3 mr-1" />
+                  {locale === "th" ? "มาตรฐาน" : "Standard"}
+                </Badge>
+              </div>
             </div>
           </div>
         </div>
@@ -334,6 +339,9 @@ export default function GuestAssessmentResultsPage() {
             className={`bg-gradient-to-r ${riskInfo.gradientFrom} ${riskInfo.gradientTo} p-8 text-white relative overflow-hidden`}
           >
             <div className="absolute inset-0 bg-black/10"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+
             <div className="relative z-10">
               <div className="flex items-center justify-center mb-6">
                 <div className="p-4 rounded-full bg-white/20 backdrop-blur-sm animate-pulse-slow">
@@ -448,11 +456,10 @@ export default function GuestAssessmentResultsPage() {
             <Separator className="my-8" />
 
             {/* Enhanced Risk Factors and Recommendations */}
-            {(assessment.ai_analysis?.riskFactors?.th?.length > 0 ||
-              assessment.ai_analysis?.recommendations?.th?.length > 0) && (
+            {(assessment.risk_factors?.length > 0 || assessment.recommendations?.length > 0) && (
               <div className="grid md:grid-cols-2 gap-8">
                 {/* Risk Factors */}
-                {assessment.ai_analysis?.riskFactors?.th?.length > 0 && (
+                {assessment.risk_factors?.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="font-bold text-xl text-gray-800 dark:text-gray-100 flex items-center gap-3">
                       <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/20">
@@ -461,10 +468,7 @@ export default function GuestAssessmentResultsPage() {
                       {t("risk_factors")}
                     </h3>
                     <div className="space-y-3">
-                      {(locale === "th"
-                        ? assessment.ai_analysis.riskFactors.th
-                        : assessment.ai_analysis.riskFactors.en
-                      ).map((factor: string, index: number) => (
+                      {assessment.risk_factors.map((factor: string, index: number) => (
                         <div
                           key={index}
                           className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-gray-800/80 dark:to-gray-700/80 dark:border dark:border-orange-500/40 rounded-xl p-4 border-l-4 border-orange-400 animate-slide-in-left"
@@ -481,7 +485,7 @@ export default function GuestAssessmentResultsPage() {
                 )}
 
                 {/* Recommendations */}
-                {assessment.ai_analysis?.recommendations?.th?.length > 0 && (
+                {assessment.recommendations?.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="font-bold text-xl text-gray-800 dark:text-gray-100 flex items-center gap-3">
                       <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20">
@@ -490,10 +494,7 @@ export default function GuestAssessmentResultsPage() {
                       {t("recommendations")}
                     </h3>
                     <div className="space-y-3">
-                      {(locale === "th"
-                        ? assessment.ai_analysis.recommendations.th
-                        : assessment.ai_analysis.recommendations.en
-                      ).map((recommendation: string, index: number) => (
+                      {assessment.recommendations.map((recommendation: string, index: number) => (
                         <div
                           key={index}
                           className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-800/80 dark:to-gray-700/80 dark:border dark:border-green-500/40 rounded-xl p-4 border-l-4 border-green-400 animate-slide-in-right"
@@ -512,7 +513,7 @@ export default function GuestAssessmentResultsPage() {
             )}
 
             {/* AI Summary (if available) */}
-            {assessment.ai_analysis?.summary && (
+            {assessment.summary && (
               <Card className="bg-white dark:bg-gray-800/90 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-600">
                 <CardHeader className="p-0 pb-4">
                   <CardTitle className="flex items-center gap-2 text-xl font-bold">
@@ -521,9 +522,7 @@ export default function GuestAssessmentResultsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <p className="text-gray-700 dark:text-gray-200">
-                    {locale === "th" ? assessment.ai_analysis.summary.th : assessment.ai_analysis.summary.en}
-                  </p>
+                  <p className="text-gray-700 dark:text-gray-200">{assessment.summary}</p>
                 </CardContent>
               </Card>
             )}

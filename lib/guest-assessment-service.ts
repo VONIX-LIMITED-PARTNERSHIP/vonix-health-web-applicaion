@@ -1,287 +1,241 @@
-import type { AssessmentCategory, AssessmentResult, DashboardStats } from "@/types/assessment"
+import type { AssessmentCategory, AssessmentResult, DashboardStats, RiskLevel } from "@/types/assessment"
+import { getAssessmentCategories } from "@/data/assessment-questions" // Import getAssessmentCategories
 
-// This is a workaround to use useTranslation in a static class method.
-// In a real application, you might pass the `t` function as an argument
-// or use a different translation approach for non-React contexts.
-let t: (key: string) => string = (key) => key // Default fallback
+/* -------------------------------------------------------------------------- */
+/*                                  i18n                                     */
+/* -------------------------------------------------------------------------- */
 
-// This function should be called once, e.g., in a root layout or provider,
-// to set the translation function for the service.
+/**
+ * Internal translate helper – defaults to echoing the key.
+ * Components can inject their own translate function (e.g. from
+ * `useTranslation`) by calling `setGuestServiceTranslation`.
+ */
+let t: (key: string) => string = (key) => key
+
+/**
+ * Call this once (e.g. in a root provider) to provide the translate function
+ * that will be used inside this service.
+ */
 export const setGuestServiceTranslation = (translateFn: (key: string) => string) => {
   t = translateFn
 }
 
+/* -------------------------------------------------------------------------- */
+/*                            Local-storage helpers                           */
+/* -------------------------------------------------------------------------- */
+
+const STORAGE_KEY = "vonix_guest_assessments"
+
+/**
+ * Wrapper around JSON.parse with error handling.
+ */
+function safeParse<T>(raw: string | null): T | null {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    return null
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                         GuestAssessmentService class                       */
+/* -------------------------------------------------------------------------- */
+
 export class GuestAssessmentService {
-  private static readonly STORAGE_KEY_PREFIX = "guest-assessment-"
-  private static readonly DASHBOARD_STATS_KEY = "guest-dashboard-stats"
-  private static readonly AI_ANALYSIS_KEY_PREFIX = "guest-ai-analysis-"
+  /* ------------------------------- CRUD Ops ------------------------------ */
 
-  static saveAssessment(category: AssessmentCategory, result: AssessmentResult) {
+  /**
+   * Save a completed assessment result for a guest user.
+   */
+  static saveAssessment(categoryId: AssessmentCategory, result: AssessmentResult): void {
     try {
-      const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
-
-      // Ensure the result has a proper percentage calculation
-      if (!result.percentage || result.percentage === 0) {
-        result.percentage = this.calculatePercentageFromScore(result.score || 0)
-      }
-
-      localStorage.setItem(key, JSON.stringify(result))
-      GuestAssessmentService.updateDashboardStats(category, result)
+      const all = this.getGuestAssessments()
+      // Remove any existing entry for the same category so we only keep the latest
+      const filtered = all.filter((a) => a.category !== categoryId)
+      filtered.push(result)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered))
     } catch (error) {
-      console.error("Error saving guest assessment:", error)
+      console.error("Failed to save guest assessment:", error)
     }
   }
 
-  private static calculatePercentageFromScore(score: number): number {
-    // Convert score to percentage (assuming score is out of 100)
-    // If score is already a percentage, return as is
-    if (score >= 0 && score <= 100) {
-      return Math.round(score)
-    }
+  /**
+   * Fetch **all** guest assessments from localStorage.
+   */
+  static getGuestAssessments(): AssessmentResult[] {
+    return safeParse<AssessmentResult[]>(localStorage.getItem(STORAGE_KEY)) ?? []
+  }
 
-    // If score seems to be out of a different scale, normalize it
-    // This is a fallback calculation
+  /**
+   * Convert a raw `score` (0–100 or any arbitrary scale) into a 0-100 percentage.
+   * If the score is already between 0–100 we keep it, otherwise we normalise it.
+   */
+  private static calculatePercentageFromScore(score: number): number {
+    if (score >= 0 && score <= 100) return Math.round(score)
     return Math.min(100, Math.max(0, Math.round(score)))
   }
 
-  static getAssessment(category: AssessmentCategory): AssessmentResult | null {
-    try {
-      const key = `${GuestAssessmentService.STORAGE_KEY_PREFIX}${category}`
-      const stored = localStorage.getItem(key)
-      if (!stored) return null
+  /**
+   * Return the **latest** assessment result for every category, sorted by the
+   * completion date (newest first).
+   *
+   * The shape matches the original API used by other components:
+   *   [{ category: "heart", result: AssessmentResult }, ...]
+   */
+  static getLatestAssessments(): { category: AssessmentCategory; result: AssessmentResult }[] {
+    const latestByCategory = new Map<AssessmentCategory, AssessmentResult>()
 
-      const result = JSON.parse(stored) as AssessmentResult
-
-      // Ensure percentage is calculated if missing
-      if (!result.percentage || result.percentage === 0) {
-        result.percentage = this.calculatePercentageFromScore(result.score || 0)
-        // Update the stored result with calculated percentage
-        localStorage.setItem(key, JSON.stringify(result))
+    this.getGuestAssessments().forEach((a) => {
+      const current = latestByCategory.get(a.category)
+      if (!current || new Date(a.completedAt) > new Date(current.completedAt)) {
+        latestByCategory.set(a.category, a)
       }
+    })
 
-      return result
+    return Array.from(latestByCategory.entries())
+      .map(([category, result]) => ({ category, result }))
+      .sort((a, b) => new Date(b.result.completedAt).getTime() - new Date(a.result.completedAt).getTime())
+  }
+
+  /**
+   * Iterate over every saved guest assessment and make sure it has a valid
+   * `.percentage` field.  If any entry is updated, persist the repaired list
+   * back to `localStorage`.
+   *
+   * This keeps backward-compat with data that was saved before we consistently
+   * stored percentage values.
+   */
+  static recalculateAllPercentages(): void {
+    try {
+      const assessments = this.getGuestAssessments()
+      let changed = false
+
+      assessments.forEach((a) => {
+        if (!a.percentage || a.percentage === 0) {
+          a.percentage = this.calculatePercentageFromScore(a.score ?? 0)
+          changed = true
+        }
+      })
+
+      if (changed) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(assessments))
+      }
     } catch (error) {
-      console.error("Error getting guest assessment:", error)
+      console.error("GuestAssessmentService.recalculateAllPercentages error:", error)
+    }
+  }
+
+  /**
+   * Get the latest assessment for a specific category.
+   */
+  static getLatestGuestAssessmentForCategory(categoryId: AssessmentCategory): AssessmentResult | null {
+    const assessments = this.getGuestAssessments()
+    const categoryAssessments = assessments.filter((a) => a.category === categoryId)
+    if (categoryAssessments.length === 0) {
       return null
     }
+    return categoryAssessments.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())[0]
   }
 
-  static getLatestAssessments(): { category: AssessmentCategory; result: AssessmentResult }[] {
-    try {
-      const assessments: { category: AssessmentCategory; result: AssessmentResult }[] = []
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (key && key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX)) {
-          const category = key.replace(GuestAssessmentService.STORAGE_KEY_PREFIX, "") as AssessmentCategory
-          const result = GuestAssessmentService.getAssessment(category)
-          if (result) {
-            // Ensure percentage is properly set
-            if (!result.percentage || result.percentage === 0) {
-              result.percentage = this.calculatePercentageFromScore(result.score || 0)
-            }
-            assessments.push({ category, result })
-          }
-        }
-      }
-      // Sort by timestamp to get the latest for each category if multiple exist (though typically only one per category)
-      return assessments.sort(
-        (a, b) => new Date(b.result.completedAt).getTime() - new Date(a.result.completedAt).getTime(),
-      )
-    } catch (error) {
-      console.error("Error getting latest guest assessments:", error)
-      return []
-    }
-  }
+  /**
+   * Formats an AssessmentResult object into a structure expected by the
+   * GuestAssessmentResultsPage, including snake_case keys and localized
+   * AI analysis fields.
+   */
+  static formatAssessmentResultForDisplay(assessment: AssessmentResult, locale: string): any {
+    const assessmentCategories = getAssessmentCategories(locale)
+    const category = assessmentCategories.find((cat) => cat.id === assessment.category)
+    const categoryTitle = category ? category.title : assessment.category
 
-  static updateDashboardStats(category: AssessmentCategory, result: AssessmentResult) {
-    try {
-      const currentStats = GuestAssessmentService.getDashboardStats()
-      const updatedStats = { ...currentStats }
+    const riskFactors = assessment.aiAnalysis
+      ? assessment.aiAnalysis.riskFactors[locale === "th" ? "th" : "en"]
+      : assessment.riskFactors // Use direct field if no AI analysis
 
-      // Update total assessments
-      const allLatest = GuestAssessmentService.getLatestAssessments()
-      updatedStats.totalAssessments = allLatest.length
+    const recommendations = assessment.aiAnalysis
+      ? assessment.aiAnalysis.recommendations[locale === "th" ? "th" : "en"]
+      : assessment.recommendations // Use direct field if no AI analysis
 
-      // Update last assessment date
-      const latestOverallAssessment = allLatest.length > 0 ? allLatest[0].result : null
-      updatedStats.lastAssessmentDate = latestOverallAssessment?.completedAt
-        ? new Date(latestOverallAssessment.completedAt).toISOString().split("T")[0]
-        : null
+    const summary = assessment.aiAnalysis
+      ? assessment.aiAnalysis.summary[locale === "th" ? "th" : "en"]
+      : assessment.summary // Use direct field if no AI analysis
 
-      // Update risk levels
-      updatedStats.riskLevels[category] = result.riskLevel
-
-      // Calculate overall risk based on all latest assessments
-      const riskOrder = ["low", "medium", "high", "very-high"]
-      let overallHighestRisk: AssessmentResult["riskLevel"] = "low"
-      allLatest.forEach((item) => {
-        if (riskOrder.indexOf(item.result.riskLevel) > riskOrder.indexOf(overallHighestRisk)) {
-          overallHighestRisk = item.result.riskLevel
-        }
-      })
-      updatedStats.overallRisk = overallHighestRisk
-
-      // Generate recommendations (simplified for guest)
-      updatedStats.recommendations = GuestAssessmentService.generateRecommendations(
-        allLatest.map((item) => item.result),
-      )
-
-      localStorage.setItem(GuestAssessmentService.DASHBOARD_STATS_KEY, JSON.stringify(updatedStats))
-    } catch (error) {
-      console.error("Error updating guest dashboard stats:", error)
-    }
-  }
-
-  static getDashboardStats(): DashboardStats {
-    try {
-      const storedStats = localStorage.getItem(GuestAssessmentService.DASHBOARD_STATS_KEY)
-      if (storedStats) {
-        return JSON.parse(storedStats)
-      }
-    } catch (error) {
-      console.error("Error getting guest dashboard stats:", error)
-    }
-
-    // Default initial stats with translation
     return {
-      totalAssessments: 0,
-      lastAssessmentDate: null,
-      riskLevels: {},
-      overallRisk: "unknown", // Default to unknown or low
-      recommendations: [],
+      id: assessment.id,
+      category_id: assessment.category,
+      category_title: categoryTitle,
+      answers: assessment.answers,
+      total_score: assessment.score,
+      max_score: 100, // Assuming max score is 100 for percentage
+      percentage: assessment.percentage,
+      risk_level: assessment.riskLevel,
+      risk_factors: riskFactors,
+      recommendations: recommendations,
+      summary: summary,
+      completed_at: assessment.completedAt,
+      ai_analysis: assessment.aiAnalysis,
     }
   }
 
-  static clearAllGuestData() {
-    try {
-      if (typeof window === "undefined") return
+  /* --------------------------- Dashboard helpers ------------------------- */
 
-      const keysToRemove: string[] = []
+  /**
+   * Calculate dashboard statistics based on the latest assessments.
+   */
+  static getGuestDashboardStats(locale: string): DashboardStats {
+    const latest = this.getLatestAssessments()
 
-      // Get all localStorage keys
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (
-          key &&
-          (key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX) ||
-            key.startsWith(GuestAssessmentService.AI_ANALYSIS_KEY_PREFIX) ||
-            key === GuestAssessmentService.DASHBOARD_STATS_KEY ||
-            key === "guestUser" ||
-            key.startsWith("guest-") ||
-            key.includes("guest"))
-        ) {
-          keysToRemove.push(key)
-        }
-      }
+    // Aggregate risk levels
+    const riskLevels: Record<AssessmentCategory, RiskLevel> = {} as Record<AssessmentCategory, RiskLevel>
+    let overallRisk: RiskLevel = "low"
+    const riskOrder: RiskLevel[] = ["low", "medium", "high", "very-high"]
 
-      // Remove all identified keys
-      keysToRemove.forEach((key) => {
-        localStorage.removeItem(key)
-        console.log(`Removed localStorage key: ${key}`)
-      })
-
-      // Also clear sessionStorage for any guest data
-      const sessionKeysToRemove: string[] = []
-      for (let i = 0; i < sessionStorage.length; i++) {
-        const key = sessionStorage.key(i)
-        if (key && (key.startsWith("guest-") || key.includes("guest"))) {
-          sessionKeysToRemove.push(key)
-        }
-      }
-
-      sessionKeysToRemove.forEach((key) => {
-        sessionStorage.removeItem(key)
-        console.log(`Removed sessionStorage key: ${key}`)
-      })
-
-      console.log(
-        `All guest assessment data cleared. Removed ${keysToRemove.length} localStorage keys and ${sessionKeysToRemove.length} sessionStorage keys.`,
-      )
-    } catch (error) {
-      console.error("Error clearing all guest data:", error)
-    }
-  }
-
-  private static generateRecommendations(results: AssessmentResult[]): string[] {
     const recommendations: string[] = []
 
-    const highRiskCategories = results.filter((r) => r.riskLevel === "high" || r.riskLevel === "very-high")
-    const mediumRiskCategories = results.filter((r) => r.riskLevel === "medium")
+    latest.forEach(({ category, result }) => {
+      riskLevels[category] = result.riskLevel
+      if (riskOrder.indexOf(result.riskLevel) > riskOrder.indexOf(overallRisk)) {
+        overallRisk = result.riskLevel
+      }
 
-    if (highRiskCategories.length > 0) {
-      recommendations.push(t("recommendation_consult_doctor"))
-    }
-
-    if (mediumRiskCategories.length > 0) {
-      recommendations.push(t("recommendation_improve_behavior"))
-    }
-
-    if (results.length < 6) {
-      // Assuming 6 categories total
-      recommendations.push(t("recommendation_complete_all_assessments"))
-    }
+      // Prefer AI-generated recs if available
+      const recs = result.aiAnalysis?.recommendations?.[locale === "th" ? "th" : "en"] || result.recommendations || []
+      recs.forEach((r) => {
+        if (!recommendations.includes(r)) recommendations.push(r)
+      })
+    })
 
     if (recommendations.length === 0) {
       recommendations.push(t("recommendation_maintain_health"))
     }
 
-    return recommendations
-  }
-
-  // This method is needed by app/page.tsx to calculate dashboard stats for guest users
-  // It's a wrapper around getDashboardStats for compatibility with the old call signature
-  static calculateDashboardStats(): DashboardStats {
-    return GuestAssessmentService.getDashboardStats()
-  }
-
-  static getAssessmentByCategory(categoryId: string): any | null {
-    try {
-      const assessment = GuestAssessmentService.getAssessment(categoryId as AssessmentCategory)
-      if (!assessment) return null
-
-      // Ensure percentage is calculated
-      const percentage = assessment.percentage || this.calculatePercentageFromScore(assessment.score || 0)
-
-      // Convert to format expected by results page
-      return {
-        id: assessment.id,
-        category_id: assessment.category,
-        category_title: categoryId, // You might want to get the actual title from assessment categories
-        answers: assessment.answers,
-        total_score: assessment.score,
-        max_score: 100,
-        percentage: percentage,
-        risk_level: assessment.riskLevel,
-        risk_factors: assessment.aiAnalysis?.riskFactors?.th || [],
-        recommendations: assessment.aiAnalysis?.recommendations?.th || [],
-        completed_at: assessment.completedAt,
-        ai_analysis: assessment.aiAnalysis,
-      }
-    } catch (error) {
-      console.error("Error getting guest assessment by category:", error)
-      return null
+    return {
+      totalAssessments: latest.length,
+      lastAssessmentDate: latest.length > 0 ? latest[0].result.completedAt : null,
+      riskLevels,
+      overallRisk,
+      recommendations,
     }
   }
 
-  // Helper method to recalculate all percentages for existing assessments
-  static recalculateAllPercentages() {
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (key && key.startsWith(GuestAssessmentService.STORAGE_KEY_PREFIX)) {
-          const stored = localStorage.getItem(key)
-          if (stored) {
-            const result = JSON.parse(stored) as AssessmentResult
-            if (!result.percentage || result.percentage === 0) {
-              result.percentage = this.calculatePercentageFromScore(result.score || 0)
-              localStorage.setItem(key, JSON.stringify(result))
-              console.log(`Updated percentage for ${key}: ${result.percentage}%`)
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error recalculating percentages:", error)
-    }
+  /**
+   * BACK-COMPAT: older code calls `GuestAssessmentService.getDashboardStats()`
+   * without a locale parameter.  Delegate to `getGuestDashboardStats`, using
+   * `"en"` as a sensible default.
+   */
+  static getDashboardStats(): DashboardStats {
+    return this.getGuestDashboardStats("en")
+  }
+
+  /* ------------------------------ Utilities ------------------------------ */
+
+  /**
+   * Completely remove all guest assessment data.
+   */
+  static clearGuestAssessments(): void {
+    localStorage.removeItem(STORAGE_KEY)
   }
 }
+
+/* Default export retained for backward-compatibility */
+export default GuestAssessmentService

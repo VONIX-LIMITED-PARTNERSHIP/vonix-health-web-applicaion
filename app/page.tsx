@@ -282,7 +282,7 @@ export default function HomePage() {
       {
         id: "mental",
         icon: Brain,
-        required: false,
+        required: true,
         gradient: "from-purple-500 to-violet-500",
         bgGradient: "from-purple-50 to-purple-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
@@ -290,7 +290,7 @@ export default function HomePage() {
       {
         id: "physical",
         icon: Dumbbell,
-        required: false,
+        required: true,
         gradient: "from-orange-500 to-amber-500",
         bgGradient: "from-orange-50 to-orange-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
@@ -298,7 +298,7 @@ export default function HomePage() {
       {
         id: "sleep",
         icon: MoonIcon,
-        required: false,
+        required: true,
         gradient: "from-indigo-500 to-blue-500",
         bgGradient: "from-indigo-50 to-indigo-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",

@@ -20,8 +20,8 @@ export function Footer() {
               <span className="text-xl font-bold text-gray-900 dark:text-white">VONIX</span>
             </div>
             <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
-              An intelligent health assessment system that helps you take better care of your health. No medical knowledge required, easy to use, and instantly understandable, with advice from expert doctors.
-            </p>
+              {t("discribe_vonix")}
+            </p>  
             <div className="text-sm text-gray-500 dark:text-gray-400">
               <p className="font-semibold mb-1">VONIX LIMITED PARTNERSHIP</p>
               <p>ห้างหุ้นส่วนจำกัด วอนิกซ์</p>

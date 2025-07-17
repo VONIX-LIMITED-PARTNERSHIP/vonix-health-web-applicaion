@@ -6,9 +6,11 @@ const en = {
     ai_powered_description:
       "Our AI-powered system provides comprehensive health assessments, personalized insights, and actionable recommendations to help you live a healthier life.",
     start_health_assessment: "Start Health Assessment",
+    discribe_vonix: "An intelligent health assessment system that helps you take better care of your health. No medical knowledge required, easy to use, and instantly understandable, with advice from expert doctors.",
     consult_doctor_online: "Consult Doctor Online",
     try_it_out: "Try it out (Guest)",
     smart_ai: "Smart AI",
+    error: "Error",
     analyze_with_openai: "Analyze with OpenAI",
     secure: "Secure",
     encrypted_data_pdpa: "Encrypted Data (PDPA Compliant)",
@@ -202,7 +204,9 @@ const en = {
     enter_number_placeholder: "Please enter a number",
     enter_answer_placeholder: "Please enter your answer",
   },
-
+  assessment:{
+    please_answer_currect_question:"Answer currect question"
+  },
   // About page translations
 // About page translations
   about: {

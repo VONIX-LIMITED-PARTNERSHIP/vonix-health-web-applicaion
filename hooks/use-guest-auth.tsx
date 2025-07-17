@@ -10,6 +10,7 @@ import { useTranslation } from "@/hooks/use-translation"
 interface GuestUser {
   id: string
   nickname: string
+  pdpaConsent: boolean
   createdAt: string
 }
 
@@ -17,8 +18,9 @@ interface GuestAuthContextType {
   guestUser: GuestUser | null
   isGuestLoggedIn: boolean
   loading: boolean
-  loginGuest: (nickname: string) => void
+  loginGuest: (nickname: string, pdpaConsent: boolean) => void
   logoutGuest: () => void
+  clearGuestSession: () => void
 }
 
 const GuestAuthContext = createContext<GuestAuthContextType | undefined>(undefined)
@@ -31,7 +33,7 @@ export function GuestAuthProvider({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation(["common"])
 
   useEffect(() => {
-    // On mount, try to load guest user from session storage
+    // On mount, try to load guest user from localStorage
     try {
       const storedGuestUser = localStorage.getItem("guestUser")
       if (storedGuestUser) {
@@ -48,15 +50,16 @@ export function GuestAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const loginGuest = useCallback((nickname: string) => {
+  const loginGuest = useCallback((nickname: string, pdpaConsent: boolean) => {
     const newGuestUser: GuestUser = {
       id: `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       nickname: nickname,
+      pdpaConsent: pdpaConsent,
       createdAt: new Date().toISOString(),
     }
     try {
       // Clear any previous guest data to ensure a fresh start for this new session
-      GuestAssessmentService.clearAllGuestData()
+      GuestAssessmentService.clearGuestAssessments()
       localStorage.setItem("guestUser", JSON.stringify(newGuestUser))
       setGuestUser(newGuestUser)
       setIsGuestLoggedIn(true)
@@ -67,10 +70,10 @@ export function GuestAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const logoutGuest = useCallback(() => {
+  const clearGuestSession = useCallback(() => {
     try {
       // Clear all guest-related data from localStorage
-      GuestAssessmentService.clearAllGuestData()
+      GuestAssessmentService.clearGuestAssessments()
 
       // Additional cleanup to ensure everything is cleared
       if (typeof window !== "undefined") {
@@ -99,8 +102,20 @@ export function GuestAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Alias for backward compatibility
+  const logoutGuest = clearGuestSession
+
   return (
-    <GuestAuthContext.Provider value={{ guestUser, isGuestLoggedIn, loading, loginGuest, logoutGuest }}>
+    <GuestAuthContext.Provider
+      value={{
+        guestUser,
+        isGuestLoggedIn,
+        loading,
+        loginGuest,
+        logoutGuest,
+        clearGuestSession,
+      }}
+    >
       {children}
     </GuestAuthContext.Provider>
   )
