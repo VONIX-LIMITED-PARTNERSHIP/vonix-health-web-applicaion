@@ -207,6 +207,121 @@ export default function GuestAssessmentResultsPage() {
     })
   }
 
+  const handleShareResults = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${categoryTitle} - ${t("assessment_results")}`,
+          text: `${locale === "th" ? "ผลการประเมินสุขภาพ" : "Health Assessment Results"}: ${getRiskLevelLabel(assessment.risk_level)}`,
+          url: window.location.href,
+        })
+      } catch (error) {
+        console.log("Error sharing:", error)
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(window.location.href)
+        alert(locale === "th" ? "ลิงก์ถูกคัดลอกแล้ว" : "Link copied to clipboard")
+      }
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        alert(locale === "th" ? "ลิงก์ถูกคัดลอกแล้ว" : "Link copied to clipboard")
+      } catch (error) {
+        console.log("Error copying to clipboard:", error)
+      }
+    }
+  }
+
+  const handleDownloadPDF = () => {
+    // Create a simple PDF-like content
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${categoryTitle} - ${t("assessment_results")}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .result-section { margin: 20px 0; }
+          .risk-level { font-size: 24px; font-weight: bold; margin: 10px 0; }
+          .recommendations { margin: 20px 0; }
+          .recommendations ul { list-style-type: disc; margin-left: 20px; }
+          .disclaimer { margin-top: 30px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeaa7; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${t("assessment_results")} - ${categoryTitle}</h1>
+          <p>${locale === "th" ? "วันที่ประเมิน" : "Assessment Date"}: ${formatDate(assessment.completed_at)}</p>
+        </div>
+        
+        <div class="result-section">
+          <h2>${locale === "th" ? "ระดับความเสี่ยง" : "Risk Level"}</h2>
+          <div class="risk-level">${getRiskLevelLabel(assessment.risk_level)}</div>
+          <p>${getRiskLevelDescription(assessment.risk_level)}</p>
+        </div>
+        
+        ${
+          assessment.risk_factors?.length > 0
+            ? `
+          <div class="result-section">
+            <h2>${t("risk_factors")}</h2>
+            <ul>
+              ${assessment.risk_factors.map((factor: string) => `<li>${factor}</li>`).join("")}
+            </ul>
+          </div>
+        `
+            : ""
+        }
+        
+        ${
+          assessment.recommendations?.length > 0
+            ? `
+          <div class="recommendations">
+            <h2>${t("recommendations")}</h2>
+            <ul>
+              ${assessment.recommendations.map((rec: string) => `<li>${rec}</li>`).join("")}
+            </ul>
+          </div>
+        `
+            : ""
+        }
+        
+        ${
+          assessment.summary
+            ? `
+          <div class="result-section">
+            <h2>${locale === "th" ? "สรุปผลการประเมิน" : "Assessment Summary"}</h2>
+            <p>${assessment.summary}</p>
+          </div>
+        `
+            : ""
+        }
+        
+        <div class="disclaimer">
+          <strong>${locale === "th" ? "หมายเหตุสำคัญ:" : "Important Note:"}</strong>
+          ${
+            locale === "th"
+              ? "ผลการประเมินนี้เป็นเพียงข้อมูลเบื้องต้นเท่านั้น ไม่สามารถใช้แทนการวินิจฉัยทางการแพทย์ได้ หากมีข้อสงสัยหรือมีอาการที่น่ากังวล แนะนำให้ปรึกษาแพทย์หรือผู้เชี่ยวชาญเพื่อการตรวจสอบและรักษาที่เหมาะสม"
+              : "This assessment result is for informational purposes only and cannot replace medical diagnosis. If you have any concerns or worrying symptoms, it is recommended to consult a doctor or specialist for proper examination and treatment."
+          }
+        </div>
+      </body>
+      </html>
+    `
+
+    const printWindow = window.open("", "_blank")
+    if (printWindow) {
+      printWindow.document.write(printContent)
+      printWindow.document.close()
+      printWindow.focus()
+      setTimeout(() => {
+        printWindow.print()
+        printWindow.close()
+      }, 250)
+    }
+  }
+
   if (!guestUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-950 dark:via-slate-900 dark:to-gray-900 flex items-center justify-center p-4">
@@ -316,14 +431,7 @@ export default function GuestAssessmentResultsPage() {
             <Button
               variant="outline"
               size="sm"
-              className="hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all duration-200 bg-transparent text-xs sm:text-sm px-3 py-2"
-            >
-              <Share2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              {t("share_results")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+              onClick={handleDownloadPDF}
               className="hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all duration-200 bg-transparent text-xs sm:text-sm px-3 py-2"
             >
               <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
