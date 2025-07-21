@@ -108,35 +108,15 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
     const initialValidation = validateInput(initialValue)
     setError(initialValidation.message)
     setIsValid(initialValidation.valid)
-    onAnswer(question.id, initialValue, calculateScore(initialValue), initialValidation.valid)
+    onAnswer(question.id, initialValue, 0, initialValidation.valid)
   }, [question.id, answer?.answer])
-
-  const calculateScore = (value: string | number | string[] | null): number => {
-    if (value === null || (Array.isArray(value) && value.length === 0)) return 0
-    switch (question.type) {
-      case "rating":
-        return Number(value) * question.weight
-      case "yes-no":
-        return value === "ใช่" ? question.weight * 2 : question.weight
-      case "multiple-choice":
-        const index = question.options?.indexOf(String(value)) || 0
-        return (index + 1) * question.weight
-      case "checkbox":
-      case "multi-select-combobox-with-other":
-        const selectedCount = Array.isArray(value) ? value.length : 0
-        return selectedCount * question.weight
-      default:
-        return question.weight
-    }
-  }
 
   const handleAnswerChange = (value: string | number | string[] | null) => {
     setCurrentAnswer(value)
     const validationResult = validateInput(value)
     setError(validationResult.message)
     setIsValid(validationResult.valid)
-    const score = calculateScore(value)
-    onAnswer(question.id, value, score, validationResult.valid)
+    onAnswer(question.id, value, 0, validationResult.valid)
   }
 
   const renderQuestionInput = () => {

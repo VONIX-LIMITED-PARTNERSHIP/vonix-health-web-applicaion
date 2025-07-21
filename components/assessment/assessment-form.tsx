@@ -217,7 +217,18 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
     try {
       console.log("🤖 AssessmentForm: กำลังวิเคราะห์ด้วย AI...")
-      const { data: aiAnalysis, error: aiError } = await AssessmentService.analyzeWithAI(category.id, answers)
+
+      const enrichedAnswers = answers.map((answer) => {
+        const question = category.questions.find((q) => q.id === answer.questionId)
+        return {
+          questionId: answer.questionId,
+          question: question?.question || "ไม่ระบุคำถาม",
+          answer: answer.answer,
+          // Remove score from here since AI will calculate it
+        }
+      })
+
+      const { data: aiAnalysis, error: aiError } = await AssessmentService.analyzeWithAI(category.id, enrichedAnswers)
       if (aiError) {
         throw new Error(aiError.message || "AI analysis failed.")
       }
