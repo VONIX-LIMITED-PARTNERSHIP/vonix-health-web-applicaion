@@ -169,6 +169,25 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
     return true
   }
 
+  const isCurrentQuestionAnswered = (): boolean => {
+    const currentAnswer = getCurrentAnswer()
+    if (!currentQuestion) return false
+
+    if (currentQuestion.required) {
+      if (
+        !currentAnswer ||
+        currentAnswer.answer === null ||
+        currentAnswer.answer === undefined ||
+        (typeof currentAnswer.answer === "string" && currentAnswer.answer.trim() === "") ||
+        (Array.isArray(currentAnswer.answer) && currentAnswer.answer.length === 0)
+      ) {
+        return false
+      }
+    }
+
+    return true
+  }
+
   const handleNext = async () => {
     if (!validateCurrentQuestion()) {
       return
@@ -465,12 +484,12 @@ export function AssessmentForm({ categoryId }: AssessmentFormProps) {
 
               <Button
                 onClick={handleNext}
-                disabled={isSubmitting || isAnalyzing}
+                disabled={isSubmitting || isAnalyzing || !isCurrentQuestionAnswered()}
                 className={`flex-1 sm:flex-none px-4 sm:px-8 py-3 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 ${
                   isGuestLoggedIn
                     ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                     : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
+                } text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500`}
               >
                 {isSubmitting || isAnalyzing ? (
                   <>

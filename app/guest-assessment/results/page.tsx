@@ -22,7 +22,6 @@ import {
   Award,
   Activity,
   Download,
-  Share2,
   RefreshCw,
   Shield,
   CheckCircle,
@@ -31,10 +30,9 @@ import { GuestAssessmentService } from "@/lib/guest-assessment-service"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { useTranslation } from "@/hooks/use-translation"
 import { useLanguage } from "@/contexts/language-context"
-import { getRiskLevelBadgeClass } from "@/utils/risk-level"
+import { getRiskLevelBadgeClass, getRiskLevelText, getRiskLevelDescription } from "@/utils/risk-level"
 import type { AssessmentAnswer } from "@/types/assessment"
-import { getRiskLevelDescription } from "@/utils/risk-level" // Import getRiskLevelDescription
-import { getAssessmentCategories } from "@/data/assessment-questions" // Import getAssessmentCategories
+import { getAssessmentCategories } from "@/data/assessment-questions"
 
 export default function GuestAssessmentResultsPage() {
   const router = useRouter()
@@ -47,6 +45,7 @@ export default function GuestAssessmentResultsPage() {
   const [error, setError] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
   const [isAnimating, setIsAnimating] = useState(true)
+  const [actualPercentage, setActualPercentage] = useState(0)
 
   const categoryId = searchParams.get("category")
 
@@ -84,6 +83,7 @@ export default function GuestAssessmentResultsPage() {
       // Format the assessment data for display
       const formattedAssessment = GuestAssessmentService.formatAssessmentResultForDisplay(rawAssessmentData, locale)
       setAssessment(formattedAssessment)
+      setActualPercentage(formattedAssessment.percentage || 0)
     } catch (err) {
       console.error("Error loading guest assessment results:", err)
       setError(locale === "th" ? "เกิดข้อผิดพลาดในการโหลดผลการประเมิน" : "Error loading assessment results")
@@ -93,8 +93,8 @@ export default function GuestAssessmentResultsPage() {
   }
 
   const getRiskLevelInfo = (riskLevel: string) => {
-    const label = getRiskLevelLabel(riskLevel)
-    const description = getRiskLevelDescription(riskLevel)
+    const label = getRiskLevelText(riskLevel, locale)
+    const description = getRiskLevelDescription(riskLevel, locale)
 
     switch (riskLevel?.toLowerCase()) {
       case "low":
@@ -108,7 +108,7 @@ export default function GuestAssessmentResultsPage() {
           icon: CheckCircle,
           label,
           description,
-          percentage: 85, // Placeholder for visual score
+          percentage: 15, // Low risk = low percentage
         }
       case "medium":
       case "ปานกลาง":
@@ -121,7 +121,7 @@ export default function GuestAssessmentResultsPage() {
           icon: AlertTriangle,
           label,
           description,
-          percentage: 60, // Placeholder for visual score
+          percentage: 50, // Medium risk = medium percentage
         }
       case "high":
       case "สูง":
@@ -134,7 +134,7 @@ export default function GuestAssessmentResultsPage() {
           icon: XCircle,
           label,
           description,
-          percentage: 30, // Placeholder for visual score
+          percentage: 75, // High risk = high percentage
         }
       case "very-high":
       case "very_high":
@@ -148,7 +148,7 @@ export default function GuestAssessmentResultsPage() {
           icon: XCircle,
           label,
           description,
-          percentage: 15, // Placeholder for visual score
+          percentage: 90, // Very high risk = very high percentage
         }
       default:
         return {
@@ -160,25 +160,13 @@ export default function GuestAssessmentResultsPage() {
           icon: FileText,
           label,
           description,
-          percentage: 50, // Placeholder for visual score
+          percentage: 50, // Default middle percentage
         }
     }
   }
 
   const getRiskLevelLabel = (riskLevel: string) => {
-    switch (riskLevel?.toLowerCase()) {
-      case "low":
-        return locale === "th" ? "ความเสี่ยงต่ำ" : "Low Risk"
-      case "medium":
-        return locale === "th" ? "ความเสี่ยงปานกลาง" : "Medium Risk"
-      case "high":
-        return locale === "th" ? "ความเสี่ยงสูง" : "High Risk"
-      case "very-high":
-      case "very_high":
-        return locale === "th" ? "ความเสี่ยงสูงมาก" : "Very High Risk"
-      default:
-        return locale === "th" ? "ไม่ระบุ" : "Unspecified"
-    }
+    return getRiskLevelText(riskLevel, locale)
   }
 
   const getCategoryTitle = (catId: string) => {
@@ -258,7 +246,7 @@ export default function GuestAssessmentResultsPage() {
         <div class="result-section">
           <h2>${locale === "th" ? "ระดับความเสี่ยง" : "Risk Level"}</h2>
           <div class="risk-level">${getRiskLevelLabel(assessment.risk_level)}</div>
-          <p>${getRiskLevelDescription(assessment.risk_level)}</p>
+          <p>${getRiskLevelDescription(assessment.risk_level, locale)}</p>
         </div>
         
         ${
@@ -485,8 +473,8 @@ export default function GuestAssessmentResultsPage() {
                   </h4>
                   <AlertDescription className="text-purple-700 dark:text-purple-300 text-sm leading-relaxed">
                     {locale === "th"
-                      ? "ข้อมูลนี้เป็นการทดลองใช้งานและจะไม่ถูกบันทึกถาวร หากต้องการบันทึกข้อมูลและใช้งานฟีเจอร์เต็มรูปแบบ กรุณาสมัครสมาชิก"
-                      : "This is trial mode data and will not be permanently saved. To save your data and access full features, please register for an account."}
+                      ? "ข้อมูลนี้เป็นการทดลองใช้งานและจะไม่ถูกบันทึก"
+                      : "This is trial mode data and will not be permanently saved."}
                   </AlertDescription>
                 </div>
               </div>
@@ -518,7 +506,7 @@ export default function GuestAssessmentResultsPage() {
                         strokeWidth="8"
                         fill="none"
                         strokeDasharray={`${2 * Math.PI * 40}`}
-                        strokeDashoffset={`${2 * Math.PI * 40 * (1 - (isAnimating ? 0 : assessment.percentage / 100))}`}
+                        strokeDashoffset={`${2 * Math.PI * 40 * (1 - (isAnimating ? 0 : actualPercentage / 100))}`}
                         className="transition-all duration-2000 ease-out drop-shadow-lg"
                         strokeLinecap="round"
                       />
@@ -532,10 +520,13 @@ export default function GuestAssessmentResultsPage() {
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="text-center">
                         <div className={`text-3xl sm:text-4xl font-bold ${riskInfo.color} animate-count-up`}>
-                          {isAnimating ? 0 : assessment.percentage}%
+                          {isAnimating ? 0 : actualPercentage}%
                         </div>
-                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-300 font-medium mt-1">
-                          {locale === "th" ? "คะแนนสุขภาพ" : "Health Score"}
+                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-300 font-medium mt-1 flex items-center justify-center gap-1">
+                          {locale === "th" ? "คะแนนความเสี่ยง" : "Risk Score"}
+                        </div>
+                        <div className={`text-xs font-medium mt-1 ${riskInfo.color}`}>
+                          {getRiskLevelLabel(assessment.risk_level)}
                         </div>
                       </div>
                     </div>
@@ -665,13 +656,13 @@ export default function GuestAssessmentResultsPage() {
 
             {/* Professional Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-8">
-              <Button
-                onClick={() => router.push(`/guest-assessment?category=${assessment.category_id}`)}
+              {/* <Button
+                onClick={() => router.push("/assessment/")}
                 className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 sm:py-4 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
               >
                 <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 {t("retake_assessment")}
-              </Button>
+              </Button> */}
               <Button
                 variant="outline"
                 onClick={() => setShowDetails(!showDetails)}

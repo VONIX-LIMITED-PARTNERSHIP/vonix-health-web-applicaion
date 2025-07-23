@@ -320,13 +320,6 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                   <span>{t("required")}</span>
                 </div>
               )}
-
-              {isValid && currentAnswer !== null && (
-                <div className="flex items-center text-green-600 text-xs bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full border border-green-200 dark:border-green-800">
-                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                  <span>{t("correct")}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -6,7 +6,8 @@ const en = {
     ai_powered_description:
       "Our AI-powered system provides comprehensive health assessments, personalized insights, and actionable recommendations to help you live a healthier life.",
     start_health_assessment: "Start Health Assessment",
-    discribe_vonix: "An intelligent health assessment system that helps you take better care of your health. No medical knowledge required, easy to use, and instantly understandable, with advice from expert doctors.",
+    discribe_vonix:
+      "An intelligent health assessment system that helps you take better care of your health. No medical knowledge required, easy to use, and instantly understandable, with advice from expert doctors.",
     consult_doctor_online: "Consult Doctor Online",
     try_it_out: "Try it out (Guest)",
     smart_ai: "Smart AI",
@@ -116,7 +117,7 @@ const en = {
     retake_assessment: "Retake",
     assessment_results: "Assessment Results",
     assessment_date: "Date",
-    select_or_search:"Select or Search",
+    select_or_search: "Select or Search",
     health_assessments: "Health Assessments",
     choose_assessment_type: "Choose Assessment",
     questions_answered: "Questions Answered",
@@ -181,7 +182,8 @@ const en = {
     assessment_view_results: "View Results",
 
     guest_health_overview_title: "Guest Health Overview",
-    guest_health_overview_description: "Summary of your health assessment results. This view is based on your anonymous session.",
+    guest_health_overview_description:
+      "Summary of your health assessment results. This view is based on your anonymous session.",
 
     total_assessments: "Total Assessments",
     last_assessment: "Last Assessment",
@@ -195,7 +197,7 @@ const en = {
     download_pdf: "Download PDF",
 
     sign_out: "Sign Out",
-    hide_answer_details : "Hide Answer",
+    hide_answer_details: "Hide Answer",
 
     language: "Language",
     theme: "Theme",
@@ -204,12 +206,27 @@ const en = {
 
     enter_number_placeholder: "Please enter a number",
     enter_answer_placeholder: "Please enter your answer",
+
+    // Score Info Popover translations
+    score_info_help: "Health Score Information",
+    score_info_title: "What is Health Score?",
+    score_info_subtitle: "Understanding the 0-100% score interpretation",
+    score_excellent: "Excellent",
+    score_good: "Good",
+    score_fair: "Fair",
+    score_needs_attention: "Needs Attention",
+    score_info_note: "Note",
+    score_info_description:
+      "Health score is calculated from your assessment answers. Higher scores indicate better health and lower risk factors.",
+    score_info_disclaimer_title: "Important",
+    score_info_disclaimer:
+      "This score is for preliminary assessment only, not a medical diagnosis. If you have health concerns, please consult a doctor.",
   },
-  assessment:{
-    please_answer_currect_question:"Answer currect question"
+  assessment: {
+    please_answer_currect_question: "Answer currect question",
   },
   // About page translations
-// About page translations
+  // About page translations
   about: {
     // Hero Section
     hero_badge: "Empowering Digital Health",
@@ -338,8 +355,6 @@ const en = {
       "Join us in building the future of AI-driven healthcare. Whether you're a user or a potential partner, we welcome you.",
     get_involved_try_now: "Try Now for Free",
     get_involved_contact: "Contact Us",
-
-    
   },
 } as const
 

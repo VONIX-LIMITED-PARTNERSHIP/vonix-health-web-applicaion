@@ -24,7 +24,6 @@ export function Footer() {
             </p>  
             <div className="text-sm text-gray-500 dark:text-gray-400">
               <p className="font-semibold mb-1">VONIX LIMITED PARTNERSHIP</p>
-              <p>ห้างหุ้นส่วนจำกัด วอนิกซ์</p>
             </div>
           </div>
 

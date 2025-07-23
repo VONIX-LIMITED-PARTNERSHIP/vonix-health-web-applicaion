@@ -30,26 +30,33 @@ export function MultiSelectComboboxWithOther({
   const [open, setOpen] = React.useState(false)
   const [otherText, setOtherText] = React.useState("")
   const [showOtherInput, setShowOtherInput] = React.useState(false)
-  const { t } = useTranslation(["common"])
+  const { t, locale } = useTranslation(["common"])
 
   // Ensure value is always an array
   const safeSelected = value || []
 
-  const otherLabel = "อื่นๆ"
+  // Use translation for "Other" label
+  const otherLabel = locale === "en" ? "Other" : "อื่นๆ"
   const isOtherSelected = safeSelected.includes(otherLabel)
   const selectedPredefined = safeSelected.filter((item) => item !== otherLabel && options.some((opt) => opt === item))
   const selectedOtherValue = isOtherSelected ? otherText : ""
 
+  // Update placeholder and other input placeholder based on locale
+  const defaultPlaceholder = locale === "en" ? "Select or search" : "เลือกหรือพิมพ์เพื่อค้นหา"
+  const defaultOtherPlaceholder = locale === "en" ? "Specify other details here" : "ระบุข้อมูลอื่นๆ ที่นี่"
+  const searchPlaceholder = locale === "en" ? "Search..." : "ค้นหา..."
+  const noDataText = locale === "en" ? "No data found" : "ไม่พบข้อมูล"
+
   const handleSelect = (currentValue: string) => {
     if (currentValue === otherLabel) {
       if (isOtherSelected) {
-        // Remove "อื่นๆ" and any custom text
+        // Remove "อื่นๆ/Other" and any custom text
         const newSelected = safeSelected.filter((item) => item !== otherLabel)
         onChange(newSelected)
         setShowOtherInput(false)
         setOtherText("")
       } else {
-        // Add "อื่นๆ" and show input
+        // Add "อื่นๆ/Other" and show input
         const newSelected = [...safeSelected, otherLabel]
         onChange(newSelected)
         setShowOtherInput(true)
@@ -93,7 +100,7 @@ export function MultiSelectComboboxWithOther({
           >
             <div className="flex flex-wrap gap-1 flex-1">
               {safeSelected.length === 0 ? (
-                <span className="text-muted-foreground">{placeholder}</span>
+                <span className="text-muted-foreground">{placeholder || defaultPlaceholder}</span>
               ) : (
                 <>
                   {selectedPredefined.map((item) => (
@@ -131,9 +138,9 @@ export function MultiSelectComboboxWithOther({
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput placeholder="ค้นหา..." />
+            <CommandInput placeholder={searchPlaceholder} />
             <CommandList>
-              <CommandEmpty>ไม่พบข้อมูล</CommandEmpty>
+              <CommandEmpty>{noDataText}</CommandEmpty>
               <CommandGroup>
                 {options.map((option) => (
                   <CommandItem key={option} value={option} onSelect={() => handleSelect(option)}>
@@ -156,7 +163,7 @@ export function MultiSelectComboboxWithOther({
       {showOtherInput && (
         <div className="mt-2">
           <Input
-            placeholder={otherInputPlaceholder}
+            placeholder={otherInputPlaceholder || defaultOtherPlaceholder}
             value={otherText}
             onChange={(e) => handleOtherTextChange(e.target.value)}
             className="w-full"

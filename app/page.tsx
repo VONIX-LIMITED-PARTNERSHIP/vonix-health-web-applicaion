@@ -34,6 +34,7 @@ import {
   CheckCircle,
   TrendingUp,
   Award,
+  Wind,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -213,7 +214,7 @@ export default function HomePage() {
         totalAssessments: 0,
         lastAssessmentDate: "",
         riskLevels: {},
-        overallRisk: "",
+        overallRisk: "low",
         recommendations: [],
       })
       return
@@ -232,6 +233,36 @@ export default function HomePage() {
       latestAssessments.some((assessment) => assessment.category_id === category),
     ).length
 
+    // Calculate health score based on risk levels (same logic as health overview modal)
+    let healthScore = 100
+    latestAssessments.forEach((assessment) => {
+      switch (assessment.risk_level?.toLowerCase()) {
+        case "high":
+          healthScore -= 15
+          break
+        case "very-high":
+        case "very_high":
+          healthScore -= 25
+          break
+        case "medium":
+          healthScore -= 8
+          break
+      }
+    })
+    healthScore = Math.max(0, healthScore)
+
+    // Convert health score to risk level
+    let overallRisk = "low"
+    if (healthScore >= 80) {
+      overallRisk = "low"
+    } else if (healthScore >= 60) {
+      overallRisk = "medium"
+    } else if (healthScore >= 40) {
+      overallRisk = "high"
+    } else {
+      overallRisk = "very-high"
+    }
+
     setDashboardStats({
       totalAssessments: latestAssessments.length,
       lastAssessmentDate: latestAssessments[0]?.completed_at || "",
@@ -239,7 +270,7 @@ export default function HomePage() {
         cardiac: latestAssessments.find((a) => a.category_id === "heart")?.risk_level || "",
         diabetes: latestAssessments.find((a) => a.category_id === "nutrition")?.risk_level || "",
       },
-      overallRisk: getHealthLevelColor(getRiskLevelLabel(averageScore)), // Use getHealthLevelColor with a derived risk level
+      overallRisk: overallRisk,
       recommendations: [], // Ensure recommendations is an empty array
     })
   }
@@ -563,8 +594,8 @@ export default function HomePage() {
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-tight">
-                <span className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-purple-200">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-relaxed">
+                <span className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-purple-200 inline-block py-2">
                   {t("assess_health_with_ai")}
                 </span>
               </h1>
@@ -737,6 +768,85 @@ export default function HomePage() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* Elemental Assessment Section */}
+          {isLoggedIn && (
+            <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+              <div className="text-center mb-16">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+                  <span className="bg-gradient-to-r from-teal-600 via-emerald-600 to-cyan-600 bg-clip-text text-transparent dark:from-teal-400 dark:via-emerald-400 dark:to-cyan-400">
+                    {locale === "th" ? "แบบประเมินธาตุเจ้าเรือน" : "Elemental Body Type Assessment"}
+                  </span>
+                </h2>
+                <div className="w-24 h-1 bg-gradient-to-r from-teal-500 to-cyan-500 mx-auto mb-6 rounded-full"></div>
+                <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                  {locale === "th"
+                    ? "ค้นหาธาตุเจ้าเรือนของคุณ วาตะ ปิตตะ หรือเสมหะ"
+                    : "Discover your dominant element: Vata, Pitta, or Kapha"}
+                </p>
+              </div>
+
+              <div className="max-w-2xl mx-auto">
+                <Card className="group relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 cursor-pointer rounded-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-br from-teal-50/50 to-cyan-50/50 dark:from-teal-900/20 dark:to-cyan-900/20"></div>
+                  <CardContent className="relative p-8">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
+                        <Wind className="h-8 w-8" />
+                      </div>
+                      <Badge className="bg-teal-100 text-teal-700 font-medium px-3 py-1 rounded-full shadow-sm dark:bg-teal-800 dark:text-teal-200">
+                        {locale === "th" ? "แบบประเมินพิเศษ" : "Special Assessment"}
+                      </Badge>
+                    </div>
+
+                    <h3 className="font-bold text-xl mb-3 text-gray-900 group-hover:text-gray-800 transition-colors dark:text-white dark:group-hover:text-gray-100">
+                      {locale === "th" ? "ประเมินธาตุเจ้าเรือน" : "Elemental Body Type Assessment"}
+                    </h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed dark:text-gray-300">
+                      {locale === "th"
+                        ? "ค้นพบธาตุเจ้าเรือนของคุณตามหลักการแพทย์แผนไทย เพื่อเข้าใจลักษณะนิสัยและวิธีการดูแลสุขภาพที่เหมาะสม"
+                        : "Discover your dominant element according to traditional Thai medicine principles to understand your personality traits and appropriate health care methods"}
+                    </p>
+                    <div className="flex items-center text-sm text-gray-500 mb-6 dark:text-gray-400">
+                      <Clock className="w-4 h-4 mr-2" />
+                      {locale === "th" ? "ใช้เวลาประมาณ 10-15 นาที" : "Takes about 10-15 minutes"}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      <div className="text-center p-3 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30">
+                        <div className="text-2xl mb-1">🌬️</div>
+                        <div className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                          {locale === "th" ? "วาตะ (ลม)" : "Vata (Air)"}
+                        </div>
+                      </div>
+                      <div className="text-center p-3 rounded-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30">
+                        <div className="text-2xl mb-1">🔥</div>
+                        <div className="text-xs font-semibold text-red-700 dark:text-red-300">
+                          {locale === "th" ? "ปิตตะ (ไฟ)" : "Pitta (Fire)"}
+                        </div>
+                      </div>
+                      <div className="text-center p-3 rounded-lg bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/30 dark:to-cyan-800/30">
+                        <div className="text-2xl mb-1">💧</div>
+                        <div className="text-xs font-semibold text-cyan-700 dark:text-cyan-300">
+                          {locale === "th" ? "เสมหะ (น้ำ)" : "Kapha (Water)"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button
+                      className="w-full font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
+                      asChild
+                    >
+                      <Link href="/assessment/elemental">
+                        {locale === "th" ? "เริ่มประเมินธาตุเจ้าเรือน" : "Start Elemental Assessment"}
+                        <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
             </section>
           )}

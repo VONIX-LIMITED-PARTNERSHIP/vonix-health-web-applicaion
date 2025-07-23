@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import type { AssessmentAnswer, AssessmentResult } from "@/types/assessment"
 import { useRiskLevelTranslation } from "@/utils/risk-level"
+import { ScoreInfoPopover } from "./score-info-popover"
 
 interface AssessmentResultsProps {
   categoryId: string
@@ -247,7 +248,10 @@ export function AssessmentResults({ categoryId, assessmentResult, answers, aiAna
                       <div className={`text-4xl font-bold ${riskInfo.color} animate-count-up`}>
                         {isAnimating ? 0 : riskInfo.percentage}%
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">คะแนนสุขภาพ</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400 font-medium flex items-center gap-1 justify-center">
+                        คะแนนสุขภาพ
+                        <ScoreInfoPopover />
+                      </div>
                     </div>
                   </div>
                 </div>
