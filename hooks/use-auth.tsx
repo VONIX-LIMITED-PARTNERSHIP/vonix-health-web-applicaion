@@ -15,6 +15,7 @@ interface AuthContextType {
   isProfileLoading: boolean
   signIn: (email: string, password: string) => Promise<{ data?: any; error?: any }>
   signUp: (email: string, password: string, metadata?: any) => Promise<{ data?: any; error?: any }>
+  signInWithOAuth: (provider: "google") => Promise<void>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
   resetPasswordForEmail: (email: string) => Promise<{ data?: any; error?: any }>
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
   isProfileLoading: false,
   signIn: async () => ({ error: new Error("Auth not configured") }),
   signUp: async () => ({ error: new Error("Auth not configured") }),
+  signInWithOAuth: async () => {},
   signOut: async () => {},
   refreshProfile: async () => {},
   resetPasswordForEmail: async () => ({ error: new Error("Auth not configured") }),
@@ -124,9 +126,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({
             userId: userId,
             email: user.email,
-            fullName: user.user_metadata?.full_name || "",
+            fullName: user.user_metadata?.full_name || user.user_metadata?.name || "",
             role: user.user_metadata?.role || "patient",
-            pdpaConsent: user.user_metadata?.pdpa_consent || false,
+            pdpaConsent: user.user_metadata?.pdpa_consent || true,
           }),
         })
         const responseData = await response.json()
@@ -314,6 +316,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const signInWithOAuth = async (provider: "google") => {
+    if (!supabase) {
+      console.error("signInWithOAuth: Supabase not configured.")
+      throw new Error("Supabase not configured")
+    }
+
+    try {
+      console.log(`signInWithOAuth: Initiating ${provider} OAuth flow.`)
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      })
+
+      if (error) {
+        console.error("signInWithOAuth: Error during OAuth:", error.message)
+        throw error
+      }
+
+      console.log("signInWithOAuth: OAuth initiated successfully.")
+    } catch (error) {
+      console.error("signInWithOAuth: Unexpected error during OAuth:", error)
+      throw error
+    }
+  }
+
   const signOut = async () => {
     if (!supabase) {
       console.error("signOut: Supabase not configured.")
@@ -398,6 +432,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isProfileLoading,
         signIn,
         signUp,
+        signInWithOAuth,
         signOut,
         refreshProfile,
         resetPasswordForEmail,

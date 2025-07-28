@@ -64,6 +64,7 @@ const th = {
     check_email_for_reset: "กรุณาตรวจสอบอีเมลของคุณเพื่อตั้งรหัสผ่านใหม่",
     unexpected_error: "เกิดข้อผิดพลาดที่ไม่คาดคิด",
     new_password: "รหัสผ่านใหม่",
+    profile_link_text: "ดูโปรไฟล์",
     confirm_new_password: "ยืนยันรหัสผ่านใหม่",
     password_mismatch: "รหัสผ่านไม่ตรงกัน",
     password_too_short: "รหัสผ่านสั้นเกินไป",

@@ -397,10 +397,9 @@ export default function HomePage() {
   }
 
   const handleViewHealthOverviewClick = () => {
-    // This function will not be called if the button is disabled
     if (isGuestLoggedIn) {
       setIsGuestHealthOverviewModalOpen(true)
-    } else if (user) {
+    } else if (user && profile) {
       setIsHealthOverviewModalOpen(true)
     } else {
       router.push("/guest-login")
@@ -465,6 +464,7 @@ export default function HomePage() {
                 className="border-2 border-gray-300 hover:border-blue-400 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300
                 dark:border-gray-600 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200"
                 onClick={handleViewHealthOverviewClick}
+                disabled={!isLoggedIn}
               >
                 <BarChart className="mr-2 h-4 w-4" />
                 {t("health_overview")}

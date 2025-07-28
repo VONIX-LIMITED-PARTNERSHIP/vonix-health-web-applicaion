@@ -75,6 +75,7 @@ const en = {
     logout: "Logout",
     profile: "Profile",
     home: "Home",
+    profile_link_text: "View Profile",
     contact_us: "Contact Us",
     dashboard: "Dashboard",
     basic_assessment: "Basic Health Assessment",

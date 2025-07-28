@@ -15,6 +15,7 @@ export interface Database {
           updated_at: string
           pdpa_consent: boolean
           pdpa_consent_date: string | null
+          provider: string | null
         }
         Insert: {
           id: string
@@ -27,6 +28,9 @@ export interface Database {
           gender?: "male" | "female" | "other" | null
           pdpa_consent?: boolean
           pdpa_consent_date?: string | null
+          provider?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
@@ -39,6 +43,9 @@ export interface Database {
           gender?: "male" | "female" | "other" | null
           pdpa_consent?: boolean
           pdpa_consent_date?: string | null
+          provider?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
       assessments: {

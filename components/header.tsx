@@ -2,9 +2,22 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Activity, Bell, LogOut, RefreshCw, Loader2, Settings, Sun, Moon, Languages, User, Menu } from "lucide-react" // Added Menu icon
+import {
+  Activity,
+  Bell,
+  LogOut,
+  RefreshCw,
+  Loader2,
+  Settings,
+  Sun,
+  Moon,
+  Languages,
+  User,
+  Menu,
+  LogIn,
+} from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet" // Added Sheet components
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/hooks/use-auth"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -142,8 +155,6 @@ export function Header() {
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="sm" className="p-2 md:hidden">
-                {" "}
-                {/* Visible only on mobile */}
                 <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="sr-only">{t("common.menu")}</span>
               </Button>
@@ -179,7 +190,6 @@ export function Header() {
                 >
                   {locale === "th" ? "เกี่ยวกับเรา" : "About"}
                 </Link>
-                {/* Add other mobile-specific navigation items here if needed */}
               </nav>
             </SheetContent>
           </Sheet>
@@ -232,7 +242,11 @@ export function Header() {
                     <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                       <AvatarImage src={profile?.avatar_url || ""} alt={displayName} />
                       <AvatarFallback
-                        className={`${isGuestLoggedIn ? "bg-gradient-to-br from-purple-400 to-pink-500" : "bg-gradient-to-br from-blue-400 to-purple-500"} text-white font-semibold text-sm`}
+                        className={`${
+                          isGuestLoggedIn
+                            ? "bg-gradient-to-br from-purple-400 to-pink-500"
+                            : "bg-gradient-to-br from-blue-400 to-purple-500"
+                        } text-white font-semibold text-sm`}
                       >
                         {getInitials(displayName)}
                       </AvatarFallback>
@@ -269,7 +283,7 @@ export function Header() {
                   )}
                   {profile && !isGuestLoggedIn && (
                     <DropdownMenuItem asChild>
-                      <Link href="/profile">👤 {t("common.profile_link_text")}</Link>
+                      <Link href="/profile">👤 {t("profile_link_text")}</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-600" disabled={signingOut}>
@@ -290,8 +304,21 @@ export function Header() {
             </div>
           ) : (
             <div className="flex items-center space-x-2 sm:space-x-3">
-              {/* Only show the "Try Now" button */}
+              {/* Login Button */}
               <Button variant="ghost" className="font-medium text-sm sm:text-base px-3 sm:px-4" asChild>
+                <Link href="/login">
+                  <LogIn className="mr-1 h-4 w-4" />
+                  <span className="hidden sm:inline">{locale === "th" ? "เข้าสู่ระบบ" : "Login"}</span>
+                  <span className="sm:hidden">{locale === "th" ? "เข้า" : "Login"}</span>
+                </Link>
+              </Button>
+
+              {/* Try Now Button */}
+              <Button
+                variant="outline"
+                className="font-medium text-sm sm:text-base px-3 sm:px-4 bg-transparent"
+                asChild
+              >
                 <Link href="/guest-login">
                   <User className="mr-1 h-4 w-4" />
                   <span className="hidden sm:inline">{locale === "th" ? "ทดลองใช้งาน" : "Try Now"}</span>

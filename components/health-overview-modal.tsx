@@ -1,658 +1,570 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type React from "react"
+
+import { useEffect, useState, useMemo } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
+import { Button } from "@/components/ui/button"
 import {
+  Activity,
   Heart,
   Apple,
   Brain,
+  MoonIcon,
   Dumbbell,
-  Moon,
-  User,
-  AlertTriangle,
+  BarChart,
   Calendar,
-  Activity,
-  FileText,
+  Shield,
   Loader2,
   CheckCircle,
+  AlertCircle,
   XCircle,
   Info,
-  X,
+  TrendingUp,
   Target,
   Award,
-  BarChart3,
   Zap,
-  Shield,
-  Clock,
   Eye,
-  ExternalLink,
+  X,
 } from "lucide-react"
+import { useTranslation } from "@/hooks/use-translation"
+import { useLanguage } from "@/contexts/language-context"
 import { AssessmentService } from "@/lib/assessment-service"
 import { createClientComponentClient } from "@/lib/supabase"
 import { useAuth } from "@/hooks/use-auth"
-import { useTranslation } from "@/hooks/use-translation"
-import { useLanguage } from "@/contexts/language-context"
-import { getRiskLevelBadgeClass, getBilingualArray, getBilingualText } from "@/utils/risk-level"
+import { getAssessmentCategories } from "@/data/assessment-questions"
+import { getRiskLevelText, getRiskLevelBadgeClass } from "@/utils/risk-level"
 import { useRouter } from "next/navigation"
 
 interface HealthOverviewModalProps {
   isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  targetAssessmentId?: string | null
-  onTargetAssessmentIdChange?: (id: string | null) => void
+  onClose: () => void
 }
 
-interface AssessmentData {
+interface AssessmentResult {
   id: string
-  category_id: string
-  category_title: string
-  total_score: number
-  max_score: number
+  category: string
+  categoryId: string
   percentage: number
-  risk_level: string
-  risk_factors: string[]
-  recommendations: string[]
-  completed_at: string
-  ai_analysis?: {
-    summary?: any
-    riskFactors?: any
-    recommendations?: any
-  }
+  riskLevel: string
+  completedAt: string
+  totalScore: number
+  maxScore: number
 }
 
-const categoryIcons = {
-  basic: User,
-  heart: Heart,
-  nutrition: Apple,
-  mental: Brain,
-  physical: Dumbbell,
-  sleep: Moon,
+interface DashboardStats {
+  totalAssessments: number
+  lastAssessmentDate: string | null
+  overallRisk: string | null
 }
 
-const categoryColors = {
-  basic: "from-blue-500 to-cyan-500",
-  heart: "from-red-500 to-pink-500",
-  nutrition: "from-green-500 to-emerald-500",
-  mental: "from-purple-500 to-violet-500",
-  physical: "from-orange-500 to-amber-500",
-  sleep: "from-indigo-500 to-blue-500",
-}
-
-export function HealthOverviewModal({
-  isOpen,
-  onOpenChange,
-  targetAssessmentId,
-  onTargetAssessmentIdChange,
-}: HealthOverviewModalProps) {
-  const { user } = useAuth()
-  const { t } = useTranslation()
+export function HealthOverviewModal({ isOpen, onClose }: HealthOverviewModalProps) {
+  const { t } = useTranslation(["common", "guest_health_overview"])
   const { locale } = useLanguage()
+  const { user } = useAuth()
   const router = useRouter()
-  const [assessments, setAssessments] = useState<AssessmentData[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
+  const [assessments, setAssessments] = useState<AssessmentResult[]>([])
+  const [loading, setLoading] = useState(true)
 
   const supabase = createClientComponentClient()
 
-  // Helper functions for bilingual data
-  const getSafeRiskFactors = (assessment: AssessmentData): string[] => {
-    if (assessment.ai_analysis?.riskFactors) {
-      return getBilingualArray(assessment.ai_analysis.riskFactors, locale)
-    }
-    return assessment.risk_factors || []
-  }
-
-  const getSafeRecommendations = (assessment: AssessmentData): string[] => {
-    if (assessment.ai_analysis?.recommendations) {
-      return getBilingualArray(assessment.ai_analysis.recommendations, locale)
-    }
-    return assessment.recommendations || []
-  }
-
-  const getSafeSummary = (assessment: AssessmentData): string | null => {
-    if (assessment.ai_analysis?.summary) {
-      return getBilingualText(assessment.ai_analysis.summary, locale)
-    }
-    return null
-  }
-
-  const getLatestAssessmentsByCategory = (allAssessments: AssessmentData[]): AssessmentData[] => {
-    const latestByCategory = new Map<string, AssessmentData>()
-
-    allAssessments.forEach((assessment) => {
-      const categoryId = assessment.category_id
-      const currentLatest = latestByCategory.get(categoryId)
-
-      if (!currentLatest || new Date(assessment.completed_at) > new Date(currentLatest.completed_at)) {
-        latestByCategory.set(categoryId, assessment)
-      }
-    })
-
-    return Array.from(latestByCategory.values()).sort(
-      (a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime(),
-    )
-  }
-
   useEffect(() => {
     if (isOpen && user?.id) {
+      setLoading(true)
       fetchHealthOverview()
     }
-  }, [isOpen, user?.id, locale])
+  }, [isOpen, user?.id])
 
   const fetchHealthOverview = async () => {
     if (!user?.id) return
 
-    setLoading(true)
-    setError(null)
-
     try {
-      const { data, error: fetchError } = await AssessmentService.getUserAssessments(supabase, user.id)
+      const { data, error } = await AssessmentService.getUserAssessments(supabase, user.id)
 
-      if (fetchError) {
-        setError(fetchError)
+      if (error) {
+        console.error("Failed to load health overview data:", error)
+        setDashboardStats(null)
+        setAssessments([])
         return
       }
 
       if (data && data.length > 0) {
-        const latestAssessments = getLatestAssessmentsByCategory(data)
-        setAssessments(latestAssessments)
+        // Get latest assessment for each category
+        const latestByCategory = new Map<string, any>()
+
+        data.forEach((assessment) => {
+          const categoryId = assessment.category_id
+          const currentLatest = latestByCategory.get(categoryId)
+
+          if (!currentLatest || new Date(assessment.completed_at) > new Date(currentLatest.completed_at)) {
+            latestByCategory.set(categoryId, assessment)
+          }
+        })
+
+        const latestAssessments = Array.from(latestByCategory.values())
+
+        // Transform data to match expected format
+        const transformedAssessments: AssessmentResult[] = latestAssessments.map((assessment) => ({
+          id: assessment.id,
+          category: assessment.category_title,
+          categoryId: assessment.category_id,
+          percentage: assessment.percentage || 0,
+          riskLevel: assessment.risk_level || "low",
+          completedAt: assessment.completed_at,
+          totalScore: assessment.total_score || 0,
+          maxScore: assessment.max_score || 0,
+        }))
+
+        setAssessments(transformedAssessments)
+
+        // Calculate dashboard stats
+        const stats: DashboardStats = {
+          totalAssessments: transformedAssessments.length,
+          lastAssessmentDate:
+            transformedAssessments.length > 0
+              ? transformedAssessments.sort(
+                  (a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(),
+                )[0].completedAt
+              : null,
+          overallRisk: calculateOverallRisk(transformedAssessments),
+        }
+
+        setDashboardStats(stats)
       } else {
         setAssessments([])
+        setDashboardStats({
+          totalAssessments: 0,
+          lastAssessmentDate: null,
+          overallRisk: null,
+        })
       }
-    } catch (err) {
-      setError("เกิดข้อผิดพลาดในการโหลดข้อมูล")
+    } catch (error) {
+      console.error("Failed to load health overview data:", error)
+      setDashboardStats(null)
+      setAssessments([])
     } finally {
       setLoading(false)
     }
   }
 
-  const handleViewResults = (assessment: AssessmentData) => {
-    // Close the modal first
-    onOpenChange(false)
+  const calculateOverallRisk = (assessments: AssessmentResult[]): string | null => {
+    if (assessments.length === 0) return null
 
-    // Navigate to the assessment results page
-    router.push(`/assessment/${assessment.category_id}/results?id=${assessment.id}`)
+    const riskLevels = assessments.map((a) => a.riskLevel)
+
+    if (riskLevels.some((r) => r === "very-high" || r === "very_high")) return "very-high"
+    if (riskLevels.some((r) => r === "high")) return "high"
+    if (riskLevels.some((r) => r === "medium")) return "medium"
+    return "low"
   }
 
-  const getRiskLevelLabel = (riskLevel: string) => {
-    switch (riskLevel?.toLowerCase()) {
-      case "low":
-        return locale === "th" ? "ความเสี่ยงต่ำ" : "Low Risk"
-      case "medium":
-        return locale === "th" ? "ความเสี่ยงปานกลาง" : "Medium Risk"
-      case "high":
-        return locale === "th" ? "ความเสี่ยงสูง" : "High Risk"
-      case "very-high":
-      case "very_high":
-        return locale === "th" ? "ความเสี่ยงสูงมาก" : "Very High Risk"
+  const assessmentCategories = useMemo(() => getAssessmentCategories(locale), [locale])
+
+  const getCategoryIcon = (categoryId: string) => {
+    switch (categoryId) {
+      case "basic":
+        return <Activity className="h-5 w-5" />
+      case "heart":
+        return <Heart className="h-5 w-5" />
+      case "nutrition":
+        return <Apple className="h-5 w-5" />
+      case "mental":
+        return <Brain className="h-5 w-5" />
+      case "physical":
+        return <Dumbbell className="h-5 w-5" />
+      case "sleep":
+        return <MoonIcon className="h-5 w-5" />
       default:
-        return locale === "th" ? "ไม่ระบุ" : "Unspecified"
+        return <BarChart className="h-5 w-5" />
     }
   }
 
-  const getRiskIcon = (riskLevel: string) => {
-    switch (riskLevel?.toLowerCase()) {
-      case "low":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case "medium":
-        return <Info className="h-4 w-4 text-yellow-500" />
-      case "high":
-      case "very-high":
-      case "very_high":
-        return <XCircle className="h-4 w-4 text-red-500" />
+  const getCategoryGradient = (categoryId: string) => {
+    switch (categoryId) {
+      case "basic":
+        return "from-blue-500 to-cyan-500"
+      case "heart":
+        return "from-red-500 to-pink-500"
+      case "nutrition":
+        return "from-green-500 to-emerald-500"
+      case "mental":
+        return "from-purple-500 to-violet-500"
+      case "physical":
+        return "from-orange-500 to-amber-500"
+      case "sleep":
+        return "from-indigo-500 to-blue-500"
       default:
-        return <Info className="h-4 w-4 text-gray-500" />
+        return "from-gray-500 to-gray-600"
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    if (locale === "th") {
-      return date.toLocaleDateString("th-TH", {
+  const getFormattedDate = (dateString: string | null) => {
+    if (!dateString) return t("no_data")
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) {
+        return t("invalid_date")
+      }
+      return date.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
       })
-    }
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
-
-  const calculateStats = () => {
-    if (assessments.length === 0) {
-      return {
-        overallScore: 0,
-        totalRiskFactors: 0,
-        completedAssessments: 0,
-        canGenerateReport: false,
-        healthScore: 0,
-        improvementAreas: 0,
-      }
-    }
-
-    const totalPercentage = assessments.reduce((sum, assessment) => sum + assessment.percentage, 0)
-    const overallScore = Math.round(totalPercentage / assessments.length)
-
-    const allRiskFactors = new Set<string>()
-    assessments.forEach((assessment) => {
-      const riskFactors = getSafeRiskFactors(assessment)
-      riskFactors.forEach((factor) => allRiskFactors.add(factor))
-    })
-
-    const completedAssessments = assessments.length
-    const canGenerateReport = completedAssessments >= 3
-
-    // Calculate health score based on risk levels
-    let healthScore = 100
-    assessments.forEach((assessment) => {
-      switch (assessment.risk_level?.toLowerCase()) {
-        case "high":
-          healthScore -= 15
-          break
-        case "very-high":
-        case "very_high":
-          healthScore -= 25
-          break
-        case "medium":
-          healthScore -= 8
-          break
-      }
-    })
-    healthScore = Math.max(0, healthScore)
-
-    const improvementAreas = assessments.filter(
-      (a) => a.risk_level === "high" || a.risk_level === "very-high" || a.risk_level === "very_high",
-    ).length
-
-    return {
-      overallScore,
-      totalRiskFactors: allRiskFactors.size,
-      completedAssessments,
-      canGenerateReport,
-      healthScore,
-      improvementAreas,
+    } catch (e) {
+      console.error("Error formatting date:", e)
+      return t("invalid_date")
     }
   }
 
-  const stats = calculateStats()
+  const renderRiskBadge = (riskLevel: string) => {
+    const colorClass = getRiskLevelBadgeClass(riskLevel)
+    const label = getRiskLevelText(riskLevel, locale)
+    let Icon = Info
+    if (riskLevel === "low") Icon = CheckCircle
+    if (riskLevel === "medium") Icon = Info
+    if (riskLevel === "high") Icon = AlertCircle
+    if (riskLevel === "very-high" || riskLevel === "very_high") Icon = XCircle
 
-  if (!user) {
     return (
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("not_logged_in")}</DialogTitle>
-            <DialogDescription>{t("login_to_view_health_overview")}</DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center pt-4">
-            <Button onClick={() => onOpenChange(false)}>{t("close")}</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <Badge className={`flex items-center gap-1 ${colorClass} px-2 py-1 rounded-full text-xs font-medium`}>
+        <Icon className="h-3 w-3" />
+        {label}
+      </Badge>
     )
   }
 
+  // Handle clicking on an assessment card to view results
+  const handleViewAssessmentResults = (assessment: AssessmentResult) => {
+    onClose() // Close the modal first
+    router.push(`/assessment/${assessment.categoryId}/results?id=${assessment.id}`)
+  }
+
+  // Handle close modal - ทำให้ง่ายที่สุด
+  const handleCloseModal = () => {
+    console.log('handleCloseModal called') // debug log
+    onClose()
+  }
+
+  const getHealthScore = () => {
+    if (!assessments || assessments.length === 0) return 0
+
+    // Calculate average percentage from all assessments
+    const totalPercentage = assessments.reduce((sum, assessment) => {
+      const percentage = assessment.percentage || 0
+      return sum + percentage
+    }, 0)
+
+    const averageScore = Math.round(totalPercentage / assessments.length)
+
+    // Ensure the score is within 0-100 range
+    return Math.max(0, Math.min(100, averageScore))
+  }
+
+  const healthScore = getHealthScore()
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col">
-        {" "}
-        {/* Added flex flex-col */}
-        <DialogHeader className="pb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="flex items-center gap-3 text-3xl font-bold">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                  <BarChart3 className="h-8 w-8" />
-                </div>
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {t("health_overview_modal_title")}
-                </span>
-              </DialogTitle>
-              <DialogDescription className="text-lg mt-2 text-gray-600 dark:text-gray-400">
-                {t("health_overview_modal_description")}
-              </DialogDescription>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        console.log('Dialog onOpenChange called', open) // debug log
+        if (!open) {
+          onClose()
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-[900px] h-[95vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-4 flex-shrink-0">
+          <DialogTitle className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg">
+              <BarChart className="h-8 w-8" />
             </div>
-            <button
-              onClick={() => onOpenChange(false)}
-              className="rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              <X className="h-6 w-6" />
-              <span className="sr-only">Close</span>
-            </button>
-          </div>
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {t("health_overview_modal_title")}
+            </span>
+          </DialogTitle>
+          <DialogDescription className="text-lg text-gray-600 dark:text-gray-400 mt-2">
+            {t("health_overview_modal_description")}
+          </DialogDescription>
         </DialogHeader>
+
         {loading ? (
-          <div className="flex-1 flex items-center justify-center py-16">
-            {" "}
-            {/* Added flex-1 */}
-            <div className="text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-              <p className="text-lg text-gray-600 dark:text-gray-400">{t("loading_details")}</p>
-            </div>
-          </div>
-        ) : error ? (
-          <Alert className="flex-1 border-red-200 bg-red-50 dark:bg-red-900/20">
-            {" "}
-            {/* Added flex-1 */}
-            <AlertTriangle className="h-5 w-5 text-red-600" />
-            <AlertDescription className="text-red-800 dark:text-red-200">
-              {t("error_loading_details")}: {error}
-            </AlertDescription>
-          </Alert>
-        ) : assessments.length === 0 ? (
-          <div className="flex-1 text-center py-16">
-            {" "}
-            {/* Added flex-1 */}
-            <div className="p-6 rounded-full bg-gray-100 dark:bg-gray-800 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-              <FileText className="h-12 w-12 text-gray-400" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">{t("no_assessment_data")}</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-lg">{t("start_assessment_to_view")}</p>
+          <div className="flex flex-col items-center justify-center flex-1">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
+            <span className="mt-4 text-lg text-gray-600 dark:text-gray-400">{t("loading_data")}...</span>
           </div>
         ) : (
-          <ScrollArea className="flex-1">
-            {" "}
-            {/* Changed max-h-[75vh] to flex-1 */}
-            <div className="space-y-8 pb-4">
-              {" "}
-              {/* Added pb-4 for padding at bottom of scroll area */}
-              {/* Dashboard Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Health Score */}
-                <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-900/20 dark:to-green-900/20 border-emerald-200 dark:border-emerald-800">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-200 dark:bg-emerald-700 rounded-full -mr-10 -mt-10 opacity-30"></div>
-                  <CardContent className="p-6 relative">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 rounded-xl bg-emerald-500 text-white">
+          <div
+            className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide"
+            style={{
+              scrollbarWidth: "none" /* Firefox */,
+              msOverflowStyle: "none" /* Internet Explorer 10+ */,
+            }}
+          >
+            <style jsx>{`
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none; /* Safari and Chrome */
+              }
+            `}</style>
+            <div className="space-y-8">
+              {/* Health Score Hero Section */}
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 p-8 border border-blue-200 dark:border-gray-700">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-200 dark:bg-blue-700 rounded-full -mr-16 -mt-16 opacity-30"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-200 dark:bg-purple-700 rounded-full -ml-12 -mb-12 opacity-20"></div>
+
+                <div className="relative grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg">
                         <Target className="h-6 w-6" />
                       </div>
-                      <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-100">
-                        {stats.healthScore >= 80
-                          ? t("health_status_excellent")
-                          : stats.healthScore >= 60
-                            ? t("health_status_good")
-                            : t("health_status_needs_improvement")}
-                      </Badge>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                          {locale === "th" ? "คะแนนสุขภาพรวม" : "Overall Health Score"}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          {locale === "th" ? "จากการประเมินทั้งหมด" : "Based on all assessments"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-end gap-3">
+                      <span className="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                        {healthScore}
+                      </span>
+                      <span className="text-2xl text-gray-500 dark:text-gray-400 mb-2">/100</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Progress value={healthScore} className="h-3 bg-gray-200 dark:bg-gray-700" />
+                      <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                        <span>{locale === "th" ? "ต่ำ" : "Low"}</span>
+                        <span>{locale === "th" ? "สูง" : "High"}</span>
+                      </div>
+                    </div>
+
+                    <Badge
+                      className={`${
+                        healthScore >= 80
+                          ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100"
+                          : healthScore >= 60
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100"
+                            : "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100"
+                      } px-3 py-1 text-sm font-medium`}
+                    >
+                      {healthScore >= 80
+                        ? locale === "th"
+                          ? "สุขภาพดีเยี่ยม"
+                          : "Excellent Health"
+                        : healthScore >= 60
+                          ? locale === "th"
+                            ? "สุขภาพดี"
+                            : "Good Health"
+                          : locale === "th"
+                            ? "ควรปรับปรุง"
+                            : "Needs Improvement"}
+                    </Badge>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <div className="relative">
+                      <div className="w-48 h-48 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center border-8 border-white dark:border-gray-800 shadow-2xl">
+                        <div className="text-center">
+                          <div className="text-4xl font-bold text-gray-800 dark:text-gray-200">{healthScore}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            {locale === "th" ? "คะแนน" : "Score"}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="absolute -top-2 -right-2 p-2 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-lg">
+                        <Award className="h-5 w-5" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <Card className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 border-blue-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200 dark:bg-blue-600 rounded-full -mr-10 -mt-10 opacity-30"></div>
+                  <CardContent className="p-6 relative">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 rounded-xl bg-blue-500 text-white shadow-lg">
+                        <Activity className="h-6 w-6" />
+                      </div>
+                      <TrendingUp className="h-5 w-5 text-blue-600" />
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                        {t("overall_health_score_summary")}
-                      </p>
-                      <div className="flex items-end gap-2">
-                        <span className="text-3xl font-bold text-emerald-800 dark:text-emerald-200">
-                          {stats.healthScore}
-                        </span>
-                        <span className="text-emerald-600 dark:text-emerald-400 text-lg">/100</span>
+                      <div className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                        {t("total_assessments")}
                       </div>
-                      <Progress value={stats.healthScore} className="h-2 bg-emerald-200 dark:bg-emerald-800" />
+                      <div className="text-3xl font-bold text-blue-800 dark:text-blue-200">
+                        {dashboardStats?.totalAssessments || 0}
+                      </div>
+                      <div className="text-xs text-blue-600 dark:text-blue-400">
+                        {locale === "th" ? "หมวดหมู่ที่ประเมินแล้ว" : "Categories assessed"}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Completed Assessments */}
-                <Card className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200 dark:bg-blue-700 rounded-full -mr-10 -mt-10 opacity-30"></div>
+                <Card className="relative overflow-hidden bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-800 dark:to-gray-700 border-purple-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-purple-200 dark:bg-purple-600 rounded-full -mr-10 -mt-10 opacity-30"></div>
                   <CardContent className="p-6 relative">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 rounded-xl bg-blue-500 text-white">
-                        <Award className="h-6 w-6" />
+                      <div className="p-3 rounded-xl bg-purple-500 text-white shadow-lg">
+                        <Calendar className="h-6 w-6" />
                       </div>
-                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
-                        {stats.completedAssessments}/6
-                      </Badge>
+                      <Zap className="h-5 w-5 text-purple-600" />
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                        {t("completed_assessments_summary")}
-                      </p>
-                      <div className="flex items-end gap-2">
-                        <span className="text-3xl font-bold text-blue-800 dark:text-blue-200">
-                          {stats.completedAssessments}
-                        </span>
-                        <span className="text-blue-600 dark:text-blue-400 text-lg">{t("categories_unit")}</span>
+                      <div className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                        {t("last_assessment")}
                       </div>
-                      <Progress
-                        value={(stats.completedAssessments / 6) * 100}
-                        className="h-2 bg-blue-200 dark:bg-blue-800"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Risk Factors */}
-                <Card className="relative overflow-hidden bg-gradient-to-br from-orange-50 to-red-100 dark:from-orange-900/20 dark:to-red-900/20 border-orange-200 dark:border-orange-800">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-orange-200 dark:bg-orange-700 rounded-full -mr-10 -mt-10 opacity-30"></div>
-                  <CardContent className="p-6 relative">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 rounded-xl bg-orange-500 text-white">
-                        <AlertTriangle className="h-6 w-6" />
+                      <div className="text-lg font-bold text-purple-800 dark:text-purple-200">
+                        {getFormattedDate(dashboardStats?.lastAssessmentDate)}
                       </div>
-                      <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-100">
-                        {stats.improvementAreas > 0 ? t("health_status_needs_improvement") : t("health_status_good")}
-                      </Badge>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-orange-700 dark:text-orange-300">
-                        {t("risk_factors_summary")}
-                      </p>
-                      <div className="flex items-end gap-2">
-                        <span className="text-3xl font-bold text-orange-800 dark:text-orange-200">
-                          {stats.totalRiskFactors}
-                        </span>
-                        <span className="text-orange-600 dark:text-orange-400 text-lg">{t("items_unit")}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400">
-                        <Shield className="h-4 w-4" />
-                        <span>
-                          {stats.improvementAreas} {t("improvement_areas_summary")}
-                        </span>
+                      <div className="text-xs text-purple-600 dark:text-purple-400">
+                        {locale === "th" ? "การประเมินล่าสุด" : "Most recent"}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Report Status */}
-                <Card className="relative overflow-hidden bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 border-purple-200 dark:border-purple-800">
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-purple-200 dark:bg-purple-700 rounded-full -mr-10 -mt-10 opacity-30"></div>
+                <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-gray-800 dark:to-gray-700 border-emerald-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-200 dark:bg-emerald-600 rounded-full -mr-10 -mt-10 opacity-30"></div>
                   <CardContent className="p-6 relative">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 rounded-xl bg-purple-500 text-white">
-                        <FileText className="h-6 w-6" />
+                      <div className="p-3 rounded-xl bg-emerald-500 text-white shadow-lg">
+                        <Shield className="h-6 w-6" />
                       </div>
-                      <Badge
-                        className={`${stats.canGenerateReport ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100" : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"}`}
-                      >
-                        {stats.canGenerateReport ? t("ready_to_use") : t("not_ready")}
-                      </Badge>
+                      <Target className="h-5 w-5 text-emerald-600" />
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                        {t("health_report_summary")}
-                      </p>
-                      <div className="flex items-end gap-2">
-                        <span className="text-2xl font-bold text-purple-800 dark:text-purple-200">
-                          {stats.canGenerateReport ? t("ready_to_use") : t("not_ready")}
-                        </span>
+                      <div className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                        {t("overall_risk_level")}
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400">
-                        <Clock className="h-4 w-4" />
-                        <span>{t("requires_3_categories_for_report")}</span>
+                      <div className="flex items-center gap-2">
+                        {dashboardStats?.overallRisk ? (
+                          renderRiskBadge(dashboardStats.overallRisk)
+                        ) : (
+                          <Badge variant="secondary">{t("no_data")}</Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-emerald-600 dark:text-emerald-400">
+                        {locale === "th" ? "ระดับความเสี่ยงโดยรวม" : "Overall risk assessment"}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-              <Separator className="my-8" />
+
               {/* Assessment Categories */}
-              <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                    <Activity className="h-6 w-6 text-blue-600" />
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                    <BarChart className="h-6 w-6" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {t("latest_assessments_by_category_title")}
+                    {t("your_assessments_title", { ns: "guest_health_overview" })}
                   </h3>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {assessments.map((assessment) => {
-                    const IconComponent =
-                      categoryIcons[assessment.category_id as keyof typeof categoryIcons] || FileText
-                    const colorGradient =
-                      categoryColors[assessment.category_id as keyof typeof categoryColors] ||
-                      "from-gray-500 to-gray-600"
-                    const riskFactors = getSafeRiskFactors(assessment)
-                    const recommendations = getSafeRecommendations(assessment)
-                    const summary = getSafeSummary(assessment)
+                {assessments.length === 0 ? (
+                  <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-200 dark:border-gray-600">
+                    <div className="p-4 rounded-full bg-gray-200 dark:bg-gray-600 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                      <Info className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      {t("no_assessments_completed")}
+                    </h4>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {locale === "th" ? "เริ่มประเมินสุขภาพเพื่อดูผลลัพธ์ที่นี่" : "Start health assessments to see results here"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {assessments.map((assessment) => {
+                      const categoryInfo = assessmentCategories.find((cat) => cat.id === assessment.categoryId)
+                      const gradient = getCategoryGradient(assessment.categoryId)
+                      const displayPercentage = assessment.percentage || 0
 
-                    return (
-                      <Card
-                        key={assessment.id}
-                        className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
-                      >
-                        <CardHeader className="pb-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-4">
-                              <div
-                                className={`p-4 rounded-2xl bg-gradient-to-br ${colorGradient} text-white shadow-lg group-hover:shadow-xl transition-all duration-300`}
-                              >
-                                <IconComponent className="h-8 w-8" />
-                              </div>
-                              <div>
-                                <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                                  {assessment.category_title}
-                                </CardTitle>
-                                <CardDescription className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                  <Calendar className="h-4 w-4" />
-                                  {t("completed_on")}: {formatDate(assessment.completed_at)}
-                                </CardDescription>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              {assessment.category_id !== "basic" ? (
-                                <Badge
-                                  className={`${getRiskLevelBadgeClass(assessment.risk_level)} px-3 py-1 text-sm font-medium`}
+                      return (
+                        <Card
+                          key={assessment.id}
+                          onClick={() => handleViewAssessmentResults(assessment)}
+                          className="group relative overflow-hidden bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 rounded-2xl"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-black/20 dark:to-transparent"></div>
+                          <CardContent className="p-6 relative group-hover:scale-[1.02] transition-transform duration-200">
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex items-center gap-4">
+                                <div
+                                  className={`p-4 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}
                                 >
-                                  {getRiskLevelLabel(assessment.risk_level)}
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="px-3 py-1 text-sm font-medium">
-                                  {t("completed")}
-                                </Badge>
-                              )}
-                              <div className="mt-2 text-right">
-                                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                  {assessment.percentage}%
+                                  {getCategoryIcon(assessment.categoryId)}
                                 </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                  {assessment.total_score}/{assessment.max_score}
+                                <div>
+                                  <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                    {categoryInfo?.title || assessment.category}
+                                  </h4>
+                                  <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    {getFormattedDate(assessment.completedAt)}
+                                  </p>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </CardHeader>
 
-                        <CardContent className="space-y-4">
-                          {/* Progress Bar */}
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600 dark:text-gray-400">{t("assessment_score_label")}</span>
-                              <span className="font-medium text-gray-900 dark:text-gray-100">
-                                {assessment.percentage}%
-                              </span>
-                            </div>
-                            <Progress value={assessment.percentage} className="h-3" />
-                          </div>
-
-                          {/* AI Summary */}
-                          {summary && (
-                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Zap className="h-4 w-4 text-blue-600" />
-                                <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-                                  {t("ai_analysis_label")}
-                                </span>
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                {renderRiskBadge(assessment.riskLevel)}
+                                <div className="text-right">
+                                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                    {displayPercentage}%
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {locale === "th" ? "คะแนน" : "Score"}
+                                  </div>
+                                </div>
                               </div>
-                              <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">{summary}</p>
-                            </div>
-                          )}
 
-                          {/* Risk Factors & Recommendations */}
-                          <div className={`grid grid-cols-1 ${riskFactors.length > 0 ? "md:grid-cols-1" : ""}`}>
-                            {/* Risk Factors */}
-                            {riskFactors.length > 0 && (
                               <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                  {getRiskIcon(assessment.risk_level)}
-                                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    {t("risk_factors")} ({riskFactors.length})
+                                <Progress
+                                  value={displayPercentage}
+                                  className="h-3 bg-gray-200 dark:bg-gray-700 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-purple-600"
+                                />
+                                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                  <span className="flex items-center gap-1">
+                                    <Eye className="h-3 w-3" />
+                                    {locale === "th" ? "คลิกเพื่อดูรายละเอียด" : "Click to view details"}
                                   </span>
-                                </div>
-                                <div className="space-y-1">
-                                  {riskFactors.slice(0, 2).map((factor, index) => (
-                                    <div
-                                      key={index}
-                                      className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400"
-                                    >
-                                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-1.5 flex-shrink-0"></div>
-                                      <span className="leading-relaxed">{factor}</span>
-                                    </div>
-                                  ))}
-                                  {riskFactors.length > 2 && (
-                                    <div className="text-xs text-gray-500 dark:text-gray-500 pl-3">
-                                      +{riskFactors.length - 2} {t("items_unit")}
-                                    </div>
-                                  )}
+                                  <span className="font-medium">{displayPercentage}%</span>
                                 </div>
                               </div>
-                            )}
-                          </div>
-
-                          {/* No data message */}
-                          {riskFactors.length === 0 && recommendations.length === 0 && !summary && (
-                            <div className="text-center py-4 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                              <Info className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                              <p className="text-sm">{t("no_risk_factors_found")}</p>
                             </div>
-                          )}
-
-                          {/* View Results Button */}
-                          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <Button
-                              onClick={() => handleViewResults(assessment)}
-                              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              {t("view_detailed_results_button")}
-                              <ExternalLink className="ml-2 h-4 w-4" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </div>
-          </ScrollArea>
+          </div>
         )}
-        <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
+
+        {/* Footer with Close Button */}
+        <div className="flex justify-end p-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
           <Button
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              console.log('Close button clicked') // debug log
+              onClose()
+            }}
             className="px-8 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
           >
             {t("close")}
