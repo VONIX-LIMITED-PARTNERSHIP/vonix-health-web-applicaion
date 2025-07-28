@@ -4,26 +4,103 @@ export interface ElementalQuestion {
     th: string
     en: string
   }
-  options: {
+  options: Array<{
     text: {
       th: string
       en: string
     }
-    element: "vata" | "pitta" | "kapha"
+    element: "vata" | "pitta" | "kapha" | "din"
     score: number
-  }[]
+  }>
 }
 
 export interface ElementalResult {
   vata: number
   pitta: number
   kapha: number
-  dominant: "vata" | "pitta" | "kapha"
-  percentage: number
-  total: number
+  din: number
+  dominant: "vata" | "pitta" | "kapha" | "din"
+  percentages: {
+    vata: number
+    pitta: number
+    kapha: number
+    din: number
+  }
 }
 
-// Based on the Excel data provided - Complete 32 questions with bilingual support
+// Calculate birth element based on birth month
+export function calculateBirthElement(birthMonth: number): "vata" | "pitta" | "kapha" | "din" {
+  // มกราคม กุมภาพันธ์ มีนาคม → ธาตุไฟ (pitta)
+  if (birthMonth >= 1 && birthMonth <= 3) {
+    return "pitta"
+  }
+  // เมษายน พฤษภาคม มิถุนายน → ธาตุลม (vata)
+  else if (birthMonth >= 4 && birthMonth <= 6) {
+    return "vata"
+  }
+  // กรกฎาคม สิงหาคม กันยายน → ธาตุน้ำ (kapha)
+  else if (birthMonth >= 7 && birthMonth <= 9) {
+    return "kapha"
+  }
+  // ตุลาคม พฤศจิกายน ธันวาคม → ธาตุดิน (din)
+  else {
+    return "din"
+  }
+}
+
+export function calculateElementalResult(answers: Record<string, string>): ElementalResult {
+  const scores = { vata: 0, pitta: 0, kapha: 0, din: 0 }
+
+  // Calculate scores based on answers
+  elementalQuestions.forEach((question) => {
+    const answer = answers[question.id]
+    if (answer) {
+      const selectedOption = question.options.find((option) => option.text.th === answer || option.text.en === answer)
+      if (selectedOption) {
+        scores[selectedOption.element] += selectedOption.score
+        // For questions where kapha and din share the same answer, add score to din as well
+        if (selectedOption.element === "kapha") {
+          scores.din += selectedOption.score
+        }
+      }
+    }
+  })
+
+  const total = scores.vata + scores.pitta + scores.kapha + scores.din
+  const percentages = {
+    vata: total > 0 ? Math.round((scores.vata / total) * 100) : 0,
+    pitta: total > 0 ? Math.round((scores.pitta / total) * 100) : 0,
+    kapha: total > 0 ? Math.round((scores.kapha / total) * 100) : 0,
+    din: total > 0 ? Math.round((scores.din / total) * 100) : 0,
+  }
+
+  // Find dominant element
+  let dominant: "vata" | "pitta" | "kapha" | "din" = "vata"
+  let maxScore = scores.vata
+
+  if (scores.pitta > maxScore) {
+    dominant = "pitta"
+    maxScore = scores.pitta
+  }
+  if (scores.kapha > maxScore) {
+    dominant = "kapha"
+    maxScore = scores.kapha
+  }
+  if (scores.din > maxScore) {
+    dominant = "din"
+    maxScore = scores.din
+  }
+
+  return {
+    vata: scores.vata,
+    pitta: scores.pitta,
+    kapha: scores.kapha,
+    din: scores.din,
+    dominant,
+    percentages,
+  }
+}
+
 export const elementalQuestions: ElementalQuestion[] = [
   {
     id: "1",
@@ -437,95 +514,3 @@ export const elementalQuestions: ElementalQuestion[] = [
     ],
   },
 ]
-
-export const elementalInfo = {
-  vata: {
-    name: "ธาตุลม",
-    nameEn: "Vata",
-    emoji: "🌬️",
-    tagline: "นักคิดผู้ว่องไว – ร่างบางแต่ใจแรง!",
-    color: "from-blue-400 to-cyan-500",
-    description: {
-      th: "ผู้ที่มีธาตุลมเป็นธาตุเจ้าเรือนมักมีลักษณะผอมบาง ผิวแห้ง ผมบาง เคลื่อนไหวเร็ว พูดเก่ง อารมณ์แปรปรวนง่าย และมักมีความวิตกกังวลสูง พวกเขามักหลับยากและขี้กลัว ธาตุลมเกี่ยวข้องกับการเคลื่อนไหวภายในร่างกาย เช่น การหายใจ ระบบประสาท และการย่อยอาหาร",
-      en: "People with a dominant Vata element tend to have a slender body, dry skin, and fine hair. They often move and speak quickly, are curious, and prone to anxiety, restlessness, and insomnia. Vata governs movement in the body — such as respiration, circulation, and the nervous system.",
-    },
-    symptoms: {
-      th: "หากธาตุลมกำเริบ อาจมีอาการท้องอืด ปวดศีรษะ วิงเวียน หรือปวดกล้ามเนื้อได้",
-      en: "When unbalanced, it can lead to bloating, headaches, dizziness, or joint pain.",
-    },
-    care: {
-      th: "การดูแลสุขภาพที่เหมาะสมคือการพักผ่อนให้เพียงพอ หลีกเลี่ยงการเครียด และเลือกอาหารที่มีรสเผ็ดร้อน เช่น น้ำขิง ต้มยำ หรืออาหารที่ช่วยกระตุ้นการไหลเวียนโลหิต",
-      en: "To maintain balance, Vata types should prioritize rest, manage stress, and eat warm, spiced foods like ginger tea, tom yum soup, or basil chicken to stimulate internal flow.",
-    },
-  },
-  pitta: {
-    name: "ธาตุไฟ",
-    nameEn: "Pitta",
-    emoji: "🔥",
-    tagline: "ผู้นำพลังแรง – ใจร้อนแต่มีเสน่ห์!",
-    color: "from-red-400 to-orange-500",
-    description: {
-      th: "บุคคลธาตุไฟมักมีรูปร่างสมส่วน ผิวขาวเหลือง ผมหงอกก่อนวัย พูดชัด เสียงดัง และมีพลังงานสูง พวกเขาหิวบ่อย ขี้หงุดหงิด และโกรธง่าย ธาตุไฟควบคุมการเผาผลาญ การย่อยอาหาร และอุณหภูมิภายในร่างกาย",
-      en: "Pitta-dominant individuals usually have a moderate build, fair to yellowish skin, and strong features. They speak clearly, have a sharp intellect, and are energetic but easily irritated or angered. Pitta governs digestion, metabolism, and internal heat.",
-    },
-    symptoms: {
-      th: "หากธาตุไฟเสียสมดุล จะเกิดอาการร้อนใน ท้องเสีย กรดไหลย้อน หรือสิวผื่นได้",
-      en: "When out of balance, it may cause heartburn, diarrhea, skin rashes, or inflammation.",
-    },
-    care: {
-      th: "การดูแลควรหลีกเลี่ยงอาหารรสจัดหรือแอลกอฮอล์ หันมาทานอาหารเย็น เช่น แกงจืด แตงโม หรือน้ำเก๊กฮวย พร้อมทั้งหาวิธีผ่อนคลายอารมณ์ เช่น การอยู่ในที่เย็น อาบน้ำ หรือพักผ่อนอย่างสม่ำเสมอ",
-      en: "To stay balanced, they should avoid overly spicy or acidic foods and instead eat cooling dishes like clear soups, cucumbers, or watermelon. Keeping calm, staying cool, and avoiding direct sunlight also help to regulate excess fire in the body.",
-    },
-  },
-  kapha: {
-    name: "ธาตุน้ำ",
-    nameEn: "Kapha",
-    emoji: "💧",
-    tagline: "ผู้อดทนแกร่งกล้า – ใจเย็นแต่มั่นคง!",
-    color: "from-green-400 to-blue-500",
-    description: {
-      th: "ผู้ที่มีธาตุน้ำมักมีรูปร่างอวบ ผิวขาว ตาโต ผมดกสวย และมีบุคลิกนิ่ง สุขุม ใจเย็น เคลื่อนไหวและพูดช้ากว่าคนทั่วไป พวกเขามักมีแรงต้านทานสูง แต่หากธาตุน้ำมากเกิน อาจนำไปสู่การเกิดโรคอ้วน ภูมิแพ้ เสมหะในระบบทางเดินหายใจ หรืออาการเฉื่อยชาได้",
-      en: "Kapha types usually have a sturdy or heavy build, smooth fair skin, large expressive eyes, and thick hair. They are calm, compassionate, and deliberate in their actions and speech. While naturally strong and resilient, excess Kapha can lead to weight gain, congestion, sluggishness, or emotional stagnation.",
-    },
-    symptoms: {
-      th: "หากธาตุน้ำมากเกิน อาจนำไปสู่การเกิดโรคอ้วน ภูมิแพ้ เสมหะในระบบทางเดินหายใจ หรืออาการเฉื่อยชาได้",
-      en: "Excess Kapha can lead to weight gain, congestion, sluggishness, or emotional stagnation.",
-    },
-    care: {
-      th: "การดูแลสุขภาพควรเน้นอาหารรสขมหรือเผ็ดเล็กน้อย เช่น แกงส้มดอกแค มะระ น้ำใบบัวบก รวมถึงการอบสมุนไพร และออกกำลังกายเบา ๆ เพื่อกระตุ้นระบบไหลเวียนและลดความชื้นในร่างกาย",
-      en: "Maintaining balance involves stimulating activity, herbal steam therapies, and consuming bitter or spicy foods like bitter melon, herbal teas, or tamarind-based dishes. Light exercise and reducing sugary or oily foods can help balance water and mucus in the body.",
-    },
-  },
-}
-
-export function calculateElementalResult(answers: Record<string, string>): ElementalResult {
-  const scores = { vata: 0, pitta: 0, kapha: 0 }
-
-  Object.entries(answers).forEach(([questionId, selectedOption]) => {
-    const question = elementalQuestions.find((q) => q.id === questionId)
-    if (question) {
-      const option = question.options.find((opt) => opt.text.th === selectedOption || opt.text.en === selectedOption)
-      if (option) {
-        scores[option.element] += option.score
-      }
-    }
-  })
-
-  const total = scores.vata + scores.pitta + scores.kapha
-  const maxScore = Math.max(scores.vata, scores.pitta, scores.kapha)
-
-  let dominant: "vata" | "pitta" | "kapha" = "vata"
-  if (scores.pitta === maxScore) dominant = "pitta"
-  else if (scores.kapha === maxScore) dominant = "kapha"
-
-  const percentage = total > 0 ? Math.round((maxScore / total) * 100) : 0
-
-  return {
-    vata: scores.vata,
-    pitta: scores.pitta,
-    kapha: scores.kapha,
-    dominant,
-    percentage,
-    total,
-  }
-}

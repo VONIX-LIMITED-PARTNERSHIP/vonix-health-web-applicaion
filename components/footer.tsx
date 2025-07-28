@@ -23,7 +23,7 @@ export function Footer() {
               {t("discribe_vonix")}
             </p>  
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              <p className="font-semibold mb-1">VONIX LIMITED PARTNERSHIP</p>
+              <p className="font-semibold mb-1">VONIC Co., Ltd.</p>
             </div>
           </div>
 
@@ -91,7 +91,7 @@ export function Footer() {
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-gray-500 dark:text-gray-400 text-center md:text-left">
-              <p>© {currentYear} VONIX LIMITED PARTNERSHIP. All Rights Reserved.</p>
+              <p>© {currentYear} VONIC Co., Ltd. All Rights Reserved.</p>
               <p className="mt-1">This system is for preliminary assessment only, not a medical diagnosis.</p>
             </div>
             <div className="flex space-x-6 text-sm">
