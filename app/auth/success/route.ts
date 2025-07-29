@@ -1,10 +1,9 @@
-/**
- * Auth Confirmation Route
- * Handles email confirmation and magic link authentication
- */
-
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@/lib/supabase-server"
+import { createServerClient, type CookieOptions } from "@supabase/ssr"
+import { cookies } from "next/headers"
+
+// Force dynamic rendering
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -17,7 +16,25 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=missing_token`)
   }
 
-  const supabase = createServerComponentClient()
+  const cookieStore = await cookies()
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          cookieStore.set({ name, value, ...options })
+        },
+        remove(name: string, options: CookieOptions) {
+          cookieStore.set({ name, value: "", ...options })
+        },
+      },
+    },
+  )
 
   try {
     // Verify the token and create session

@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
+// Force dynamic rendering
+export const dynamic = "force-dynamic"
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams, origin } = new URL(request.url)
@@ -38,6 +41,7 @@ export async function GET(request: NextRequest) {
     )
   } catch (error) {
     console.error("Unexpected error in Google OAuth route:", error)
+    const origin = new URL(request.url).origin
     return NextResponse.redirect(
       `${origin}/login?error=oauth_init_failed&message=${encodeURIComponent("เกิดข้อผิดพลาดในการเริ่มต้นการเข้าสู่ระบบ")}`,
     )

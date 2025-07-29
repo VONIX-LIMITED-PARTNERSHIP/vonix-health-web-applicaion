@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { ForceLogoutBanner } from "@/components/force-logout-banner"
+import { DemoBanner}from "@/components/demo-banner"
 import { useAuth } from "@/hooks/use-auth"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { AssessmentService } from "@/lib/assessment-service"
@@ -572,7 +572,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
       <Header />
-      <ForceLogoutBanner />
+      <DemoBanner />
 
       <main className="relative">
         {/* Background Elements */}

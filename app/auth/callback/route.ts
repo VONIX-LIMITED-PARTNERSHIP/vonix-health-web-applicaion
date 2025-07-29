@@ -2,6 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient, type CookieOptions } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
+// Force dynamic rendering
+export const dynamic = "force-dynamic"
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams, origin } = new URL(request.url)
@@ -142,6 +145,7 @@ export async function GET(request: NextRequest) {
     return response
   } catch (error) {
     console.error("Unexpected error in auth callback:", error)
+    const origin = new URL(request.url).origin
     return NextResponse.redirect(
       `${origin}/login?error=callback_failed&message=${encodeURIComponent("เกิดข้อผิดพลาดในการประมวลผล: " + (error as Error).message)}`,
     )
