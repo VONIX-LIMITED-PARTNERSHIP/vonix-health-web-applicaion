@@ -5,6 +5,7 @@ import { NextResponse } from "next/server"
 import { appKnowledgeBase } from "@/data/chatbot-app-knowledge"
 import { AssessmentService } from "@/lib/assessment-service"
 import { createClient } from "@supabase/supabase-js"
+import { searchPHQKnowledge, getAllPHQKeywords } from "@/data/phq-knowledge-base"
 
 // Define the message structure expected by the AI SDK
 interface AIMessage {
@@ -43,7 +44,7 @@ const INTENT_CLASSIFICATION_PROMPT = `คุณคือผู้ช่วยท
 2.  หากคำถามล่าสุดเกี่ยวข้องกับการใช้งานแอป VONIX (เช่น วิธีใช้, สมัครสมาชิก, เข้าสู่ระบบ, แบบประเมิน, ผลลัพธ์, บันทึก, แก้ไข, ปัญหา, ข้อมูล, ความปลอดภัย) ให้ระบุว่าเป็น "แอป VONIX"
 3.  หากคำถามล่าสุดไม่เกี่ยวข้องกับทั้งสองประเภทข้างต้น และไม่เข้าข่ายสุขภาพ ให้ระบุว่าเป็น "อื่นๆ"
 
-ตัวอ���่าง:
+ตัวอ่าง:
 - ผู้ใช้: "ปวดหัวทำไงดี" -> สุขภาพ
 - ผู้ใช้: "วิธีสมัครสมาชิก" -> แอป VONIX
 - ผู้ใช้: "วันนี้อากาศเป็นไง" -> อื่นๆ
@@ -243,6 +244,7 @@ const CRITICAL_HEALTH_KEYWORDS = [
   "สรุปสุขภาพ",
   "สุขภาพฉัน",
   "สุขภาพเป็นอย่างไร",
+  ...getAllPHQKeywords(),
 ]
 
 // Helper function to get risk level label
@@ -390,24 +392,30 @@ export async function POST(req: Request) {
         botResponse = healthResponse
       }
     } else if (intentCategory === "แอป VONIX") {
-      // Implement simple RAG for app-related questions
-      let foundAppResponse = false
-      for (const entry of appKnowledgeBase) {
-        if (entry.keywords.some((keyword) => userMessageContent.includes(keyword))) {
-          botResponse = entry.response.replace("{userName}", userName || "คุณ") // Use userName here
-          foundAppResponse = true
-          break
+      // Check PHQ-specific questions first
+      const phqKnowledge = searchPHQKnowledge(userMessageContent)
+      if (phqKnowledge) {
+        botResponse = phqKnowledge.response.replace("{userName}", userName || "คุณ")
+      } else {
+        // Implement simple RAG for general app-related questions
+        let foundAppResponse = false
+        for (const entry of appKnowledgeBase) {
+          if (entry.keywords.some((keyword) => userMessageContent.includes(keyword))) {
+            botResponse = entry.response.replace("{userName}", userName || "คุณ")
+            foundAppResponse = true
+            break
+          }
         }
-      }
 
-      if (!foundAppResponse) {
-        // Fallback to AI if no specific hardcoded app response is found
-        const { text: appRelatedResponse } = await generateText({
-          model: openai("gpt-4o"),
-          system: `คุณคือผู้ช่วยที่เชี่ยวชาญด้านการใช้งานแอป VONIX ตอบคำถามเกี่ยวกับการใช้งานแอปเท่านั้น หากไม่แน่ใจให้แนะนำให้ผู้ใช้ถามคำถามที่เกี่ยวข้องกับการใช้งานแอป`,
-          messages: conversationHistoryForAI,
-        })
-        botResponse = appRelatedResponse
+        if (!foundAppResponse) {
+          // Fallback to AI if no specific hardcoded app response is found
+          const { text: appRelatedResponse } = await generateText({
+            model: openai("gpt-4o"),
+            system: `คุณคือผู้ช่วยที่เชี่ยวชาญด้านการใช้งานแอป VONIX ตอบคำถามเกี่ยวกับการใช้งานแอปเท่านั้น หากไม่แน่ใจให้แนะนำให้ผู้ใช้ถามคำถามที่เกี่ยวข้องกับการใช้งานแอป`,
+            messages: conversationHistoryForAI,
+          })
+          botResponse = appRelatedResponse
+        }
       }
     } else {
       // If it's neither health nor app-related, use AI to provide a refusal/redirection message

@@ -1,3 +1,5 @@
+import type { ComponentIcon as IconNode } from "lucide-react"
+
 // Define the AssessmentCategory type
 export type AssessmentCategory = {
   id: string
@@ -40,6 +42,101 @@ export interface AssessmentResult {
   riskFactors: string[]
 }
 
+export type RiskLevel = "low" | "medium" | "high" | "very-high" | "unknown"
+
+export interface Question {
+  id: string
+  question: string
+  type: "single-choice" | "multi-choice" | "number" | "text" | "date" | "rating" // Ensure 'rating' is included
+  options?: { value: string; label: string }[]
+  unit?: string // For number type questions, e.g., "kg", "cm", "years"
+  min?: number // For number type questions
+  max?: number // For number type questions
+  placeholder?: string // For text/number type questions
+  required?: boolean
+  category: string
+  weight: number
+  description?: string
+  riskFactors?: string[]
+}
+
+export interface Answer {
+  questionId: string
+  value: string | string[] | number | Date
+  score: number
+}
+
+export interface AssessmentResultOld {
+  id: string
+  userId?: string // For authenticated users
+  guestId?: string // For guest users
+  category: string
+  score: number // Raw score based on answers
+  percentage: number // Score converted to percentage (0-100)
+  riskLevel: RiskLevel
+  riskFactors: string[] // Identified risk factors based on answers
+  recommendations: string[] // AI-generated recommendations
+  completedAt: string // ISO date string
+  answers: Answer[]
+  aiAnalysis?: AIAnalysisResult | null // AI-generated detailed analysis
+}
+
+export interface DashboardStats {
+  totalAssessments: number
+  lastAssessmentDate: string | null
+  riskLevels: {
+    [key in string]?: RiskLevel
+  }
+  overallRisk: RiskLevel | ""
+  recommendations: string[] // Changed to string[]
+}
+
+export interface AssessmentCategoryInfo {
+  id: string
+  title: string
+  description: string
+  icon: IconNode
+  required: boolean
+  gradient: string
+  bgGradient: string
+  darkBgGradient: string
+}
+
+// Added missing types for AI analysis
+export interface AIAnalysisResult {
+  score: number
+  riskLevel: "low" | "medium" | "high" | "very-high"
+  riskFactors: BilingualArray
+  recommendations: BilingualArray
+  summary: BilingualString
+}
+
+export interface BilingualString {
+  th: string
+  en: string
+}
+
+export interface BilingualArray {
+  th: string[]
+  en: string[]
+}
+
+export interface UserAssessment {
+  id: string
+  user_id: string
+  category_id: string
+  category_title: string
+  answers: Answer[] // Updated from AssessmentAnswer[] to Answer[]
+  total_score: number
+  max_score: number
+  percentage: number
+  risk_level: "low" | "medium" | "high" | "very-high"
+  risk_factors: string[]
+  recommendations: string[]
+  completed_at: string
+  ai_analysis?: AIAnalysisResult | null
+}
+
 // Guest assessment category - moved here and made complete
 export const guestAssessmentCategory: AssessmentCategory = {
   id: "guest-assessment",
@@ -62,7 +159,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     {
       id: "guest_q2",
       question: "เพศ",
-      type: "multiple-choice", // Changed to match existing types
+      type: "multiple-choice",
       options: ["ชาย", "หญิง", "ไม่ระบุ"],
       required: true,
       category: "guest",
@@ -89,7 +186,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     {
       id: "guest_q5",
       question: "โรคประจำตัว (เลือกได้หลายข้อ)",
-      type: "multi-select-combobox-with-other", // Changed to match existing types
+      type: "multi-select-combobox-with-other",
       options: [
         "เบาหวาน",
         "ความดันโลหิตสูง",
@@ -117,7 +214,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     {
       id: "guest_q7",
       question: "ความดันโลหิตของคุณเป็นอย่างไร?",
-      type: "multiple-choice", // Changed to match existing types
+      type: "multiple-choice",
       options: ["ปกติ (น้อยกว่า 120/80)", "สูงเล็กน้อย (120-139/80-89)", "สูง (140/90 ขึ้นไป)", "ไม่ทราบ"],
       required: true,
       category: "guest",
@@ -134,7 +231,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     {
       id: "guest_q9",
       question: "คุณออกกำลังกายสม่ำเสมอแค่ไหน?",
-      type: "rating", // Changed to match existing types
+      type: "rating",
       description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกวัน)",
       options: ["1", "2", "3", "4", "5"],
       required: true,
@@ -144,7 +241,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     {
       id: "guest_q10",
       question: "คุณทานผักและผลไม้บ่อยแค่ไหน?",
-      type: "rating", // Changed to match existing types
+      type: "rating",
       description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกมื้อ)",
       options: ["1", "2", "3", "4", "5"],
       required: true,
@@ -154,7 +251,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     {
       id: "guest_q11",
       question: "คุณดื่มน้ำเปล่าวันละกี่แก้ว?",
-      type: "multiple-choice", // Changed to match existing types
+      type: "multiple-choice",
       options: ["น้อยกว่า 4 แก้ว", "4-6 แก้ว", "7-8 แก้ว", "มากกว่า 8 แก้ว"],
       required: true,
       category: "guest",
@@ -163,7 +260,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     {
       id: "guest_q12",
       question: "คุณรู้สึกเครียดจากงานหรือชีวิตประจำวันแค่ไหน?",
-      type: "rating", // Changed to match existing types
+      type: "rating",
       description: "ให้คะแนน 1-5 (1=ไม่เครียด, 5=เครียดมาก)",
       options: ["1", "2", "3", "4", "5"],
       required: true,
@@ -173,7 +270,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     {
       id: "guest_q13",
       question: "คุณมีปัญหาในการนอนหลับบ่อยแค่ไหน?",
-      type: "rating", // Changed to match existing types
+      type: "rating",
       description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกคืน)",
       options: ["1", "2", "3", "4", "5"],
       required: true,
@@ -183,7 +280,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     {
       id: "guest_q14",
       question: "คุณนอนกี่ชั่วโมงต่อคืนโดยเฉลี่ย?",
-      type: "multiple-choice", // Changed to match existing types
+      type: "multiple-choice",
       options: ["น้อยกว่า 5 ชั่วโมง", "5-6 ชั่วโมง", "7-8 ชั่วโมง", "9-10 ชั่วโมง", "มากกว่า 10 ชั่วโมง"],
       required: true,
       category: "guest",
@@ -192,7 +289,7 @@ export const guestAssessmentCategory: AssessmentCategory = {
     {
       id: "guest_q15",
       question: "เมื่อตื่นนอนคุณรู้สึกสดชื่นแค่ไหน?",
-      type: "rating", // Changed to match existing types
+      type: "rating",
       description: "ให้คะแนน 1-5 (1=ไม่สดชื่น, 5=สดชื่นมาก)",
       options: ["1", "2", "3", "4", "5"],
       required: true,
@@ -275,7 +372,6 @@ export const assessmentData = {
               "โรคไทรอยด์ (เป็นพิษ/ขาด)",
               "โรคภูมิแพ้",
               "โรคแพ้ภูมิตนเอง (SLE, Sjogren's)",
-              "โรคซึมเศร้า / วิตกกังวล",
               "โรคลมชัก / ชักเกร็ง",
               "โรคสมองเสื่อม / อัลไซเมอร์",
               "โรคมะเร็ง (ระบุชนิด)",
@@ -312,7 +408,7 @@ export const assessmentData = {
           },
           {
             id: "basic-8",
-            type: "multi-select-combobox-with-other", // Changed to match existing types
+            type: "multi-select-combobox-with-other",
             question: "ยาที่ใช้ประจำ",
             description: "เลือกประเภทของยาที่ใช้ประจำ หรือระบุอื่นๆ",
             options: [
@@ -355,22 +451,17 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 3,
-            riskFactors: ["ประวัติครอบครัว"]
+            riskFactors: ["ประวัติครอบครัว"],
           },
           {
             id: "heart-2",
             type: "multiple-choice",
             question: "ความดันโลหิตของคุณอยู่ในระดับใด?",
-            options: [
-              "ปกติ (<120/80)",
-              "สูงเล็กน้อย (120–139/80–89)",
-              "สูง (140/90 หรือมากกว่า)",
-              "ไม่แน่ใจ"
-            ],
+            options: ["ปกติ (<120/80)", "สูงเล็กน้อย (120–139/80–89)", "สูง (140/90 หรือมากกว่า)", "ไม่แน่ใจ"],
             required: true,
             category: "heart",
             weight: 4,
-            riskFactors: ["ความดันโลหิตสูง"]
+            riskFactors: ["ความดันโลหิตสูง"],
           },
           {
             id: "heart-3",
@@ -380,7 +471,7 @@ export const assessmentData = {
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "heart",
-            weight: 3
+            weight: 3,
           },
           {
             id: "heart-4",
@@ -390,7 +481,7 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 4,
-            riskFactors: ["อาการเจ็บหน้าอก"]
+            riskFactors: ["อาการเจ็บหน้าอก"],
           },
           {
             id: "heart-5",
@@ -400,23 +491,17 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 4,
-            riskFactors: ["การสูบบุหรี่"]
+            riskFactors: ["การสูบบุหรี่"],
           },
           {
             id: "heart-6",
             type: "multiple-choice",
             question: "คุณดื่มแอลกอฮอล์บ่อยแค่ไหน?",
-            options: [
-              "ไม่ดื่มเลย",
-              "นาน ๆ ครั้ง (เดือนละครั้ง)",
-              "บางครั้ง (สัปดาห์ละครั้ง)",
-              "บ่อย (เกือบทุกวัน)",
-              "ทุกวัน"
-            ],
+            options: ["ไม่ดื่มเลย", "นาน ๆ ครั้ง (เดือนละครั้ง)", "บางครั้ง (สัปดาห์ละครั้ง)", "บ่อย (เกือบทุกวัน)", "ทุกวัน"],
             required: true,
             category: "heart",
             weight: 3,
-            riskFactors: ["การดื่มแอลกอฮอล์"]
+            riskFactors: ["การดื่มแอลกอฮอล์"],
           },
           {
             id: "heart-7",
@@ -426,23 +511,17 @@ export const assessmentData = {
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "heart",
-            weight: 3
+            weight: 3,
           },
           {
             id: "heart-8",
             type: "multiple-choice",
             question: "ระดับความเครียดในชีวิตประจำวันของคุณเป็นอย่างไร?",
-            options: [
-              "ต่ำมาก",
-              "ต่ำ",
-              "ปานกลาง",
-              "สูง",
-              "สูงมาก"
-            ],
+            options: ["ต่ำมาก", "ต่ำ", "ปานกลาง", "สูง", "สูงมาก"],
             required: true,
             category: "heart",
             weight: 2,
-            riskFactors: ["ความเครียดสูง"]
+            riskFactors: ["ความเครียดสูง"],
           },
           {
             id: "heart-9",
@@ -453,7 +532,7 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 4,
-            riskFactors: ["หัวใจเต้นผิดจังหวะ", "หมดสติ", "การไหลเวียนผิดปกติ"]
+            riskFactors: ["หัวใจเต้นผิดจังหวะ", "หมดสติ", "การไหลเวียนผิดปกติ"],
           },
           {
             id: "heart-10",
@@ -463,7 +542,7 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 3,
-            riskFactors: ["แน่นหน้าอก", "กรดไหลย้อน"]
+            riskFactors: ["แน่นหน้าอก", "กรดไหลย้อน"],
           },
           {
             id: "heart-11",
@@ -473,7 +552,7 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 3,
-            riskFactors: ["ภาวะคั่งของเหลว", "ภาวะหัวใจล้มเหลว"]
+            riskFactors: ["ภาวะคั่งของเหลว", "ภาวะหัวใจล้มเหลว"],
           },
           {
             id: "heart-12",
@@ -483,23 +562,17 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 4,
-            riskFactors: ["อาการของหัวใจล้มเหลว"]
+            riskFactors: ["อาการของหัวใจล้มเหลว"],
           },
           {
             id: "heart-13",
             type: "multiple-choice",
             question: "คุณให้คะแนนระดับพลังงานของคุณในแต่ละวันอย่างไร?",
-            options: [
-              "ต่ำมาก",
-              "ต่ำ",
-              "ปานกลาง",
-              "สูง",
-              "สูงมาก"
-            ],
+            options: ["ต่ำมาก", "ต่ำ", "ปานกลาง", "สูง", "สูงมาก"],
             required: true,
             category: "heart",
             weight: 2,
-            riskFactors: ["อ่อนเพลีย", "ไหลเวียนโลหิตไม่ดี"]
+            riskFactors: ["อ่อนเพลีย", "ไหลเวียนโลหิตไม่ดี"],
           },
           {
             id: "heart-14",
@@ -509,7 +582,7 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 3,
-            riskFactors: ["เบาหวาน", "ความเสี่ยงเมตาบอลิก"]
+            riskFactors: ["เบาหวาน", "ความเสี่ยงเมตาบอลิก"],
           },
           {
             id: "heart-15",
@@ -519,9 +592,9 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 2,
-            riskFactors: ["การไหลเวียนโลหิตไม่ดี"]
-          }
-        ]
+            riskFactors: ["การไหลเวียนโลหิตไม่ดี"],
+          },
+        ],
       },
       {
         id: "nutrition",
@@ -601,7 +674,7 @@ export const assessmentData = {
           },
           {
             id: "nutrition-8",
-            type: "multi-select-combobox-with-other", // Changed from checkbox to multi-select-combobox-with-other
+            type: "multi-select-combobox-with-other",
             question: "ประเภทการออกกำลังกายที่คุณทำ (เลือกได้หลายข้อ)",
             options: ["เดิน/วิ่ง", "ปั่นจักรยาน", "ว่ายน้ำ", "ยิมนาสติก/ฟิตเนส", "โยคะ", "กีฬาประเภทที่ม", "ไม่ออกกำลังกาย"],
             required: true,
@@ -621,348 +694,312 @@ export const assessmentData = {
         ],
       },
       {
-        "id": "mental",
-        "title": "ประเมินสุขภาพจิต",
-        "description": "การตรวจสุขภาพจิต ความเครียด และสุขภาพทางอารมณ์",
-        "icon": "Brain",
-        "required": true,
-        "estimatedTime": 10,
-        "questions": [
+        id: "mental",
+        title: "ประเมินสุขภาพจิต",
+        description: "การตรวจสุขภาพจิต ความเครียด และสุขภาพทางอารมณ์",
+        icon: "Brain",
+        required: true,
+        estimatedTime: 10,
+        questions: [
           // PHQ-9 (Depression)
           {
-            "id": "mental-1",
-            "type": "rating",
-            "question": "ในช่วง 2 สัปดาห์ที่ผ่านมา คุณรู้สึกเบื่อ หรือไม่มีความสนใจในสิ่งที่เคยชอบบ่อยแค่ไหน?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 4,
-            "riskFactors": ["ซึมเศร้า"]
+            id: "mental-1",
+            type: "rating",
+            question: "ในช่วง 2 สัปดาห์ที่ผ่านมา คุณรู้สึกเบื่อ หรือไม่มีความสนใจในสิ่งที่เคยชอบบ่อยแค่ไหน?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 4,
+            riskFactors: ["ซึมเศร้า"],
           },
           {
-            "id": "mental-2",
-            "type": "rating",
-            "question": "คุณรู้สึกหดหู่ ซึมเศร้า หรือหมดหวังบ่อยแค่ไหน?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 4,
-            "riskFactors": ["ซึมเศร้า"]
+            id: "mental-2",
+            type: "rating",
+            question: "คุณรู้สึกหดหู่ ซึมเศร้า หรือหมดหวังบ่อยแค่ไหน?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 4,
+            riskFactors: ["ซึมเศร้า"],
           },
           {
-            "id": "mental-3",
-            "type": "rating",
-            "question": "คุณมีปัญหาในการนอนหลับหรือไม่?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-3",
+            type: "rating",
+            question: "คุณมีปัญหาในการนอนหลับหรือไม่?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
           {
-            "id": "mental-4",
-            "type": "rating",
-            "question": "คุณรู้สึกเหนื่อยง่าย หรือไม่มีแรงบ่อยแค่ไหน?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-4",
+            type: "rating",
+            question: "คุณรู้สึกเหนื่อยง่าย หรือไม่มีแรงบ่อยแค่ไหน?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
           {
-            "id": "mental-5",
-            "type": "rating",
-            "question": "คุณเบื่ออาหาร หรือกินมากผิดปกติบ่อยแค่ไหน?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
+            id: "mental-5",
+            type: "rating",
+            question: "คุณเบื่ออาหาร หรือกินมากผิดปกติบ่อยแค่ไหน?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 2,
           },
           {
-            "id": "mental-6",
-            "type": "rating",
-            "question": "คุณรู้สึกแย่กับตัวเอง หรือรู้สึกล้มเหลวบ่อยแค่ไหน?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 4
+            id: "mental-6",
+            type: "rating",
+            question: "คุณรู้สึกแย่กับตัวเอง หรือรู้สึกล้มเหลวบ่อยแค่ไหน?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 4,
           },
           {
-            "id": "mental-7",
-            "type": "rating",
-            "question": "คุณมีปัญหาในการมีสมาธิ หรือจดจ่อกับสิ่งใดสิ่งหนึ่งหรือไม่?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-7",
+            type: "rating",
+            question: "คุณมีปัญหาในการมีสมาธิ หรือจดจ่อกับสิ่งใดสิ่งหนึ่งหรือไม่?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
           {
-            "id": "mental-8",
-            "type": "rating",
-            "question": "คุณเคลื่อนไหวหรือพูดช้าลง หรือกระสับกระส่ายผิดปกติหรือไม่?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
+            id: "mental-8",
+            type: "rating",
+            question: "คุณเคลื่อนไหวหรือพูดช้าลง หรือกระสับกระส่ายผิดปกติหรือไม่?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 2,
           },
           {
-            "id": "mental-9",
-            "type": "rating",
-            "question": "คุณมีความคิดอยากตาย หรือทำร้ายตัวเองหรือไม่?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 5,
-            "riskFactors": ["เสี่ยงทำร้ายตัวเอง"]
+            id: "mental-9",
+            type: "rating",
+            question: "คุณมีความคิดอยากตาย หรือทำร้ายตัวเองหรือไม่?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 5,
+            riskFactors: ["เสี่ยงทำร้ายตัวเอง"],
           },
 
           // GAD-7 (Anxiety)
           {
-            "id": "mental-10",
-            "type": "rating",
-            "question": "คุณรู้สึกประหม่า กังวล หรือตึงเครียดบ่อยแค่ไหน?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3,
-            "riskFactors": ["วิตกกังวล"]
+            id: "mental-10",
+            type: "rating",
+            question: "คุณรู้สึกประหม่า กังวล หรือตึงเครียดบ่อยแค่ไหน?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
+            riskFactors: ["วิตกกังวล"],
           },
           {
-            "id": "mental-11",
-            "type": "rating",
-            "question": "คุณควบคุมความกังวลของตัวเองได้ดีแค่ไหน?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-11",
+            type: "rating",
+            question: "คุณควบคุมความกังวลของตัวเองได้ดีแค่ไหน?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
           {
-            "id": "mental-12",
-            "type": "rating",
-            "question": "คุณกังวลเกี่ยวกับหลายเรื่องมากเกินไปหรือไม่?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-12",
+            type: "rating",
+            question: "คุณกังวลเกี่ยวกับหลายเรื่องมากเกินไปหรือไม่?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
           {
-            "id": "mental-13",
-            "type": "rating",
-            "question": "คุณผ่อนคลายได้ยากหรือไม่?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
+            id: "mental-13",
+            type: "rating",
+            question: "คุณผ่อนคลายได้ยากหรือไม่?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 2,
           },
           {
-            "id": "mental-14",
-            "type": "rating",
-            "question": "คุณกระสับกระส่าย หรือรู้สึกต้องเคลื่อนไหวอยู่ตลอดเวลาหรือไม่?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
+            id: "mental-14",
+            type: "rating",
+            question: "คุณกระสับกระส่าย หรือรู้สึกต้องเคลื่อนไหวอยู่ตลอดเวลาหรือไม่?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 2,
           },
           {
-            "id": "mental-15",
-            "type": "rating",
-            "question": "คุณหงุดหงิดง่าย หรือโมโหง่ายกว่าปกติหรือไม่?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
+            id: "mental-15",
+            type: "rating",
+            question: "คุณหงุดหงิดง่าย หรือโมโหง่ายกว่าปกติหรือไม่?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 2,
           },
           {
-            "id": "mental-16",
-            "type": "rating",
-            "question": "คุณกลัวว่าจะเกิดเรื่องเลวร้ายขึ้นหรือไม่?",
-            "description": "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-16",
+            type: "rating",
+            question: "คุณกลัวว่าจะเกิดเรื่องเลวร้ายขึ้นหรือไม่?",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
-
-          // เสริม (บริบท)
-          {
-            "id": "mental-17",
-            "type": "yes-no",
-            "question": "คุณนอนหลับได้ดีหรือไม่?",
-            "options": ["ใช่", "ไม่ใช่"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
-          },
-          {
-            "id": "mental-18",
-            "type": "yes-no",
-            "question": "คุณมีใครที่สามารถพูดคุยหรือขอคำปรึกษาได้หรือไม่?",
-            "options": ["ใช่", "ไม่ใช่"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
-          }
-        ]
+        ],
       },
+      {
+        id: "physical",
+        title: "ประเมินสุขภาพกาย",
+        description: "ตรวจสอบสุขภาพกาย ความแข็งแรง และความสามารถทางกายภาพ",
+        icon: "Dumbbell",
+        required: false,
+        estimatedTime: 12,
+        questions: [
           {
-            id: "physical",
-            title: "ประเมินสุขภาพกาย",
-            description: "ตรวจสอบสุขภาพกาย ความแข็งแรง และความสามารถทางกายภาพ",
-            icon: "Dumbbell",
-            required: false,
-            estimatedTime: 10,
-            questions: [
-              {
-                id: "physical-1",
-                type: "rating",
-                question: "คุณรู้สึกปวดหลังบ่อยแค่ไหน?",
-                description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกวัน)",
-                options: ["1", "2", "3", "4", "5"],
-                required: true,
-                category: "physical",
-                weight: 3,
-                riskFactors: ["ปวดหลังเรื้อรัง"]
-              },
-
-              {
-                id: "physical-2",
-                type: "rating",
-                question: "คุณรู้สึกปวดข้อ หรือข้อแข็งบ่อยแค่ไหน?",
-                description: "1=ไม่เคย, 5=ทุกวัน",
-                options: ["1", "2", "3", "4", "5"],
-                required: true,
-                category: "physical",
-                weight: 3,
-                riskFactors: ["ปัญหาข้อ"]
-              },
-
-              {
-                id: "physical-3",
-                type: "multiple-choice",
-                question: "คุณสามารถเดินขึ้นบันได 3 ชั้นโดยไม่หอบเหนื่อยได้หรือไม่?",
-                options: [
-                  "ได้อย่างง่ายดาย",
-                  "ได้แต่เหนื่อยเล็กน้อย",
-                  "ได้แต่เหนื่อยมาก",
-                  "ทำไม่ได้"
-                ],
-                required: true,
-                category: "physical",
-                weight: 3
-              },
-
-              {
-                id: "physical-4",
-                type: "rating",
-                question: "คุณรู้สึกว่าความแข็งแรงของกล้ามเนื้อเป็นอย่างไร?",
-                description: "1 = อ่อนแอมาก, 5 = แข็งแรงมาก",
-                options: ["1", "2", "3", "4", "5"],
-                required: true,
-                category: "physical",
-                weight: 2
-              },
-
-              {
-                id: "physical-5",
-                type: "rating",
-                question: "คุณรู้สึกว่าความยืดหยุ่นของร่างกายเป็นอย่างไร?",
-                description: "1 = แข็งมาก, 5 = ยืดหยุ่นมาก",
-                options: ["1", "2", "3", "4", "5"],
-                required: true,
-                category: "physical",
-                weight: 2
-              },
-
-              {
-                id: "physical-6",
-                type: "yes-no",
-                question: "คุณเคยได้รับบาดเจ็บจากการออกกำลังกายหรือไม่?",
-                options: ["ใช่", "ไม่ใช่"],
-                required: true,
-                category: "physical",
-                weight: 2
-              },
-
-              {
-                id: "physical-7",
-                type: "yes-no",
-                question: "คุณเคยรู้สึกเจ็บเข่า ข้อเท้า หรือสะโพกขณะเดิน หรือหลังเดินระยะทางไกลหรือไม่?",
-                options: ["ใช่", "ไม่ใช่"],
-                required: true,
-                category: "physical",
-                weight: 3,
-                riskFactors: ["เจ็บขณะเดิน"]
-              },
-
-              {
-                id: "physical-8",
-                type: "rating",
-                question: "คุณสามารถยืนต่อเนื่องได้นานแค่ไหนโดยไม่รู้สึกเมื่อยล้าหรือเจ็บ?",
-                description: "1=น้อยกว่า 5 นาที, 5=เกิน 30 นาที",
-                options: ["1", "2", "3", "4", "5"],
-                required: true,
-                category: "physical",
-                weight: 2
-              },
-
-              {
-                id: "physical-9",
-                type: "yes-no",
-                question: "คุณสามารถลุกจากเก้าอี้โดยไม่ใช้มือช่วยได้หรือไม่?",
-                options: ["ใช่", "ไม่ใช่"],
-                required: true,
-                category: "physical",
-                weight: 3,
-                riskFactors: ["กล้ามเนื้ออ่อนแรง"]
-              },
-
-              {
-                id: "physical-10",
-                type: "yes-no",
-                question: "คุณมีอาการชา หรือเหน็บชาตามมือหรือเท้าบ่อยหรือไม่?",
-                options: ["ใช่", "ไม่ใช่"],
-                required: true,
-                category: "physical",
-                weight: 2,
-                riskFactors: ["ปลายประสาทอักเสบ"]
-              },
-
-              {
-                id: "physical-11",
-                type: "rating",
-                question: "คุณสามารถเดินได้ไกลแค่ไหนโดยไม่ต้องหยุดพัก?",
-                description: "1=น้อยกว่า 100 เมตร, 5=มากกว่า 1 กิโลเมตร",
-                options: ["1", "2", "3", "4", "5"],
-                required: true,
-                category: "physical",
-                weight: 3
-              },
-
-              {
-                id: "physical-12",
-                type: "yes-no",
-                question: "คุณเคยล้มโดยไม่ทราบสาเหตุหรือไม่?",
-                options: ["ใช่", "ไม่ใช่"],
-                required: true,
-                category: "physical",
-                weight: 3,
-                riskFactors: ["เสี่ยงหกล้ม"]
-              }
-            ]
+            id: "physical-1",
+            type: "rating",
+            question: "คุณรู้สึกปวดหลังบ่อยแค่ไหน?",
+            description: "ให้คะแนน 1-5 (1=ไม่เคย, 5=ทุกวัน)",
+            options: ["1", "2", "3", "4", "5"],
+            required: true,
+            category: "physical",
+            weight: 3,
+            riskFactors: ["ปวดหลังเรื้อรัง"],
           },
+          {
+            id: "physical-2",
+            type: "rating",
+            question: "คุณรู้สึกปวดข้อ หรือข้อแข็งบ่อยแค่ไหน?",
+            description: "1=ไม่เคย, 5=ทุกวัน",
+            options: ["1", "2", "3", "4", "5"],
+            required: true,
+            category: "physical",
+            weight: 3,
+            riskFactors: ["ปัญหาข้อ"],
+          },
+          {
+            id: "physical-3",
+            type: "multiple-choice",
+            question: "คุณสามารถเดินขึ้นบันได 3 ชั้นโดยไม่หอบเหนื่อยได้หรือไม่?",
+            options: ["ได้อย่างง่ายดาย", "ได้แต่เหนื่อยเล็กน้อย", "ได้แต่เหนื่อยมาก", "ทำไม่ได้"],
+            required: true,
+            category: "physical",
+            weight: 3,
+          },
+          {
+            id: "physical-4",
+            type: "rating",
+            question: "คุณรู้สึกว่าความแข็งแรงของกล้ามเนื้อเป็นอย่างไร?",
+            description: "1 = อ่อนแอมาก, 5 = แข็งแรงมาก",
+            options: ["1", "2", "3", "4", "5"],
+            required: true,
+            category: "physical",
+            weight: 2,
+          },
+          {
+            id: "physical-5",
+            type: "rating",
+            question: "คุณรู้สึกว่าความยืดหยุ่นของร่างกายเป็นอย่างไร?",
+            description: "1 = แข็งมาก, 5 = ยืดหยุ่นมาก",
+            options: ["1", "2", "3", "4", "5"],
+            required: true,
+            category: "physical",
+            weight: 2,
+          },
+          {
+            id: "physical-6",
+            type: "yes-no",
+            question: "คุณเคยได้รับบาดเจ็บจากการออกกำลังกายหรือไม่?",
+            options: ["ใช่", "ไม่ใช่"],
+            required: true,
+            category: "physical",
+            weight: 2,
+          },
+          {
+            id: "physical-7",
+            type: "yes-no",
+            question: "คุณเคยรู้สึกเจ็บเข่า ข้อเท้า หรือสะโพกขณะเดิน หรือหลังเดินระยะทางไกลหรือไม่?",
+            options: ["ใช่", "ไม่ใช่"],
+            required: true,
+            category: "physical",
+            weight: 3,
+            riskFactors: ["เจ็บขณะเดิน"],
+          },
+          {
+            id: "physical-8",
+            type: "rating",
+            question: "คุณสามารถยืนต่อเนื่องได้นานแค่ไหนโดยไม่รู้สึกเมื่อยล้าหรือเจ็บ?",
+            description: "1=น้อยกว่า 5 นาที, 5=เกิน 30 นาที",
+            options: ["1", "2", "3", "4", "5"],
+            required: true,
+            category: "physical",
+            weight: 2,
+          },
+          {
+            id: "physical-9",
+            type: "yes-no",
+            question: "คุณสามารถลุกจากเก้าอี้โดยไม่ใช้มือช่วยได้หรือไม่?",
+            options: ["ใช่", "ไม่ใช่"],
+            required: true,
+            category: "physical",
+            weight: 3,
+            riskFactors: ["กล้ามเนื้ออ่อนแรง"],
+          },
+          {
+            id: "physical-10",
+            type: "yes-no",
+            question: "คุณมีอาการชา หรือเหน็บชาตามมือหรือเท้าบ่อยหรือไม่?",
+            options: ["ใช่", "ไม่ใช่"],
+            required: true,
+            category: "physical",
+            weight: 2,
+            riskFactors: ["ปลายประสาทอักเสบ"],
+          },
+          {
+            id: "physical-11",
+            type: "rating",
+            question: "คุณสามารถเดินได้ไกลแค่ไหนโดยไม่ต้องหยุดพัก?",
+            description: "1=น้อยกว่า 100 เมตร, 5=มากกว่า 1 กิโลเมตร",
+            options: ["1", "2", "3", "4", "5"],
+            required: true,
+            category: "physical",
+            weight: 3,
+          },
+          {
+            id: "physical-12",
+            type: "yes-no",
+            question: "คุณเคยล้มโดยไม่ทราบสาเหตุหรือไม่?",
+            options: ["ใช่", "ไม่ใช่"],
+            required: true,
+            category: "physical",
+            weight: 3,
+            riskFactors: ["เสี่ยงหกล้ม"],
+          },
+        ],
+      },
       {
         id: "sleep",
         title: "ประเมินคุณภาพการนอน",
@@ -1033,7 +1070,111 @@ export const assessmentData = {
           },
         ],
       },
-      guestAssessmentCategory, // Include guest assessment category here
+      {
+        id: "phq",
+        title: "ประเมินสุขภาพจิต PHQ",
+        description: "แบบประเมินสุขภาพจิตแบบ PHQ-2 และ PHQ-9 สำหรับคัดกรองภาวะซึมเศร้า",
+        icon: "Brain",
+        required: true,
+        estimatedTime: 8,
+        questions: [
+          // PHQ-2 Questions
+          {
+            id: "phq-1",
+            type: "rating",
+            question: "ในช่วง 2 สัปดาห์ที่ผ่านมา ความสนใจหรือความสุขในการทำสิ่งต่างๆน้อยมาก",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 1=หลายวัน, 2=มากกว่าครึ่งวัน, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "phq",
+            weight: 5,
+            riskFactors: ["ซึมเศร้า"],
+          },
+          {
+            id: "phq-2",
+            type: "rating",
+            question: "รู้สึกหดหู่ สิ้นหวังหรือหมดหวัง",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 1=หลายวัน, 2=มากกว่าครึ่งวัน, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "phq",
+            weight: 5,
+            riskFactors: ["ซึมเศร้า"],
+          },
+          // PHQ-9 Additional Questions (will be shown conditionally)
+          {
+            id: "phq-3",
+            type: "rating",
+            question: "มีปัญหาในการนอนหลับ หลับไม่สนิทหรือหลับมากเกินไป",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 1=หลายวัน, 2=มากกว่าครึ่งวัน, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 3,
+          },
+          {
+            id: "phq-4",
+            type: "rating",
+            question: "รู้สึกเหนื่อยง่ายไม่ค่อยมีแรง",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 1=หลายวัน, 2=มากกว่าครึ่งวัน, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 3,
+          },
+          {
+            id: "phq-5",
+            type: "rating",
+            question: "มีอาการเบื่ออาหารหรือกินมากเกินไป",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 1=หลายวัน, 2=มากกว่าครึ่งวัน, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 2,
+          },
+          {
+            id: "phq-6",
+            type: "rating",
+            question: "รู้สึกแย่กับตัวเองหรือรู้สึกว่าตัวเองล้มเหลว ทำให้ครอบครัวผิดหวัง",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 1=หลายวัน, 2=มากกว่าครึ่งวัน, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 4,
+          },
+          {
+            id: "phq-7",
+            type: "rating",
+            question: "มีปัญหาในการจดจ่อกับสิ่งต่างๆ เช่น การอ่านหนังสือพิมพ์หรือดูโทรทัศน์",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 1=หลายวัน, 2=มากกว่าครึ่งวัน, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 3,
+          },
+          {
+            id: "phq-8",
+            type: "rating",
+            question: "เคลื่อนไหวหรือพูดช้ามากจนคนอื่นอาจสังเกตเห็นได้หรือตรงกันข้าม เช่น กระสับกระส่ายหรือดีดมากกว่าปกติ",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 1=หลายวัน, 2=มากกว่าครึ่งวัน, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 2,
+          },
+          {
+            id: "phq-9",
+            type: "rating",
+            question: "มีความคิดว่าจะดีกว่าถ้าตัวคุณเองตายไปหรือทำร้ายตัวเองในทางใดทางหนึ่ง",
+            description: "ให้คะแนน 0-3 (0=ไม่เลย, 1=หลายวัน, 2=มากกว่าครึ่งวัน, 3=เกือบทุกวัน)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 5,
+            riskFactors: ["เสี่ยงทำร้ายตัวเอง", "ความคิดฆ่าตัวตาย"],
+          },
+        ],
+      },
     ],
   },
   en: {
@@ -1074,8 +1215,7 @@ export const assessmentData = {
             weight: 2,
           },
           {
-            
-          guestAssessmentCategory, // Include guest assessment category hereid: "basic-4",
+            id: "basic-4",
             type: "number",
             question: "Height (centimeters)",
             description: "Your height",
@@ -1173,8 +1313,8 @@ export const assessmentData = {
       },
       {
         id: "heart",
-        title: "Cardiovascular Assessment",
-        description: "Assess your risk of heart disease, blood pressure issues, and overall cardiovascular health.",
+        title: "Heart and Blood Vessels Assessment",
+        description: "Check heart disease risk, blood pressure, and overall blood vessel health",
         icon: "Heart",
         required: true,
         estimatedTime: 10,
@@ -1183,41 +1323,33 @@ export const assessmentData = {
             id: "heart-1",
             type: "yes-no",
             question: "Do you have a family history of heart disease?",
-            description: "Such as parents or siblings with heart conditions",
+            description: "e.g., father, mother, or sibling with heart disease",
             options: ["Yes", "No"],
             required: true,
             category: "heart",
             weight: 3,
-            riskFactors: ["Family history"]
+            riskFactors: ["Family history"],
           },
-
           {
             id: "heart-2",
             type: "multiple-choice",
             question: "What is your blood pressure level?",
-            options: [
-              "Normal (<120/80)",
-              "Elevated (120–139/80–89)",
-              "High (140/90 or more)",
-              "Not sure"
-            ],
+            options: ["Normal (<120/80)", "Slightly high (120–139/80–89)", "High (140/90 or higher)", "Not sure"],
             required: true,
             category: "heart",
             weight: 4,
-            riskFactors: ["High blood pressure"]
+            riskFactors: ["High blood pressure"],
           },
-
           {
             id: "heart-3",
             type: "rating",
-            question: "How often do you feel out of breath when climbing 2-3 flights of stairs?",
+            question: "How often do you feel short of breath when climbing stairs?",
             description: "Rate 1-5 (1 = Never, 5 = Always)",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "heart",
-            weight: 3
+            weight: 3,
           },
-
           {
             id: "heart-4",
             type: "yes-no",
@@ -1226,9 +1358,8 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 4,
-            riskFactors: ["Chest pain"]
+            riskFactors: ["Chest pain"],
           },
-
           {
             id: "heart-5",
             type: "yes-no",
@@ -1237,143 +1368,122 @@ export const assessmentData = {
             required: true,
             category: "heart",
             weight: 4,
-            riskFactors: ["Smoking"]
+            riskFactors: ["Smoking"],
           },
-
           {
             id: "heart-6",
             type: "multiple-choice",
             question: "How often do you drink alcohol?",
             options: [
               "Never",
-              "Occasionally (monthly)",
-              "Sometimes (weekly)",
-              "Frequently (almost daily)",
-              "Daily"
+              "Occasionally (once a month)",
+              "Sometimes (once a week)",
+              "Frequently (almost every day)",
+              "Every day",
             ],
             required: true,
             category: "heart",
             weight: 3,
-            riskFactors: ["Alcohol consumption"]
+            riskFactors: ["Alcohol consumption"],
           },
-
           {
             id: "heart-7",
             type: "rating",
-            question: "How regularly do you exercise?",
-            description: "Rate 1-5 (1 = Never, 5 = Daily)",
+            question: "How often do you exercise regularly?",
+            description: "Rate 1-5 (1 = Never, 5 = Every day)",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "heart",
-            weight: 3
+            weight: 3,
           },
-
           {
             id: "heart-8",
             type: "multiple-choice",
-            question: "How would you describe your stress levels in daily life?",
-            options: [
-              "Very low",
-              "Low",
-              "Moderate",
-              "High",
-              "Very high"
-            ],
+            question: "What is your daily stress level?",
+            options: ["Very low", "Low", "Moderate", "High", "Very high"],
             required: true,
             category: "heart",
             weight: 2,
-            riskFactors: ["High stress"]
+            riskFactors: ["High stress"],
           },
-
           {
             id: "heart-9",
             type: "yes-no",
-            question: "Have you ever experienced heart palpitations, dizziness, or fainting?",
-            description: "These symptoms may relate to irregular heartbeat or circulation issues",
+            question: "Have you ever felt palpitations, dizziness, or loss of consciousness?",
+            description: "These symptoms may be related to arrhythmia or poor blood circulation",
             options: ["Yes", "No"],
             required: true,
             category: "heart",
             weight: 4,
-            riskFactors: ["Arrhythmia", "Fainting", "Circulation issues"]
+            riskFactors: ["Arrhythmia", "Loss of consciousness", "Poor circulation"],
           },
-
           {
             id: "heart-10",
             type: "yes-no",
-            question: "Have you ever felt a burning sensation or discomfort in your chest after physical activity or eating?",
+            question: "Have you ever felt hot or uncomfortable in the chest after exercising or eating?",
             options: ["Yes", "No"],
             required: true,
             category: "heart",
             weight: 3,
-            riskFactors: ["Possible angina", "Acid reflux"]
+            riskFactors: ["Chest tightness", "Heartburn"],
           },
-
           {
             id: "heart-11",
             type: "yes-no",
-            question: "Do your ankles or feet swell at the end of the day?",
+            question: "Do your feet or ankles swell frequently in the evening?",
             options: ["Yes", "No"],
             required: true,
             category: "heart",
             weight: 3,
-            riskFactors: ["Fluid retention", "Heart failure"]
+            riskFactors: ["Venous insufficiency", "Heart failure"],
           },
-
           {
             id: "heart-12",
             type: "yes-no",
-            question: "Do you ever wake up at night short of breath or needing to sit upright to breathe?",
+            question:
+              "Have you ever woken up in the middle of the night due to difficulty breathing or had to get up to breathe?",
             options: ["Yes", "No"],
             required: true,
             category: "heart",
             weight: 4,
-            riskFactors: ["Heart failure symptoms"]
+            riskFactors: ["Heart failure symptoms"],
           },
-
           {
             id: "heart-13",
             type: "multiple-choice",
-            question: "How would you rate your energy level throughout the day?",
-            options: [
-              "Very low",
-              "Low",
-              "Moderate",
-              "High",
-              "Very high"
-            ],
+            question: "How would you rate your energy level each day?",
+            options: ["Very low", "Low", "Moderate", "High", "Very high"],
             required: true,
             category: "heart",
             weight: 2,
-            riskFactors: ["Fatigue", "Low circulation"]
+            riskFactors: ["Fatigue", "Poor circulation"],
           },
-
           {
             id: "heart-14",
             type: "yes-no",
-            question: "Do you have diabetes or have you been told you have high blood sugar levels?",
+            question: "Are you diabetic or have you been notified that you have high blood sugar?",
             options: ["Yes", "No"],
             required: true,
             category: "heart",
             weight: 3,
-            riskFactors: ["Diabetes", "Metabolic risk"]
+            riskFactors: ["Diabetes", "Metabolic risk"],
           },
-
           {
             id: "heart-15",
             type: "yes-no",
-            question: "Have you noticed coldness or numbness in your hands or feet during rest?",
+            question: "Have you ever felt cold hands or feet while sitting still?",
             options: ["Yes", "No"],
             required: true,
             category: "heart",
             weight: 2,
-            riskFactors: ["Poor circulation"]
-          }
-        ]
+            riskFactors: ["Poor circulation"],
+          },
+        ],
       },
       {
         id: "nutrition",
         title: "Lifestyle and Nutrition Assessment",
-        description: "Check eating habits, exercise, health care, and body overview",
+        description: "Check eating habits, exercise, and overall health care",
         icon: "Apple",
         required: true,
         estimatedTime: 10,
@@ -1381,8 +1491,8 @@ export const assessmentData = {
           {
             id: "nutrition-1",
             type: "multiple-choice",
-            question: "How many meals do you eat per day?",
-            options: ["1 meal", "2 meals", "3 meals", "More than 3 meals", "Irregular"],
+            question: "How many meals do you have per day?",
+            options: ["1 meal", "2 meals", "3 meals", "More than 3 meals", "Not sure"],
             required: true,
             category: "nutrition",
             weight: 2,
@@ -1391,7 +1501,7 @@ export const assessmentData = {
             id: "nutrition-2",
             type: "rating",
             question: "How often do you eat vegetables and fruits?",
-            description: "Rate 1-5 (1=Never, 5=Every meal)",
+            description: "Rate 1-5 (1 = Never, 5 = Every meal)",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "nutrition",
@@ -1410,29 +1520,29 @@ export const assessmentData = {
             id: "nutrition-4",
             type: "rating",
             question: "How often do you eat sweets, snacks, or cakes?",
-            description: "Rate 1-5 (1=Never, 5=Daily)",
+            description: "Rate 1-5 (1 = Never, 5 = Every day)",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "nutrition",
             weight: 3,
-            riskFactors: ["High sugar intake"],
+            riskFactors: ["Eating too much sweets"],
           },
           {
             id: "nutrition-5",
             type: "rating",
             question: "How often do you eat fried or fatty foods?",
-            description: "Rate 1-5 (1=Never, 5=Daily)",
+            description: "Rate 1-5 (1 = Never, 5 = Every day)",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "nutrition",
             weight: 3,
-            riskFactors: ["High fat intake"],
+            riskFactors: ["Eating too much fatty foods"],
           },
           {
             id: "nutrition-6",
             type: "multiple-choice",
-            question: "How many times per week do you exercise?",
-            options: ["Never", "1-2 times", "3-4 times", "5-6 times", "Daily"],
+            question: "How many times do you exercise per week?",
+            options: ["Never", "1-2 times", "3-4 times", "5-6 times", "Every day"],
             required: true,
             category: "nutrition",
             weight: 4,
@@ -1448,9 +1558,9 @@ export const assessmentData = {
           },
           {
             id: "nutrition-8",
-            type: "multi-select-combobox-with-other", // Changed from checkbox to multi-select-combobox-with-other
-            question: "Types of exercise you do (select multiple)",
-            options: ["Walking/Running", "Cycling", "Swimming", "Gym/Fitness", "Yoga", "Team sports", "No exercise"],
+            type: "multi-select-combobox-with-other",
+            question: "What types of exercise do you do (select multiple)",
+            options: ["Walking/Running", "Cycling", "Swimming", "Yoga/Fitness", "Dance", "Other sports", "Never"],
             required: true,
             category: "nutrition",
             weight: 2,
@@ -1458,8 +1568,8 @@ export const assessmentData = {
           {
             id: "nutrition-9",
             type: "rating",
-            question: "How energetic do you feel for daily activities?",
-            description: "Rate 1-5 (1=No energy, 5=Very energetic)",
+            question: "How often do you feel energetic for daily activities?",
+            description: "Rate 1-5 (1 = Not energetic, 5 = Very energetic)",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "nutrition",
@@ -1468,206 +1578,187 @@ export const assessmentData = {
         ],
       },
       {
-        "id": "mental",
-        "title": "Mental Health Assessment",
-        "description": "A mental health checkup covering depression, anxiety, and emotional wellbeing.",
-        "icon": "Brain",
-        "required": true,
-        "estimatedTime": 10,
-        "questions": [
+        id: "mental",
+        title: "Mental Health Assessment",
+        description: "Check mental health, stress, and emotional well-being",
+        icon: "Brain",
+        required: true,
+        estimatedTime: 10,
+        questions: [
           // PHQ-9 (Depression)
           {
-            "id": "mental-1",
-            "type": "rating",
-            "question": "Little interest or pleasure in doing things?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 4,
-            "riskFactors": ["ซึมเศร้า"]
+            id: "mental-1",
+            type: "rating",
+            question:
+              "Over the last 2 weeks, how often have you felt bored or lost interest in things you used to enjoy?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 4,
+            riskFactors: ["Depression"],
           },
           {
-            "id": "mental-2",
-            "type": "rating",
-            "question": "Feeling down, depressed, or hopeless?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 4,
-            "riskFactors": ["ซึมเศร้า"]
+            id: "mental-2",
+            type: "rating",
+            question: "Over the last 2 weeks, how often have you felt down, depressed, or hopeless?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 4,
+            riskFactors: ["Depression"],
           },
           {
-            "id": "mental-3",
-            "type": "rating",
-            "question": "Trouble falling or staying asleep, or sleeping too much?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-3",
+            type: "rating",
+            question: "How often do you have trouble sleeping?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every night)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
           {
-            "id": "mental-4",
-            "type": "rating",
-            "question": "Feeling tired or having little energy?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-4",
+            type: "rating",
+            question: "How often do you feel tired or have little energy?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
           {
-            "id": "mental-5",
-            "type": "rating",
-            "question": "Poor appetite or overeating?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
+            id: "mental-5",
+            type: "rating",
+            question: "How often do you have poor appetite or eat too much?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 2,
           },
           {
-            "id": "mental-6",
-            "type": "rating",
-            "question": "Feeling bad about yourself, or feeling like a failure?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 4
+            id: "mental-6",
+            type: "rating",
+            question: "How often do you feel bad about yourself or feel like a failure?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 4,
           },
           {
-            "id": "mental-7",
-            "type": "rating",
-            "question": "Trouble concentrating on things?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-7",
+            type: "rating",
+            question: "How often do you have trouble concentrating or remembering things?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
           {
-            "id": "mental-8",
-            "type": "rating",
-            "question": "Moving or speaking slowly, or being fidgety/restless?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
+            id: "mental-8",
+            type: "rating",
+            question: "How often do you feel slow-moving or speak slowly, or are you restless?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 2,
           },
           {
-            "id": "mental-9",
-            "type": "rating",
-            "question": "Thoughts that you'd be better off dead or of hurting yourself?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 5,
-            "riskFactors": ["เสี่ยงทำร้ายตัวเอง"]
+            id: "mental-9",
+            type: "rating",
+            question: "How often do you have thoughts of wanting to die or harming yourself?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 5,
+            riskFactors: ["Suicide risk"],
           },
 
           // GAD-7 (Anxiety)
           {
-            "id": "mental-10",
-            "type": "rating",
-            "question": "Feeling nervous, anxious, or on edge?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3,
-            "riskFactors": ["วิตกกังวล"]
+            id: "mental-10",
+            type: "rating",
+            question: "How often do you feel anxious, worried, or stressed?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
+            riskFactors: ["Anxiety"],
           },
           {
-            "id": "mental-11",
-            "type": "rating",
-            "question": "Not being able to stop or control worrying?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-11",
+            type: "rating",
+            question: "How well do you control your anxiety?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
           {
-            "id": "mental-12",
-            "type": "rating",
-            "question": "Worrying too much about different things?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-12",
+            type: "rating",
+            question: "How often do you worry about many things?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
           {
-            "id": "mental-13",
-            "type": "rating",
-            "question": "Trouble relaxing?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
+            id: "mental-13",
+            type: "rating",
+            question: "How difficult is it for you to relax?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 2,
           },
           {
-            "id": "mental-14",
-            "type": "rating",
-            "question": "Being so restless that it's hard to sit still?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
+            id: "mental-14",
+            type: "rating",
+            question: "How often do you feel restless or have to move around constantly?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 2,
           },
           {
-            "id": "mental-15",
-            "type": "rating",
-            "question": "Becoming easily annoyed or irritable?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
+            id: "mental-15",
+            type: "rating",
+            question: "How often do you feel irritable or angry more than usual?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 2,
           },
           {
-            "id": "mental-16",
-            "type": "rating",
-            "question": "Feeling afraid as if something awful might happen?",
-            "description": "Rate 0-3 (0=Not at all, 3=Nearly every day)",
-            "options": ["0", "1", "2", "3"],
-            "required": true,
-            "category": "mental",
-            "weight": 3
+            id: "mental-16",
+            type: "rating",
+            question: "How often do you feel afraid that something bad will happen?",
+            description: "Rate 0-3 (0 = Not at all, 3 = Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "mental",
+            weight: 3,
           },
-
-          // เสริม (บริบท)
-          {
-            "id": "mental-17",
-            "type": "yes-no",
-            "question": "Do you sleep well at night?",
-            "options": ["Yes", "No"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
-          },
-          {
-            "id": "mental-18",
-            "type": "yes-no",
-            "question": "Do you have someone you can talk to or seek support from?",
-            "options": ["Yes", "No"],
-            "required": true,
-            "category": "mental",
-            "weight": 2
-          }
-        ]
+        ],
       },
       {
         id: "physical",
         title: "Physical Health Assessment",
-        description: "A general assessment of physical well-being and mobility.",
+        description: "Check physical health, strength, and overall physical ability",
         icon: "Dumbbell",
         required: false,
         estimatedTime: 12,
@@ -1675,146 +1766,130 @@ export const assessmentData = {
           {
             id: "physical-1",
             type: "rating",
-            question: "How often do you experience back pain?",
+            question: "How often do you feel back pain?",
             description: "Rate 1-5 (1 = Never, 5 = Every day)",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "physical",
             weight: 3,
-            riskFactors: ["Chronic back pain"]
+            riskFactors: ["Chronic back pain"],
           },
-
           {
             id: "physical-2",
             type: "rating",
             question: "How often do you feel joint pain or stiffness?",
-            description: "Rate 1-5 (1 = Never, 5 = Every day)",
+            description: "1 = Never, 5 = Every day",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "physical",
             weight: 3,
-            riskFactors: ["Joint issues"]
+            riskFactors: ["Joint problems"],
           },
-
           {
             id: "physical-3",
             type: "multiple-choice",
-            question: "Can you climb three flights of stairs without getting short of breath?",
-            options: [
-              "Easily",
-              "With some effort",
-              "With great effort",
-              "Unable"
-            ],
+            question: "Can you climb 3 stairs without getting short of breath?",
+            options: ["Very easily", "With slight difficulty", "With much difficulty", "Cannot do at all"],
             required: true,
             category: "physical",
-            weight: 3
+            weight: 3,
           },
-
           {
             id: "physical-4",
             type: "rating",
-            question: "How strong do you feel your muscles are?",
-            description: "Rate 1-5 (1 = Very weak, 5 = Very strong)",
+            question: "How would you rate the strength of your muscles?",
+            description: "1 = Very weak, 5 = Very strong",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "physical",
-            weight: 2
+            weight: 2,
           },
-
           {
             id: "physical-5",
             type: "rating",
-            question: "How would you rate your body's flexibility?",
-            description: "Rate 1-5 (1 = Very stiff, 5 = Very flexible)",
+            question: "How would you rate the flexibility of your body?",
+            description: "1 = Very stiff, 5 = Very flexible",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "physical",
-            weight: 2
+            weight: 2,
           },
-
           {
             id: "physical-6",
             type: "yes-no",
-            question: "Have you ever been injured while exercising?",
+            question: "Have you ever injured yourself while exercising?",
             options: ["Yes", "No"],
             required: true,
             category: "physical",
-            weight: 2
+            weight: 2,
           },
-
           {
             id: "physical-7",
             type: "yes-no",
-            question: "Have you ever felt knee, ankle, or hip pain while walking or after a long walk?",
+            question:
+              "Have you ever felt knee pain, foot pain, or ankle pain while walking or after walking a long distance?",
             options: ["Yes", "No"],
             required: true,
             category: "physical",
             weight: 3,
-            riskFactors: ["Pain while walking"]
+            riskFactors: ["Pain while walking"],
           },
-
           {
             id: "physical-8",
             type: "rating",
-            question: "How long can you stand without feeling fatigue or pain?",
-            description: "Rate 1-5 (1 = Less than 5 minutes, 5 = Over 30 minutes)",
+            question: "How long can you stand continuously without feeling tired or painful?",
+            description: "1 = Less than 5 minutes, 5 = More than 30 minutes",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "physical",
-            weight: 2
+            weight: 2,
           },
-
           {
             id: "physical-9",
             type: "yes-no",
-            question: "Can you rise from a chair without using your hands?",
+            question: "Can you get up from a chair without help?",
             options: ["Yes", "No"],
             required: true,
             category: "physical",
             weight: 3,
-            riskFactors: ["Lower muscle strength"]
+            riskFactors: ["Weak muscles"],
           },
-
           {
             id: "physical-10",
             type: "yes-no",
-            question: "Can you stand on one leg for more than 10 seconds without falling?",
+            question: "Do you often have numbness or tingling in your hands or feet?",
             options: ["Yes", "No"],
             required: true,
             category: "physical",
             weight: 2,
-            riskFactors: ["Poor balance"]
+            riskFactors: ["Peripheral neuropathy"],
           },
-
           {
             id: "physical-11",
-            type: "yes-no",
-            question: "Can you fully raise both arms above your head?",
-            options: ["Yes", "No"],
+            type: "rating",
+            question: "How far can you walk without stopping?",
+            description: "1 = Less than 100 meters, 5 = More than 1 kilometer",
+            options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "physical",
-            weight: 2,
-            riskFactors: ["Shoulder mobility issue"]
+            weight: 3,
           },
-
           {
             id: "physical-12",
             type: "yes-no",
-            question: "Do you ever feel dizzy when standing up quickly?",
+            question: "Have you ever fallen without knowing the cause?",
             options: ["Yes", "No"],
             required: true,
             category: "physical",
-            weight: 2,
-            riskFactors: ["Orthostatic hypotension"]
-          }
-        ]
+            weight: 3,
+            riskFactors: ["Fall risk"],
+          },
+        ],
       },
-
       {
         id: "sleep",
         title: "Sleep Quality Assessment",
-        description: "Analyze sleep patterns and rest quality",
+        description: "Analyze sleep patterns and overall rest quality",
         icon: "Moon",
         required: false,
         estimatedTime: 5,
@@ -1822,7 +1897,7 @@ export const assessmentData = {
           {
             id: "sleep-1",
             type: "multiple-choice",
-            question: "How many hours do you sleep per night on average?",
+            question: "On average, how many hours do you sleep per night?",
             options: ["Less than 5 hours", "5-6 hours", "7-8 hours", "9-10 hours", "More than 10 hours"],
             required: true,
             category: "sleep",
@@ -1833,18 +1908,18 @@ export const assessmentData = {
             id: "sleep-2",
             type: "rating",
             question: "How often do you have trouble falling asleep?",
-            description: "Rate 1-5 (1=Never, 5=Every night)",
+            description: "Rate 1-5 (1 = Never, 5 = Every night)",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "sleep",
             weight: 3,
-            riskFactors: ["Insomnia"],
+            riskFactors: ["Trouble sleeping"],
           },
           {
             id: "sleep-3",
             type: "rating",
-            question: "How often do you wake up during the night?",
-            description: "Rate 1-5 (1=Never, 5=Every night)",
+            question: "How often do you wake up in the middle of the night?",
+            description: "Rate 1-5 (1 = Never, 5 = Every night)",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "sleep",
@@ -1853,8 +1928,8 @@ export const assessmentData = {
           {
             id: "sleep-4",
             type: "rating",
-            question: "How refreshed do you feel when you wake up?",
-            description: "Rate 1-5 (1=Not refreshed, 5=Very refreshed)",
+            question: "How fresh do you feel when you wake up?",
+            description: "Rate 1-5 (1 = Not fresh, 5 = Very fresh)",
             options: ["1", "2", "3", "4", "5"],
             required: true,
             category: "sleep",
@@ -1874,14 +1949,119 @@ export const assessmentData = {
             id: "sleep-6",
             type: "multiple-choice",
             question: "Do you use electronic devices before bed?",
-            options: ["Never", "Rarely", "Sometimes", "Almost every night", "Every night"],
+            options: ["Never", "Occasionally", "Sometimes", "Almost every night", "Every night"],
             required: true,
             category: "sleep",
             weight: 2,
           },
         ],
       },
-      guestAssessmentCategory, // Include guest assessment category here
+      {
+        id: "phq",
+        title: "PHQ Mental Health Assessment",
+        description: "PHQ-2 and PHQ-9 assessment for depression screening",
+        icon: "Brain",
+        required: true,
+        estimatedTime: 8,
+        questions: [
+          // PHQ-2 Questions
+          {
+            id: "phq-1",
+            type: "rating",
+            question: "Over the last 2 weeks, little interest or pleasure in doing things",
+            description: "Rate 0-3 (0=Not at all, 1=Several days, 2=More than half the days, 3=Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "phq",
+            weight: 5,
+            riskFactors: ["Depression"],
+          },
+          {
+            id: "phq-2",
+            type: "rating",
+            question: "Feeling down, depressed, or hopeless",
+            description: "Rate 0-3 (0=Not at all, 1=Several days, 2=More than half the days, 3=Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: true,
+            category: "phq",
+            weight: 5,
+            riskFactors: ["Depression"],
+          },
+          // PHQ-9 Additional Questions (will be shown conditionally)
+          {
+            id: "phq-3",
+            type: "rating",
+            question: "Trouble falling or staying asleep, or sleeping too much",
+            description: "Rate 0-3 (0=Not at all, 1=Several days, 2=More than half the days, 3=Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 3,
+          },
+          {
+            id: "phq-4",
+            type: "rating",
+            question: "Feeling tired or having little energy",
+            description: "Rate 0-3 (0=Not at all, 1=Several days, 2=More than half the days, 3=Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 3,
+          },
+          {
+            id: "phq-5",
+            type: "rating",
+            question: "Poor appetite or overeating",
+            description: "Rate 0-3 (0=Not at all, 1=Several days, 2=More than half the days, 3=Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 2,
+          },
+          {
+            id: "phq-6",
+            type: "rating",
+            question: "Feeling bad about yourself or that you are a failure or have let yourself or your family down",
+            description: "Rate 0-3 (0=Not at all, 1=Several days, 2=More than half the days, 3=Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 4,
+          },
+          {
+            id: "phq-7",
+            type: "rating",
+            question: "Trouble concentrating on things, such as reading the newspaper or watching television",
+            description: "Rate 0-3 (0=Not at all, 1=Several days, 2=More than half the days, 3=Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 3,
+          },
+          {
+            id: "phq-8",
+            type: "rating",
+            question:
+              "Moving or speaking so slowly that other people could have noticed, or the opposite - being so fidgety or restless that you have been moving around a lot more than usual",
+            description: "Rate 0-3 (0=Not at all, 1=Several days, 2=More than half the days, 3=Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 2,
+          },
+          {
+            id: "phq-9",
+            type: "rating",
+            question: "Thoughts that you would be better off dead, or of hurting yourself in some way",
+            description: "Rate 0-3 (0=Not at all, 1=Several days, 2=More than half the days, 3=Nearly every day)",
+            options: ["0", "1", "2", "3"],
+            required: false,
+            category: "phq",
+            weight: 5,
+            riskFactors: ["Suicide risk", "Self-harm thoughts"],
+          },
+        ],
+      },
     ],
   },
 }
