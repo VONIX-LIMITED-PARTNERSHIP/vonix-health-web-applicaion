@@ -40,7 +40,7 @@ export function DemoBanner() {
           <div className="flex-1">
             <p className="text-xs font-medium">
               {locale === "th"
-                ? "แอปพลิเคชันนี้อยู่ในระหว่างการทดสอบ หากพบปัญหาการใช้งาน กรุณาติดต่อ : Thnapat@vonix.life"
+                ? "แอปพลิเคชันนี้อยู่ในระหว่างการทดสอบ หากพบปัญหาการใช้งาน กรุณาติดต่อ : thanapat@vonix.life"
                 : "This application is currently in demo mode. If you encounter any issues, please contact : Thnapat@vonix.life"}
             </p>
           </div>

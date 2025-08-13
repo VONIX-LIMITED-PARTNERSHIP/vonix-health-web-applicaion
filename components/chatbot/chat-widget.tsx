@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,15 +26,19 @@ const QUICK_REPLIES = ["วิธีใช้งานแอพ", "ทำแบ�
 
 export function ChatWidget() {
   const { user, profile } = useAuth()
+  const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [hasNewMessage, setHasNewMessage] = useState(false)
-  const [hasInteracted, setHasInteracted] = useState(false) // Changed back to false
+  const [hasInteracted, setHasInteracted] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Check if current page is an assessment page
+  const isAssessmentPage = pathname?.includes("/assessment/") || pathname?.includes("/guest-assessment")
 
   // Auto scroll to bottom when new message
   useEffect(() => {
@@ -59,6 +64,13 @@ export function ChatWidget() {
       setHasNewMessage(true)
     }
   }, [messages, isOpen])
+
+  // Close chat when navigating to assessment pages
+  useEffect(() => {
+    if (isAssessmentPage && isOpen) {
+      setIsOpen(false)
+    }
+  }, [isAssessmentPage, isOpen])
 
   const generateBotResponse = async (
     userMessage: string,
@@ -157,6 +169,11 @@ export function ChatWidget() {
 
   const toggleMinimize = () => {
     setIsMinimized(!isMinimized)
+  }
+
+  // Don't render chat widget on assessment pages
+  if (isAssessmentPage) {
+    return null
   }
 
   return (

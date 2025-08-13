@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   title: "VONIX Health - ประเมินสุขภาพด้วย AI",
   description: "ระบบประเมินสุขภาพอัจฉริยะที่ช่วยคุณดูแลสุขภาพได้ดีขึ้น ไม่ต้องมีความรู้ทางการแพทย์ ใช้งานง่าย เข้าใจได้ทันที",
   generator: "v0.dev",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
