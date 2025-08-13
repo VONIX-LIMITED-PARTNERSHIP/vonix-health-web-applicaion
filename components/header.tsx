@@ -57,7 +57,7 @@ export function Header() {
       case "admin":
         return t("admin")
       default:
-        return t("userrrr")
+        return t("user")
     }
   }
 
