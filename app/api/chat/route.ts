@@ -6,6 +6,7 @@ import { appKnowledgeBase } from "@/data/chatbot-app-knowledge"
 import { AssessmentService } from "@/lib/assessment-service"
 import { createClient } from "@supabase/supabase-js"
 import { searchPHQKnowledge, getAllPHQKeywords } from "@/data/phq-knowledge-base"
+import { searchAUDITKnowledge, getAllAUDITKeywords } from "@/data/audit-knowledge-base"
 
 // Define the message structure expected by the AI SDK
 interface AIMessage {
@@ -44,7 +45,7 @@ const INTENT_CLASSIFICATION_PROMPT = `คุณคือผู้ช่วยท
 2.  หากคำถามล่าสุดเกี่ยวข้องกับการใช้งานแอป VONIX (เช่น วิธีใช้, สมัครสมาชิก, เข้าสู่ระบบ, แบบประเมิน, ผลลัพธ์, บันทึก, แก้ไข, ปัญหา, ข้อมูล, ความปลอดภัย) ให้ระบุว่าเป็น "แอป VONIX"
 3.  หากคำถามล่าสุดไม่เกี่ยวข้องกับทั้งสองประเภทข้างต้น และไม่เข้าข่ายสุขภาพ ให้ระบุว่าเป็น "อื่นๆ"
 
-ตัวอ่าง:
+ตัวอย่าง:
 - ผู้ใช้: "ปวดหัวทำไงดี" -> สุขภาพ
 - ผู้ใช้: "วิธีสมัครสมาชิก" -> แอป VONIX
 - ผู้ใช้: "วันนี้อากาศเป็นไง" -> อื่นๆ
@@ -245,6 +246,7 @@ const CRITICAL_HEALTH_KEYWORDS = [
   "สุขภาพฉัน",
   "สุขภาพเป็นอย่างไร",
   ...getAllPHQKeywords(),
+  ...getAllAUDITKeywords(),
 ]
 
 // Helper function to get risk level label
@@ -397,24 +399,30 @@ export async function POST(req: Request) {
       if (phqKnowledge) {
         botResponse = phqKnowledge.response.replace("{userName}", userName || "คุณ")
       } else {
-        // Implement simple RAG for general app-related questions
-        let foundAppResponse = false
-        for (const entry of appKnowledgeBase) {
-          if (entry.keywords.some((keyword) => userMessageContent.includes(keyword))) {
-            botResponse = entry.response.replace("{userName}", userName || "คุณ")
-            foundAppResponse = true
-            break
+        // Check AUDIT-specific questions
+        const auditKnowledge = searchAUDITKnowledge(userMessageContent)
+        if (auditKnowledge) {
+          botResponse = auditKnowledge.response.replace("{userName}", userName || "คุณ")
+        } else {
+          // Implement simple RAG for general app-related questions
+          let foundAppResponse = false
+          for (const entry of appKnowledgeBase) {
+            if (entry.keywords.some((keyword) => userMessageContent.includes(keyword))) {
+              botResponse = entry.response.replace("{userName}", userName || "คุณ")
+              foundAppResponse = true
+              break
+            }
           }
-        }
 
-        if (!foundAppResponse) {
-          // Fallback to AI if no specific hardcoded app response is found
-          const { text: appRelatedResponse } = await generateText({
-            model: openai("gpt-4o"),
-            system: `คุณคือผู้ช่วยที่เชี่ยวชาญด้านการใช้งานแอป VONIX ตอบคำถามเกี่ยวกับการใช้งานแอปเท่านั้น หากไม่แน่ใจให้แนะนำให้ผู้ใช้ถามคำถามที่เกี่ยวข้องกับการใช้งานแอป`,
-            messages: conversationHistoryForAI,
-          })
-          botResponse = appRelatedResponse
+          if (!foundAppResponse) {
+            // Fallback to AI if no specific hardcoded app response is found
+            const { text: appRelatedResponse } = await generateText({
+              model: openai("gpt-4o"),
+              system: `คุณคือผู้ช่วยที่เชี่ยวชาญด้านการใช้งานแอป VONIX ตอบคำถามเกี่ยวกับการใช้งานแอปเท่านั้น หากไม่แน่ใจให้แนะนำให้ผู้ใช้ถามคำถามที่เกี่ยวข้องกับการใช้งานแอป`,
+              messages: conversationHistoryForAI,
+            })
+            botResponse = appRelatedResponse
+          }
         }
       }
     } else {
