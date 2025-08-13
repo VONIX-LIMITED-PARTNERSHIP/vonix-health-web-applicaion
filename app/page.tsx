@@ -287,14 +287,6 @@ export default function HomePage() {
 
     const categoryMappings = [
       {
-        id: "basic",
-        icon: User,
-        required: true,
-        gradient: "from-blue-500 to-cyan-500",
-        bgGradient: "from-blue-50 to-cyan-50",
-        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
-      },
-      {
         id: "heart",
         icon: Heart,
         required: true,
@@ -303,21 +295,21 @@ export default function HomePage() {
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
-        id: "nutrition",
-        icon: Apple,
+        id: "gpaq",
+        icon: Dumbbell,
         required: true,
         gradient: "from-green-500 to-emerald-500",
         bgGradient: "from-green-50 to-green-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
-      {
-        id: "mental",
-        icon: Brain,
-        required: true,
-        gradient: "from-purple-500 to-violet-500",
-        bgGradient: "from-purple-50 to-purple-50",
-        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
-      },
+      // {
+      //   id: "mental",
+      //   icon: Brain,
+      //   required: true,
+      //   gradient: "from-purple-500 to-violet-500",
+      //   bgGradient: "from-purple-50 to-purple-50",
+      //   darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      // },
       {
         id: "phq",
         icon: Brain,
@@ -327,19 +319,35 @@ export default function HomePage() {
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
-        id: "physical",
-        icon: Dumbbell,
+        id: "dast",
+        icon: Apple,
         required: true,
         gradient: "from-orange-500 to-amber-500",
         bgGradient: "from-orange-50 to-orange-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
-        id: "sleep",
-        icon: MoonIcon,
+        id: "audit",
+        icon: Brain,
         required: true,
         gradient: "from-indigo-500 to-blue-500",
         bgGradient: "from-indigo-50 to-indigo-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "ess",
+        icon: MoonIcon,
+        required: true,
+        gradient: "from-teal-500 to-cyan-500",
+        bgGradient: "from-teal-50 to-cyan-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "pcptsd",
+        icon: User,
+        required: true,
+        gradient: "from-blue-500 to-cyan-500",
+        bgGradient: "from-blue-50 to-cyan-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
     ]
@@ -537,7 +545,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between mb-3">
                   <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                   <div className="text-xl sm:text-2xl font-bold text-green-600">
-                    {dashboardStats?.totalAssessments || 0}/6
+                    {dashboardStats?.totalAssessments || 0}/8
                   </div>
                 </div>
                 <div className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
