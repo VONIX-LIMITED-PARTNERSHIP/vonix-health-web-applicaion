@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { DemoBanner}from "@/components/demo-banner"
+import { DemoBanner } from "@/components/demo-banner"
 import { useAuth } from "@/hooks/use-auth"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { AssessmentService } from "@/lib/assessment-service"
@@ -316,6 +316,14 @@ export default function HomePage() {
         required: true,
         gradient: "from-purple-500 to-violet-500",
         bgGradient: "from-purple-50 to-purple-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "phq",
+        icon: Brain,
+        required: true,
+        gradient: "from-indigo-500 to-purple-500",
+        bgGradient: "from-indigo-50 to-purple-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
