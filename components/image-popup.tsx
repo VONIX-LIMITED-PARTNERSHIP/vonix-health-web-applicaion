@@ -57,17 +57,7 @@ export default function ImagePopup({
               <div className="absolute bottom-1/4 left-1/3 w-24 h-24 bg-gradient-to-r from-violet-500/25 to-purple-500/25 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '4s', animationDuration: '5s' }} />
             </div>
 
-            {/* Top close button */}
-            <div className="absolute top-6 right-6 z-20">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-12 h-12 text-white/80 hover:text-white bg-black/20 hover:bg-black/40 backdrop-blur-sm rounded-full border border-white/20 transition-all duration-300 hover:scale-110 hover:rotate-90"
-                onClick={handleClose}
-              >
-                <X className="h-6 w-6" />
-              </Button>
-            </div>
+
 
             {/* Image container */}
             <div className="flex items-center justify-center h-full p-8">
