@@ -400,41 +400,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* About Us / Team Section
-        <section className="py-20 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-8">
-                <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent dark:from-gray-200 dark:to-gray-400">
-                  {t("team_title")}
-                </span>
-              </h2>
-              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                {t("team_description")}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {teamMembers.map((member, index) => (
-                <Card
-                  key={index}
-                  className="group relative overflow-hidden bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 rounded-3xl"
-                >
-                  <CardContent className="p-8 text-center">
-                    <img
-                      src={member.avatar || "/placeholder.svg"}
-                      alt={member.name}
-                      className="w-24 h-24 rounded-full mx-auto mb-6 object-cover border-4 border-purple-200 dark:border-purple-700 shadow-md"
-                    />
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">{member.name}</h3>
-                    <p className="text-purple-600 dark:text-purple-400 font-medium">{member.role}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section> */}
-
         {/* Get Involved / Contact Section */}
         <section className="py-20 px-6 bg-gradient-to-r from-purple-600 to-indigo-600">
           <div className="max-w-4xl mx-auto text-center text-white">

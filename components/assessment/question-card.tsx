@@ -37,7 +37,8 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
   const [isValid, setIsValid] = useState<boolean>(false)
 
   // Regex สำหรับอักขระที่อนุญาต: ตัวอักษร (ทุกภาษา), ตัวเลข, ช่องว่าง, จุด, คอมม่า, ไฮเฟน, อัญประกาศเดี่ยว
-  const textRegex = /^[\p{L}\p{N}\s.,'-]*$/u
+  // เพิ่ม : เข้าไปใน regex pattern
+  const textRegex = /^[a-zA-Z0-9\s\u0E00-\u0E7F.,!?():_-]*$/;
 
   // ฟังก์ชันสำหรับตรวจสอบความถูกต้องของ input
   const validateInput = (value: string | number | string[] | null): { valid: boolean; message: string | null } => {
