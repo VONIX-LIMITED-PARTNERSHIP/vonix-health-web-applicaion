@@ -101,6 +101,9 @@ export function Footer() {
               <Link href="/terms" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                 Terms of Use
               </Link>
+              <Link href="/reference" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                Reference
+              </Link>
             </div>
           </div>
         </div>
