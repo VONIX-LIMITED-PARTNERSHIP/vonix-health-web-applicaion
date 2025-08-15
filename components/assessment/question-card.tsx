@@ -37,7 +37,8 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
   const [isValid, setIsValid] = useState<boolean>(false)
 
   // Regex สำหรับอักขระที่อนุญาต: ตัวอักษร (ทุกภาษา), ตัวเลข, ช่องว่าง, จุด, คอมม่า, ไฮเฟน, อัญประกาศเดี่ยว
-  const textRegex = /^[\p{L}\p{N}\s.,'-]*$/u
+  // เพิ่ม : เข้าไปใน regex pattern
+  const textRegex = /^[a-zA-Z0-9\s\u0E00-\u0E7F.,!?():_-]*$/;
 
   // ฟังก์ชันสำหรับตรวจสอบความถูกต้องของ input
   const validateInput = (value: string | number | string[] | null): { valid: boolean; message: string | null } => {
@@ -123,8 +124,12 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
     switch (question.type) {
       case "multiple-choice":
       case "rating":
+      case "radio":
       case "yes-no":
-        const yesNoOptions = question.options || ["ใช่", "ไม่ใช่"]
+        const yesNoOptions = question.options || [
+          { value: "yes", label: "ใช่" },
+          { value: "no", label: "ไม่ใช่" },
+        ]
         return (
           <div className="space-y-4">
             <RadioGroup
@@ -139,21 +144,21 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                     "relative flex items-center space-x-3 p-4 sm:p-5 rounded-xl border-2 cursor-pointer transition-all duration-200",
                     "hover:bg-gray-50 hover:border-gray-300 dark:hover:bg-gray-800/50 dark:hover:border-gray-600",
                     "focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500",
-                    String(currentAnswer) === option
+                    String(currentAnswer) === option.value
                       ? "bg-blue-50 border-blue-500 shadow-md dark:bg-blue-900/20 dark:border-blue-400"
                       : "bg-white border-gray-200 dark:bg-gray-800/30 dark:border-gray-700",
                     "group",
                   )}
-                  onClick={() => handleAnswerChange(option)}
+                  onClick={() => handleAnswerChange(option.value)}
                 >
-                  <RadioGroupItem value={option} id={`${question.id}-${index}`} className="border-2 w-5 h-5" />
+                  <RadioGroupItem value={option.value} id={`${question.id}-${index}`} className="border-2 w-5 h-5" />
                   <Label
                     htmlFor={`${question.id}-${index}`}
                     className="flex-1 cursor-pointer text-sm sm:text-base font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100"
                   >
-                    {option}
+                    {option.label}
                   </Label>
-                  {String(currentAnswer) === option && (
+                  {String(currentAnswer) === option.value && (
                     <CheckCircle2 className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                   )}
                 </div>
@@ -179,36 +184,36 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                   "relative flex items-center space-x-3 p-4 sm:p-5 rounded-xl border-2 cursor-pointer transition-all duration-200",
                   "hover:bg-gray-50 hover:border-gray-300 dark:hover:bg-gray-800/50 dark:hover:border-gray-600",
                   "focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500",
-                  Array.isArray(currentAnswer) && currentAnswer.includes(option)
+                  Array.isArray(currentAnswer) && currentAnswer.includes(option.value)
                     ? "bg-blue-50 border-blue-500 shadow-md dark:bg-blue-900/20 dark:border-blue-400"
                     : "bg-white border-gray-200 dark:bg-gray-800/30 dark:border-gray-700",
                   "group",
                 )}
                 onClick={() => {
                   const newAnswer = Array.isArray(currentAnswer) ? [...currentAnswer] : []
-                  const isChecked = newAnswer.includes(option)
+                  const isChecked = newAnswer.includes(option.value)
                   if (isChecked) {
-                    const index = newAnswer.indexOf(option)
+                    const index = newAnswer.indexOf(option.value)
                     if (index > -1) {
                       newAnswer.splice(index, 1)
                     }
                   } else {
-                    newAnswer.push(option)
+                    newAnswer.push(option.value)
                   }
                   handleAnswerChange(newAnswer)
                 }}
               >
                 <Checkbox
                   id={`${question.id}-${index}`}
-                  checked={Array.isArray(currentAnswer) && currentAnswer.includes(option)}
+                  checked={Array.isArray(currentAnswer) && currentAnswer.includes(option.value)}
                   onCheckedChange={(checked) => {
                     const newAnswer = Array.isArray(currentAnswer) ? [...currentAnswer] : []
                     if (checked) {
-                      if (!newAnswer.includes(option)) {
-                        newAnswer.push(option)
+                      if (!newAnswer.includes(option.value)) {
+                        newAnswer.push(option.value)
                       }
                     } else {
-                      const index = newAnswer.indexOf(option)
+                      const index = newAnswer.indexOf(option.value)
                       if (index > -1) {
                         newAnswer.splice(index, 1)
                       }
@@ -221,9 +226,9 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                   htmlFor={`${question.id}-${index}`}
                   className="flex-1 cursor-pointer text-sm sm:text-base font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100"
                 >
-                  {option}
+                  {option.label}
                 </Label>
-                {Array.isArray(currentAnswer) && currentAnswer.includes(option) && (
+                {Array.isArray(currentAnswer) && currentAnswer.includes(option.value) && (
                   <CheckCircle2 className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                 )}
               </div>
@@ -272,7 +277,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
         return (
           <div className="space-y-2">
             <MultiSelectComboboxWithOther
-              options={question.options || []}
+              options={question.options?.map((opt) => opt.label) || []}
               value={Array.isArray(currentAnswer) ? currentAnswer : []}
               onChange={(newValues) => handleAnswerChange(newValues)}
               placeholder={question.description || t("select_or_search")}

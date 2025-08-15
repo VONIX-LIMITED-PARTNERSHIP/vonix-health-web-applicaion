@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { DemoBanner}from "@/components/demo-banner"
+import ImagePopup from '@/components/image-popup'
+import { DemoBanner } from "@/components/demo-banner"
 import { useAuth } from "@/hooks/use-auth"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
 import { AssessmentService } from "@/lib/assessment-service"
@@ -135,9 +136,6 @@ export default function HomePage() {
       const categoryToOpen = searchParams.get("openHealthOverview")
       const assessmentId = searchParams.get("assessmentId")
 
-      console.log("🎯 HomePage: เปิด Health Overview Modal จาก URL parameter")
-      console.log("📋 HomePage: Category:", categoryToOpen, "Assessment ID:", assessmentId)
-
       if (isGuestLoggedIn) {
         setIsGuestHealthOverviewModalOpen(true)
       } else {
@@ -187,7 +185,7 @@ export default function HomePage() {
       const latestAssessments = getLatestAssessments(allAssessments)
       calculateDashboardStats(latestAssessments)
     } catch (error) {
-      // console.error("Error loading user assessments:", error)
+      console.error("Error loading user assessments:", error)
     } finally {
       setLoadingStats(false)
     }
@@ -287,14 +285,6 @@ export default function HomePage() {
 
     const categoryMappings = [
       {
-        id: "basic",
-        icon: User,
-        required: true,
-        gradient: "from-blue-500 to-cyan-500",
-        bgGradient: "from-blue-50 to-cyan-50",
-        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
-      },
-      {
         id: "heart",
         icon: Heart,
         required: true,
@@ -303,37 +293,71 @@ export default function HomePage() {
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
-        id: "nutrition",
-        icon: Apple,
+        id: "gpaq",
+        icon: Dumbbell,
         required: true,
         gradient: "from-green-500 to-emerald-500",
         bgGradient: "from-green-50 to-green-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
-        id: "mental",
+        id: "phq",
         icon: Brain,
         required: true,
-        gradient: "from-purple-500 to-violet-500",
-        bgGradient: "from-purple-50 to-purple-50",
+        gradient: "from-indigo-500 to-purple-500",
+        bgGradient: "from-indigo-50 to-purple-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
-        id: "physical",
-        icon: Dumbbell,
+        id: "dast",
+        icon: Apple,
         required: true,
         gradient: "from-orange-500 to-amber-500",
         bgGradient: "from-orange-50 to-orange-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
       {
-        id: "sleep",
-        icon: MoonIcon,
+        id: "audit",
+        icon: Brain,
         required: true,
         gradient: "from-indigo-500 to-blue-500",
         bgGradient: "from-indigo-50 to-indigo-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
+      {
+        id: "thai-cv-risk",
+        icon: Activity,
+        required: true,
+        gradient: "from-yellow-500 to-orange-500",
+        bgGradient: "from-yellow-50 to-orange-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "ess",
+        icon: MoonIcon,
+        required: true,
+        gradient: "from-teal-500 to-cyan-500",
+        bgGradient: "from-teal-50 to-cyan-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "pcptsd",
+        icon: User,
+        required: true,
+        gradient: "from-blue-500 to-cyan-500",
+        bgGradient: "from-blue-50 to-cyan-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "suicide",
+        icon: Shield,
+        required: true,
+        gradient: "from-rose-600 to-red-600",
+        bgGradient: "from-rose-50 to-red-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+
+
     ]
 
     return categoryMappings.map((mapping) => {
@@ -529,7 +553,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between mb-3">
                   <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                   <div className="text-xl sm:text-2xl font-bold text-green-600">
-                    {dashboardStats?.totalAssessments || 0}/6
+                    {dashboardStats?.totalAssessments || 0}/8
                   </div>
                 </div>
                 <div className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">
@@ -573,7 +597,10 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
       <Header />
       <DemoBanner />
-
+      <ImagePopup 
+        imageUrl="/images/login_info.png"
+        altText="รูปโปรโมชั่น"
+      />
       <main className="relative">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
