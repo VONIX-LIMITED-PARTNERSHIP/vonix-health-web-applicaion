@@ -39,3 +39,6 @@ next-env.d.ts
 .supabase/
 
 /scripts
+# local env files
+.env
+.env.local
