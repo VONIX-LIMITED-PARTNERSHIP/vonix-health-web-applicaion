@@ -21,6 +21,8 @@ interface QuestionCardProps {
 
 export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) {
   const { t } = useTranslation(["common", "assessment"])
+
+  // State เก็บคำตอบปัจจุบัน
   const [currentAnswer, setCurrentAnswer] = useState<string | number | string[] | null>(() => {
     if (answer?.answer !== undefined) {
       return answer.answer
@@ -33,29 +35,26 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
     }
     return ""
   })
+
   const [error, setError] = useState<string | null>(null)
   const [isValid, setIsValid] = useState<boolean>(false)
 
-  // Regex สำหรับอักขระที่อนุญาต: ตัวอักษร (ทุกภาษา), ตัวเลข, ช่องว่าง, จุด, คอมม่า, ไฮเฟน, อัญประกาศเดี่ยว
-  // เพิ่ม : เข้าไปใน regex pattern
+  // Regex สำหรับตัวเลขเท่านั้น
+  //const numberOnlyRegex = /^[0-9]*$/
   const textRegex = /^[a-zA-Z0-9\s\u0E00-\u0E7F.,!?():_-]*$/;
 
-  // ฟังก์ชันสำหรับตรวจสอบความถูกต้องของ input
+  // ฟังก์ชันตรวจสอบความถูกต้องของ input
   const validateInput = (value: string | number | string[] | null): { valid: boolean; message: string | null } => {
-    // ตรวจสอบว่าคำถามที่จำเป็นต้องมีคำตอบหรือไม่
+    // ถ้าคำถามจำเป็นต้องมีคำตอบ
     if (question.required) {
-      if (
-        value === null ||
-        (typeof value === "string" && value.trim() === "") ||
-        (Array.isArray(value) && value.length === 0)
-      ) {
-        return { valid: false, message: "" }
+      if (value === null || (typeof value === "string" && value.trim() === "") || (Array.isArray(value) && value.length === 0)) {
+        return { valid: false, message: t("please_answer_question") }
       }
     }
 
     switch (question.type) {
       case "number":
-        // ตรวจสอบค่าลบสำหรับ input ประเภท number
+         // ตรวจสอบค่าลบสำหรับ input ประเภท number
         if (typeof value === "number" && value < 0) {
           return { valid: false, message: t("no_negative_numbers") }
         }
@@ -64,12 +63,11 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
           return { valid: false, message: t("enter_valid_number") }
         }
         return { valid: true, message: null }
-
+        
       case "text":
-        // ตรวจสอบอักขระพิเศษสำหรับ input ประเภท text
-        if (typeof value === "string" && value.trim() !== "" && !textRegex.test(value)) {
-          return { valid: false, message: t("invalid_characters") }
-        }
+        // บังคับให้กรอกตัวเลขเท่านั้น
+        const strValue = typeof value === "number" ? String(value) : value ?? ""
+        if (!textRegex.test(strValue)) return { valid: false, message: t("numbers_only") }
         return { valid: true, message: null }
 
       case "checkbox":
@@ -95,16 +93,15 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
     }
   }
 
-  // ใช้ useEffect เพื่อทำการตรวจสอบค่าเริ่มต้นและเมื่อคำถามหรือคำตอบเริ่มต้นเปลี่ยน
+  // ตรวจสอบค่าเริ่มต้นเมื่อโหลดคำถาม
   useEffect(() => {
     const initialValue =
-      answer?.answer !== undefined
-        ? answer.answer
-        : question.type === "checkbox" || question.type === "multi-select-combobox-with-other"
-          ? []
-          : question.type === "number" || question.type === "text"
-            ? null
-            : ""
+      answer?.answer ??
+      (question.type === "checkbox" || question.type === "multi-select-combobox-with-other"
+        ? []
+        : question.type === "number" || question.type === "text"
+        ? null
+        : "")
     setCurrentAnswer(initialValue)
     const initialValidation = validateInput(initialValue)
     setError(initialValidation.message)
@@ -112,6 +109,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
     onAnswer(question.id, initialValue, 0, initialValidation.valid)
   }, [question.id, answer?.answer])
 
+  // ฟังก์ชันจัดการการเปลี่ยนค่า
   const handleAnswerChange = (value: string | number | string[] | null) => {
     setCurrentAnswer(value)
     const validationResult = validateInput(value)
@@ -120,16 +118,18 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
     onAnswer(question.id, value, 0, validationResult.valid)
   }
 
+  // render input ตามประเภทคำถาม
   const renderQuestionInput = () => {
     switch (question.type) {
       case "multiple-choice":
       case "rating":
       case "radio":
-      case "yes-no":
-        const yesNoOptions = question.options || [
-          { value: "yes", label: "ใช่" },
-          { value: "no", label: "ไม่ใช่" },
-        ]
+      case "yes-no": {
+        const yesNoOptions =
+          question.options || [
+            { value: "yes", label: "ใช่" },
+            { value: "no", label: "ไม่ใช่" },
+          ]
         return (
           <div className="space-y-4">
             <RadioGroup
@@ -147,7 +147,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                     String(currentAnswer) === option.value
                       ? "bg-blue-50 border-blue-500 shadow-md dark:bg-blue-900/20 dark:border-blue-400"
                       : "bg-white border-gray-200 dark:bg-gray-800/30 dark:border-gray-700",
-                    "group",
+                    "group"
                   )}
                   onClick={() => handleAnswerChange(option.value)}
                 >
@@ -164,7 +164,6 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                 </div>
               ))}
             </RadioGroup>
-
             {question.type === "rating" && (
               <div className="flex justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 px-2 mt-4">
                 <span>{t("minimum")}</span>
@@ -173,6 +172,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
             )}
           </div>
         )
+      }
 
       case "checkbox":
         return (
@@ -187,16 +187,15 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                   Array.isArray(currentAnswer) && currentAnswer.includes(option.value)
                     ? "bg-blue-50 border-blue-500 shadow-md dark:bg-blue-900/20 dark:border-blue-400"
                     : "bg-white border-gray-200 dark:bg-gray-800/30 dark:border-gray-700",
-                  "group",
+                  "group"
                 )}
                 onClick={() => {
                   const newAnswer = Array.isArray(currentAnswer) ? [...currentAnswer] : []
                   const isChecked = newAnswer.includes(option.value)
                   if (isChecked) {
                     const index = newAnswer.indexOf(option.value)
-                    if (index > -1) {
+                    if (index > -1) 
                       newAnswer.splice(index, 1)
-                    }
                   } else {
                     newAnswer.push(option.value)
                   }
@@ -228,28 +227,32 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                 >
                   {option.label}
                 </Label>
-                {Array.isArray(currentAnswer) && currentAnswer.includes(option.value) && (
-                  <CheckCircle2 className="h-5 w-5 text-blue-500 dark:text-blue-400" />
-                )}
+                {Array.isArray(currentAnswer) && currentAnswer.includes(option.value) && 
+                  <CheckCircle2 className="h-5 w-5 text-blue-500 dark:text-blue-400" />}
               </div>
             ))}
           </div>
         )
-
+        //เปลี่ยนtype='text' เพราะจะไม่ให้พิมพ์ค่า - , ตัวอักษร เข้าไป
       case "number":
         return (
           <div className="space-y-2">
             <Input
-              type="number"
+              type="text" // ใช้ text แต่บังคับ numeric ด้วย regex
+              inputMode="numeric" // mobile keyboard เป็น numeric
+              pattern="[0-9]*" // browser regex
               value={currentAnswer === null ? "" : String(currentAnswer)}
-              onChange={(e) => handleAnswerChange(e.target.value === "" ? null : Number(e.target.value))}
+              onChange={(e) => {
+                const val = e.target.value
+                if (/^[0-9]*$/.test(val)) handleAnswerChange(val === "" ? null : Number(val))
+              }}
               placeholder={t("enter_number_placeholder")}
               className={cn(
                 "text-center text-base sm:text-lg h-12 sm:h-14 rounded-xl border-2 transition-all duration-200",
                 "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                 "dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100",
                 error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "",
-                isValid && currentAnswer !== null ? "border-green-500" : "",
+                isValid && currentAnswer !== null ? "border-green-500" : ""
               )}
             />
           </div>
@@ -260,14 +263,17 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
           <div className="space-y-2">
             <Textarea
               value={currentAnswer === null ? "" : String(currentAnswer)}
-              onChange={(e) => handleAnswerChange(e.target.value.trim() === "" ? null : e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value
+                if (/^[0-9]*$/.test(val)) handleAnswerChange(val === "" ? null : val)
+              }}
               placeholder={t("enter_answer_placeholder")}
               className={cn(
                 "min-h-[100px] sm:min-h-[120px] rounded-xl border-2 transition-all duration-200 resize-none",
                 "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                 "dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100",
                 error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "",
-                isValid && currentAnswer !== null ? "border-green-500" : "",
+                isValid && currentAnswer !== null ? "border-green-500" : ""
               )}
             />
           </div>
@@ -296,7 +302,6 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
       <CardHeader className="bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-50/30 dark:from-gray-800 dark:via-gray-800/80 dark:to-gray-900/50 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-grid-slate-100/50 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.1))] dark:bg-grid-slate-700/25" />
-
         <div className="relative z-10">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
@@ -306,7 +311,7 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                 </div>
                 <div className="flex-1">
                   <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 text-gray-800 dark:text-gray-100 leading-tight">
-                    {question.question}
+                    {question.question} 
                     {question.required && <span className="text-red-500 ml-1">*</span>}
                   </CardTitle>
                   {question.description && (
@@ -317,7 +322,6 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
                 </div>
               </div>
             </div>
-
             <div className="flex flex-col items-end gap-2">
               {question.required && (
                 <div className="flex items-center text-red-500 text-xs bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-full border border-red-200 dark:border-red-800">
@@ -333,7 +337,6 @@ export function QuestionCard({ question, answer, onAnswer }: QuestionCardProps) 
       <CardContent className="p-6 sm:p-8">
         <div className="space-y-4">
           {renderQuestionInput()}
-
           {error && (
             <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
