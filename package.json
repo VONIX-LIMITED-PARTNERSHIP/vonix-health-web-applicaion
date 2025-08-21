@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^0.0.66",
+    "@ai-sdk/openai": "^2.0.17",
     "@hookform/resolvers": "^3.9.0",
     "@next/third-parties": "^14.2.30",
     "@radix-ui/react-accordion": "^1.2.1",
@@ -46,7 +46,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "ai": "^3.4.32",
+    "ai": "^5.0.19",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
