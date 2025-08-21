@@ -29,10 +29,10 @@ const nextConfig = {
           },
           // Content Security Policy (CSP)
           // Prevents cross-site scripting (XSS) and other code injection attacks
-          {
-            key: 'Content-Security-Policy',
-            value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL} https://api.openai.com;`,
-          },
+          // {
+          //   key: 'Content-Security-Policy',
+          //   value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL} https://api.openai.com;`,
+          // },
           // X-Content-Type-Options
           // Prevents browsers from MIME-sniffing a response away from the declared content-type
           {
