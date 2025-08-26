@@ -117,7 +117,10 @@ export function ChatWidget() {
     setIsTyping(true)
 
     try {
-      const conversationForAI = [...messages, userMessage].map((msg) => ({
+
+      type AIMessage = { role: "user" | "assistant"; content: string }
+
+      const conversationForAI: AIMessage[] =  [...messages, userMessage].map((msg) => ({
         role: msg.sender === "user" ? "user" : "assistant",
         content: msg.content,
       }))
