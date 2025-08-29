@@ -240,6 +240,15 @@ const en = {
     cta_try_platform: "Try Our Platform",
     cta_learn_more: "Learn More",
 
+    // About Vonix
+    about_vonix_title: "About VONIX",
+    about_vonix_description1: "VONIX is a Thailand-based digital health startup using AI, blockchain, and telemedicine to make healthcare accessible, intelligent, and secure, empowering people to manage their own wellness.",
+
+     // Milestones of VONIX
+    Milestone: "VONIX’s Key",
+    Milestone_description: "VONIX has signed a Memorandum of Understanding (MOU) with Ai Deta Co., Ltd. This collaboration will provide opportunities for joint development, technology and knowledge exchange, and the organization of creative initiatives in Thailand’s HealthTech sector as well as on an international level.",
+    
+
     // Mission Section
     mission_title: "Built for the Future of Digital Health",
     mission_description:
@@ -253,6 +262,14 @@ const en = {
     value_intelligent_title: "Intelligent",
     value_intelligent_desc: "AI-powered insights for better health decisions and personalized care.",
 
+    // Our Vision
+    ourvision_title: "Our Vision",
+    ourvision_description: "We envision a world where basic healthcare is universally accessible, delivered in a timely manner, and emotionally supportive - ensuring that no one feels alone in managing their health, regardless of their location or social circumstances.",
+
+    // Our Mission
+    ourmission_title: "Our Mission",
+    ourmission_description: "Our mission is to develop health technology solutions that are easy to use, widely accessible, and built with privacy by design. We aim to support individuals in making informed decisions about their well-being, by offering platforms that are both empathetic and compliant with the highest standards of security and data protection.",
+      
     // Solutions Section
     solutions_title: "Our Core Solutions",
     solutions_description: "Advanced technologies creating comprehensive digital health solutions.",

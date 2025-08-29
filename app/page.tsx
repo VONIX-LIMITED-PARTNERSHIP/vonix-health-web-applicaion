@@ -36,6 +36,8 @@ import {
   TrendingUp,
   Award,
   Wind,
+  icons,
+  List,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -356,7 +358,49 @@ export default function HomePage() {
         bgGradient: "from-rose-50 to-red-50",
         darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
       },
+      {
+        id: "hdr",
+        icon: Wind,
+        required: true,
+        gradient: "from-green-600 to-lime-600",
+        bgGradient: "from-green-50 to-lime-50",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
+      },
+      {
+        id: "ffq",
+        icon: List,
+        required: true,
+        gradient: "from-purple-500 to-purple-700",
+        bgGradient: "from-purple-50 to-purple-100",
+        darkBgGradient: "dark:from-gray-900 dark:to-gray-800",
+      },
+      {
+         id: "ipaq",
+         icon: Zap, 
+         required: true,
+         gradient: "from-teal-500 to-teal-700",
+         bgGradient: "from-teal-50 to-teal-100",
+         darkBgGradient: "dark:from-gray-900 dark:to-gray-800",
+      },
+      {
+        id: "hra",
+        icon: Stethoscope,
+        required: true,
+        gradient: "from-red-500 to-red-700",
+        bgGradient: "from-red-50 to-red-100",
+        darkBgGradient: "dark:from-gray-800 dark:to-gray-700",
 
+      },
+      {
+        id: "fls",
+        icon: Shield,
+        required: true,
+        gradient: "from-purple-500 to-purple-700",
+        bgGradient: "from-purple-50 to-purple-100",
+        darkBgGradient: "dark:from-gray-900 dark:to-gray-800",
+
+
+      },
 
     ]
 
