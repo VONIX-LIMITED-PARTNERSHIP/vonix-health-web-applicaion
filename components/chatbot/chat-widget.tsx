@@ -14,7 +14,7 @@ import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, Loader2 } from
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
-interface Message {
+interface Message { // Interface is a TypeScript feature that defines the shape of an object.
   id: string
   content: string
   sender: "user" | "bot"
@@ -36,6 +36,33 @@ export function ChatWidget() {
   const [hasInteracted, setHasInteracted] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const [showInstructions, setShowInstructions] = useState(false) //for the popup instruction about the chatbot for the new users
+
+
+   // Load messages from localStorage when the widget mounts
+   useEffect(() => {
+    const savedMessages = localStorage.getItem("chatMessages")
+    if (savedMessages) {
+      try {
+        const parsed = JSON.parse(savedMessages)
+        // Restore timestamps as Date objects
+        const restored = parsed.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }))
+        setMessages(restored)
+      } catch (e) {
+        console.error("Failed to parse saved chat messages:", e)
+      }
+    }
+  }, [])
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem("chatMessages", JSON.stringify(messages))
+    }
+  }, [messages])
 
   // Check if current page is an assessment page
   const isAssessmentPage = pathname?.includes("/assessment/") || pathname?.includes("/guest-assessment")
@@ -71,6 +98,8 @@ export function ChatWidget() {
       setIsOpen(false)
     }
   }, [isAssessmentPage, isOpen])
+
+
 
   const generateBotResponse = async (
     userMessage: string,
@@ -164,10 +193,21 @@ export function ChatWidget() {
   }
 
   const toggleChat = () => {
-    setIsOpen(!isOpen)
-    if (!isOpen) {
+    if (isOpen) {
+      // Closing → clear localStorage + state
+      localStorage.removeItem("chatMessages") 
+      setMessages([]) 
+    }
+    else {
+      // Show instructions only if not seen before
+      const seen = localStorage.getItem("chatInstructionsSeen")
+      if (!seen) {
+        setShowInstructions(true)
+        localStorage.setItem("chatInstructionsSeen", "true")
+      }
       setHasNewMessage(false)
     }
+    setIsOpen(!isOpen)
   }
 
   const toggleMinimize = () => {
@@ -205,13 +245,13 @@ export function ChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-[99] w-96 h-[600px] max-w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-3rem)] flex flex-col rounded-3xl overflow-hidden">
+        <div className={cn("fixed bottom-20 right-4 z-[99] w-full sm:bottom-24 sm:right-6 sm:w-96 flex flex-col rounded-2xl overflow-hidden transition-all duration-300",isMinimized ? "h-[64px]" : "h-[70vh] sm:h-[600px]")}>
           <Card className="h-full bg-card dark:bg-card-foreground backdrop-blur-xl border border-border shadow-2xl flex flex-col">
             {/* Header */}
-            <CardHeader className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white p-6 shadow-lg flex flex-row items-center justify-between flex-shrink-0">
+            <CardHeader className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white p-3 sm:p-4 shadow-lg flex flex-row items-center justify-between flex-shrink-0">
               <div className="flex items-center space-x-4">
                 <div className="relative">
-                  <Avatar className="h-12 w-12 border-3 border-white/30 shadow-lg">
+                  <Avatar className="h-10 w-12 border-3 border-white/30 shadow-lg">
                     <AvatarImage src="/chatbot-avatar-v2.png" />
                     <AvatarFallback className="bg-white/20 text-white text-lg font-bold backdrop-blur-sm">
                       <Bot className="h-6 w-6" />
@@ -234,7 +274,7 @@ export function ChatWidget() {
                   onClick={toggleMinimize}
                   className="text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-200"
                 >
-                  {isMinimized ? <Maximize2 className="h-5 w-5" /> : <Minimize2 className="h-5 w-5" />}
+                {isMinimized ? <Maximize2 className="h-5 w-5" /> : <Minimize2 className="h-5 w-5" />}
                 </Button>
                 <Button
                   variant="ghost"
@@ -251,6 +291,22 @@ export function ChatWidget() {
             {!isMinimized && (
               <>
                 <CardContent className="flex-1 p-0 flex flex-col overflow-hidden bg-white dark:bg-[#12131a]">
+                  {showInstructions && (
+                    <div className="px-4 py-3 mb-2 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-900 dark:text-yellow-200 rounded-lg text-sm shadow-sm flex items-start justify-between">
+                      <span>
+                        ℹ️ <strong>วิธีใช้งาน:</strong>  
+                        กด <Minimize2 className="inline-block h-4 w-4 mx-1" /> เพื่อลดขนาด (ประวัติยังคงอยู่)  
+                        และกด <X className="inline-block h-4 w-4 mx-1" /> เพื่อปิดแชทและลบประวัติ
+                      </span>
+                      <button
+                        onClick={() => setShowInstructions(false)}
+                        className="ml-2 text-xs font-semibold underline"
+                      >
+                        ปิด
+                      </button>
+                    </div>
+                  )}
+
                   <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
                     <div className="space-y-4">
                       {messages.map((message) => (
@@ -343,7 +399,7 @@ export function ChatWidget() {
                 </CardContent>
 
                 {/* Input Area - Always visible */}
-                <div className="p-6 bg-background dark:bg-muted border-t border-border flex-shrink-0">
+                <div className="p-3 sm:p-4 bg-background dark:bg-muted border-t border-border flex-shrink-0">
                   <div className="flex items-end space-x-4">
                     <Input
                       ref={inputRef}
@@ -357,7 +413,7 @@ export function ChatWidget() {
                     <Button
                       onClick={handleSendMessage}
                       disabled={!inputValue.trim() || isTyping}
-                      className="rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 p-4 h-[52px] w-[52px] shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0"
+                      className="rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 p-4 h-[px] w-[52px] shadow-lg hover:shadow-xl transition-all duration-200 flex-shrink-0"
                     >
                       {isTyping ? (
                         <Loader2 className="h-5 w-5 animate-spin text-white" />
