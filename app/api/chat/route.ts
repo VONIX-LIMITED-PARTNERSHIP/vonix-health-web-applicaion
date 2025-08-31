@@ -298,7 +298,7 @@ export async function POST(req: Request) {
       content: msg.content,
     }))
 
-    let botResponse: string
+    let botResponse = "" 
     let intentCategory: z.infer<typeof IntentSchema>["category"]
     let healthDataSummary = ""
     let hasPersonalizedHealthData = false
