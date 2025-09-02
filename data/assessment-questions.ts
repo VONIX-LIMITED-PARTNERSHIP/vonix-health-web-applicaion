@@ -1,4 +1,4 @@
-import type { ComponentIcon as IconNode } from "lucide-react"
+import type { LucideIcon as IconNode } from "lucide-react"
 
 // Define the AssessmentCategory type
 export type AssessmentCategory = {
@@ -2012,8 +2012,514 @@ export const assessmentData = {
           },
         ],
       },
-    ],
-  },
+      {
+      "title": "แบบประเมินความวิตกกังวลทั่วไป 7 ข้อ (GAD-7)",
+      "questions": [
+        {
+          "id": "GAD-1",
+          "question": "รู้สึกกังวล วิตกกังวล หรือกระวนกระวาย",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "มีบางวัน", "value": 1 },
+            { "label": "กว่าครึ่งหนึ่งของวัน", "value": 2 },
+            { "label": "เกือบทุกวัน", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-2",
+          "question": "ไม่สามารถหยุดหรือควบคุมความกังวลได้",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "มีบางวัน", "value": 1 },
+            { "label": "กว่าครึ่งหนึ่งของวัน", "value": 2 },
+            { "label": "เกือบทุกวัน", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-3",
+          "question": "กังวลเกี่ยวกับสิ่งต่าง ๆ หลายเรื่องมากเกินไป",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "มีบางวัน", "value": 1 },
+            { "label": "กว่าครึ่งหนึ่งของวัน", "value": 2 },
+            { "label": "เกือบทุกวัน", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-4",
+          "question": "มีปัญหาในการผ่อนคลาย",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "มีบางวัน", "value": 1 },
+            { "label": "กว่าครึ่งหนึ่งของวัน", "value": 2 },
+            { "label": "เกือบทุกวัน", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-5",
+          "question": "ไม่สามารถอยู่นิ่งได้ รู้สึกกระสับกระส่ายจนอยู่ไม่สุข",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "มีบางวัน", "value": 1 },
+            { "label": "กว่าครึ่งหนึ่งของวัน", "value": 2 },
+            { "label": "เกือบทุกวัน", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-6",
+          "question": "รู้สึกหงุดหงิดหรือโมโหได้ง่าย",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "มีบางวัน", "value": 1 },
+            { "label": "กว่าครึ่งหนึ่งของวัน", "value": 2 },
+            { "label": "เกือบทุกวัน", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-7",
+          "question": "รู้สึกกลัวเหมือนมีบางสิ่งเลวร้ายจะเกิดขึ้น",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "มีบางวัน", "value": 1 },
+            { "label": "กว่าครึ่งหนึ่งของวัน", "value": 2 },
+            { "label": "เกือบทุกวัน", "value": 3 }
+          ]
+        }
+      ]
+      },
+      {
+      "title": "แบบประเมินความเครียด วิตกกังวล และซึมเศร้า 21 ข้อ (DASS-21)",
+      "questions": [
+        {
+          "id": "DASS-21-1",
+          "question": "ฉันไม่สามารถรู้สึกมีความสุขได้",
+          "dimension": "Depression",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-2",
+          "question": "ฉันรู้สึกว่าชีวิตไม่มีความหมาย",
+          "dimension": "Depression",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-3",
+          "question": "ฉันไม่สามารถกระตุ้นตัวเองได้",
+          "dimension": "Depression",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-4",
+          "question": "ฉันรู้สึกตัวสั่น (เช่น มือสั่น)",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-5",
+          "question": "ฉันรู้สึกกลัวอย่างไม่มีเหตุผล",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-6",
+          "question": "ฉันกังวลกับสถานการณ์ต่าง ๆ",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-7",
+          "question": "ฉันรู้สึกยากที่จะผ่อนคลาย",
+          "dimension": "Stress",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-8",
+          "question": "ฉันหงุดหงิดง่าย",
+          "dimension": "Stress",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-9",
+          "question": "ฉันรู้สึกกังวลว่าต้องใช้ความพยายามมาก",
+          "dimension": "Stress",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-10",
+          "question": "ฉันรู้สึกว่าไม่มีอะไรน่าสนใจให้ทำ",
+          "dimension": "Depression",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-11",
+          "question": "ฉันรู้สึกว่าตัวเองไม่มีค่า",
+          "dimension": "Depression",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-12",
+          "question": "ฉันรู้สึกกระวนกระวายใจ",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-13",
+          "question": "ฉันรู้สึกว่าตัวเองไม่สามารถทนต่อการขัดจังหวะใด ๆ ที่ทำให้กิจกรรมของฉันติดขัดได้",
+          "dimension": "Stress",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-14",
+          "question": "ฉันรู้สึกว่าตัวเองกำลังจะตื่นตระหนก",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-15",
+          "question": "ฉันไม่สามารถตื่นเต้นได้เลย",
+          "dimension": "Depression",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-16",
+          "question": "ฉันรู้สึกว่าตัวเองไม่มีค่า",
+          "dimension": "Depression",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-17",
+          "question": "ฉันรู้สึกว่าชีวิตไม่มีความหมาย",
+          "dimension": "Depression",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-18",
+          "question": "ฉันหงุดหงิดง่าย",
+          "dimension": "Stress",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-19",
+          "question": "ฉันรู้สึกว่าตัวเองไม่มีค่า",
+          "dimension": "Depression",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-20",
+          "question": "ฉันรู้สึกกระวนกระวายใจ",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-21",
+          "question": "ฉันไม่สามารถกระตุ้นตัวเองได้",
+          "dimension": "Depression",
+          "options": [
+            { "label": "ไม่ตรงกับฉันเลย", "value": 0 },
+            { "label": "ตรงกับฉันบ้างหรือบางครั้ง", "value": 1 },
+            { "label": "ตรงกับฉันบ่อยครั้ง", "value": 2 },
+            { "label": "ตรงกับฉันเกือบตลอดเวลา", "value": 3 }
+          ]
+        }
+      ]
+    },
+      {
+      "title": "แบบประเมินความเครียดที่รับรู้ (PSS)",
+      "questions": [
+        {
+          "id": "PSS-1",
+          "question": "รู้สึกว่าชีวิตเต็มไปด้วยสิ่งที่คาดเดาไม่ได้",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "แทบจะไม่เคย", "value": 1 },
+            { "label": "บางครั้ง", "value": 2 },
+            { "label": "ค่อนข้างบ่อย", "value": 3 },
+            { "label": "บ่อยมาก", "value": 4 }
+          ]
+        },
+        {
+          "id": "PSS-2",
+          "question": "รู้สึกไม่สามารถควบคุมสิ่งสำคัญในชีวิตได้",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "แทบจะไม่เคย", "value": 1 },
+            { "label": "บางครั้ง", "value": 2 },
+            { "label": "ค่อนข้างบ่อย", "value": 3 },
+            { "label": "บ่อยมาก", "value": 4 }
+          ]
+        },
+        {
+          "id": "PSS-3",
+          "question": "รู้สึกว่ากังวลหรือเครียดเกินไป",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "แทบจะไม่เคย", "value": 1 },
+            { "label": "บางครั้ง", "value": 2 },
+            { "label": "ค่อนข้างบ่อย", "value": 3 },
+            { "label": "บ่อยมาก", "value": 4 }
+          ]
+        },
+        {
+          "id": "PSS-4",
+          "question": "รู้สึกมั่นใจในความสามารถในการแก้ปัญหาส่วนตัว",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "แทบจะไม่เคย", "value": 1 },
+            { "label": "บางครั้ง", "value": 2 },
+            { "label": "ค่อนข้างบ่อย", "value": 3 },
+            { "label": "บ่อยมาก", "value": 4 }
+          ],
+          "reverse_score": true
+        },
+        {
+          "id": "PSS-5",
+          "question": "รู้สึกว่าสามารถควบคุมความรำคาญได้",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "แทบจะไม่เคย", "value": 1 },
+            { "label": "บางครั้ง", "value": 2 },
+            { "label": "ค่อนข้างบ่อย", "value": 3 },
+            { "label": "บ่อยมาก", "value": 4 }
+          ],
+          "reverse_score": true
+        },
+        {
+          "id": "PSS-6",
+          "question": "รู้สึกว่าสามารถรับมือกับสิ่งที่ต้องทำได้",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "แทบจะไม่เคย", "value": 1 },
+            { "label": "บางครั้ง", "value": 2 },
+            { "label": "ค่อนข้างบ่อย", "value": 3 },
+            { "label": "บ่อยมาก", "value": 4 }
+          ],
+          "reverse_score": true
+        },
+        {
+          "id": "PSS-7",
+          "question": "รู้สึกควบคุมสิ่งต่าง ๆ ไม่ได้",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "แทบจะไม่เคย", "value": 1 },
+            { "label": "บางครั้ง", "value": 2 },
+            { "label": "ค่อนข้างบ่อย", "value": 3 },
+            { "label": "บ่อยมาก", "value": 4 }
+          ]
+        },
+        {
+          "id": "PSS-8",
+          "question": "รู้สึกโกรธเพราะสิ่งที่อยู่นอกการควบคุม",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "แทบจะไม่เคย", "value": 1 },
+            { "label": "บางครั้ง", "value": 2 },
+            { "label": "ค่อนข้างบ่อย", "value": 3 },
+            { "label": "บ่อยมาก", "value": 4 }
+          ]
+        },
+        {
+          "id": "PSS-9",
+          "question": "รู้สึกควบคุมได้ว่าทำสิ่งต่าง ๆ สำเร็จ",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "แทบจะไม่เคย", "value": 1 },
+            { "label": "บางครั้ง", "value": 2 },
+            { "label": "ค่อนข้างบ่อย", "value": 3 },
+            { "label": "บ่อยมาก", "value": 4 }
+          ],
+          "reverse_score": true
+        },
+        {
+          "id": "PSS-10",
+          "question": "รู้สึกว่าปัญหาต่าง ๆ มากเกินไป",
+          "options": [
+            { "label": "ไม่เคยเลย", "value": 0 },
+            { "label": "แทบจะไม่เคย", "value": 1 },
+            { "label": "บางครั้ง", "value": 2 },
+            { "label": "ค่อนข้างบ่อย", "value": 3 },
+            { "label": "บ่อยมาก", "value": 4 }
+          ]
+        }
+      ]
+    },
+      {
+      "title": "การตรวจประเมินสภาพจิตใจแบบสั้น (MMSE)",
+      "description": "แบบประเมินนี้ใช้เพื่อคัดกรองความผิดปกติของการทำงานของสมองด้านการรู้คิด (cognitive function) เช่น ความจำ, การใช้ภาษา, และความสามารถในการแก้ปัญหา",
+      "questions": [
+        {
+          "id": "MMSE-1",
+          "question": "วันนี้ วันอะไร",
+          "type": "text",
+          "category": "Orientation to time",
+          "note": "คำตอบที่ถูกต้องคือวันปัจจุบัน"
+        },
+        {
+          "id": "MMSE-2",
+          "question": "วันที่เท่าไหร่",
+          "type": "text",
+          "category": "Orientation to time",
+          "note": "คำตอบที่ถูกต้องคือวันที่ปัจจุบัน"
+        },
+        {
+          "id": "MMSE-3",
+          "question": "ตอนนี้อยู่ที่ไหน",
+          "type": "text",
+          "category": "Orientation to place",
+          "note": "คำตอบที่ถูกต้องคือสถานที่ที่กำลังทำแบบประเมิน"
+        },
+        {
+          "id": "MMSE-4",
+          "question": "ทวนคำ 3 คำ",
+          "type": "text",
+          "category": "Registration",
+          "note": "ผู้ประเมินจะให้คำ 3 คำแก่ผู้เข้ารับการประเมินเพื่อทวนซ้ำทันที"
+        },
+        {
+          "id": "MMSE-5",
+          "question": "จำคำ 3 คำ",
+          "type": "text",
+          "category": "Recall",
+          "note": "ให้ผู้เข้ารับการประเมินทบทวนคำ 3 คำที่กล่าวไปในข้อก่อนหน้า"
+        },
+        {
+          "id": "MMSE-6",
+          "question": "ลบเลข/สะกด WORLD",
+          "type": "text",
+          "category": "Attention and calculation",
+          "note": "เลือกการทดสอบอย่างใดอย่างหนึ่ง: ให้ผู้เข้ารับการประเมินลบเลข 7 จาก 100 ไปเรื่อยๆ หรือให้สะกดคำว่า 'WORLD' ย้อนกลับ"
+        },
+        {
+          "id": "MMSE-7",
+          "question": "บอกชื่อวัตถุ 2 ชิ้น",
+          "type": "text",
+          "category": "Naming",
+          "note": "ผู้ประเมินจะชี้ไปที่วัตถุ 2 ชิ้น เช่น ปากกาและนาฬิกา และให้ผู้เข้ารับการประเมินบอกชื่อ"
+        },
+        {
+          "id": "MMSE-8",
+          "question": "ทำตามคำสั่ง 3 ขั้นตอน",
+          "type": "text",
+          "category": "Comprehension",
+          "note": "ผู้ประเมินจะให้คำสั่ง 3 ขั้นตอน เช่น 'หยิบกระดาษขึ้นมา พับครึ่ง แล้ววางลงกับพื้น'"
+        },
+        {
+          "id": "MMSE-9",
+          "question": "เขียนประโยค",
+          "type": "text",
+          "category": "Writing",
+          "note": "ให้ผู้เข้ารับการประเมินเขียนประโยคใดก็ได้"
+        },
+        {
+          "id": "MMSE-10",
+          "question": "คัดลอกรูปภาพ 5 เหลี่ยม",
+          "type": "text",
+          "category": "Visuospatial",
+          "note": "ผู้ประเมินจะให้ผู้เข้ารับการประเมินวาดรูป 5 เหลี่ยมสองอันที่ซ้อนทับกัน"
+        }
+      ]
+    }
+  ],
+},
   en: {
     categories: [
       {
@@ -3672,6 +4178,577 @@ export const assessmentData = {
           },
         ],
       },
+      {
+      "title": "Generalized Anxiety Disorder 7-item (GAD-7)",
+      "questions": [
+        {
+          "id": "GAD-1",
+          "question": "Feeling nervous, anxious, or on edge",
+          "options": [
+            { "label": "Not at all", "value": 0 },
+            { "label": "Several days", "value": 1 },
+            { "label": "More than half the days", "value": 2 },
+            { "label": "Nearly every day", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-2",
+          "question": "Not being able to stop or control worrying",
+          "options": [
+            { "label": "Not at all", "value": 0 },
+            { "label": "Several days", "value": 1 },
+            { "label": "More than half the days", "value": 2 },
+            { "label": "Nearly every day", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-3",
+          "question": "Worrying too much about different things",
+          "options": [
+            { "label": "Not at all", "value": 0 },
+            { "label": "Several days", "value": 1 },
+            { "label": "More than half the days", "value": 2 },
+            { "label": "Nearly every day", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-4",
+          "question": "Trouble relaxing",
+          "options": [
+            { "label": "Not at all", "value": 0 },
+            { "label": "Several days", "value": 1 },
+            { "label": "More than half the days", "value": 2 },
+            { "label": "Nearly every day", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-5",
+          "question": "Being so restless that it is hard to sit still",
+          "options": [
+            { "label": "Not at all", "value": 0 },
+            { "label": "Several days", "value": 1 },
+            { "label": "More than half the days", "value": 2 },
+            { "label": "Nearly every day", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-6",
+          "question": "Becoming easily annoyed or irritable",
+          "options": [
+            { "label": "Not at all", "value": 0 },
+            { "label": "Several days", "value": 1 },
+            { "label": "More than half the days", "value": 2 },
+            { "label": "Nearly every day", "value": 3 }
+          ]
+        },
+        {
+          "id": "GAD-7",
+          "question": "Feeling afraid as if something awful might happen",
+          "options": [
+            { "label": "Not at all", "value": 0 },
+            { "label": "Several days", "value": 1 },
+            { "label": "More than half the days", "value": 2 },
+            { "label": "Nearly every day", "value": 3 }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Depression, Anxiety, and Stress Scale - 21 Items (DASS-21)",
+      "questions": [
+        {
+          "id": "DASS-21-1",
+          "question": "I could not feel happy",
+          "dimension": "Depression",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-2",
+          "question": "I felt that life was meaningless",
+          "dimension": "Depression",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-3",
+          "question": "I could not motivate myself",
+          "dimension": "Depression",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-4",
+          "question": "I experienced trembling (e.g., in the hands)",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-5",
+          "question": "I felt irrational fear",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-6",
+          "question": "I was worried about different situations",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-7",
+          "question": "I found it hard to relax",
+          "dimension": "Stress",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-8",
+          "question": "I was easily irritated",
+          "dimension": "Stress",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-9",
+          "question": "I felt that everything required too much effort",
+          "dimension": "Stress",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-10",
+          "question": "I felt that nothing was interesting to do",
+          "dimension": "Depression",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-11",
+          "question": "I felt worthless",
+          "dimension": "Depression",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-12",
+          "question": "I felt restless",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-13",
+          "question": "I found it difficult to tolerate interruptions to my activities",
+          "dimension": "Stress",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-14",
+          "question": "I felt that I was about to panic",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-15",
+          "question": "I could not get excited at all",
+          "dimension": "Depression",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-16",
+          "question": "I felt worthless",
+          "dimension": "Depression",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-17",
+          "question": "I felt that life was meaningless",
+          "dimension": "Depression",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-18",
+          "question": "I was easily irritated",
+          "dimension": "Stress",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-19",
+          "question": "I felt worthless",
+          "dimension": "Depression",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-20",
+          "question": "I felt restless",
+          "dimension": "Anxiety",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        },
+        {
+          "id": "DASS-21-21",
+          "question": "I could not motivate myself",
+          "dimension": "Depression",
+          "options": [
+            { "label": "Did not apply to me at all", "value": 0 },
+            { "label": "Applied to me to some degree, or some of the time", "value": 1 },
+            { "label": "Applied to me a considerable degree, or a good part of the time", "value": 2 },
+            { "label": "Applied to me very much, or most of the time", "value": 3 }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "WHO-5 Well-Being Index (WHO-5 WBI)",
+      "questions": [
+        {
+          "id": "WHO-5-WBI-1",
+          "question": "I have felt cheerful and in good spirits",
+          "options": [
+            { "label": "At no time", "value": 0 },
+            { "label": "Some of the time", "value": 1 },
+            { "label": "Less than half of the time", "value": 2 },
+            { "label": "More than half of the time", "value": 3 },
+            { "label": "Most of the time", "value": 4 },
+            { "label": "All of the time", "value": 5 }
+          ]
+        },
+        {
+          "id": "WHO-5-WBI-2",
+          "question": "I have felt calm and relaxed",
+          "options": [
+            { "label": "At no time", "value": 0 },
+            { "label": "Some of the time", "value": 1 },
+            { "label": "Less than half of the time", "value": 2 },
+            { "label": "More than half of the time", "value": 3 },
+            { "label": "Most of the time", "value": 4 },
+            { "label": "All of the time", "value": 5 }
+          ]
+        },
+        {
+          "id": "WHO-5-WBI-3",
+          "question": "I have felt active and vigorous",
+          "options": [
+            { "label": "At no time", "value": 0 },
+            { "label": "Some of the time", "value": 1 },
+            { "label": "Less than half of the time", "value": 2 },
+            { "label": "More than half of the time", "value": 3 },
+            { "label": "Most of the time", "value": 4 },
+            { "label": "All of the time", "value": 5 }
+          ]
+        },
+        {
+          "id": "WHO-5-WBI-4",
+          "question": "I woke up feeling fresh and rested",
+          "options": [
+            { "label": "At no time", "value": 0 },
+            { "label": "Some of the time", "value": 1 },
+            { "label": "Less than half of the time", "value": 2 },
+            { "label": "More than half of the time", "value": 3 },
+            { "label": "Most of the time", "value": 4 },
+            { "label": "All of the time", "value": 5 }
+          ]
+        },
+        {
+          "id": "WHO-5-WBI-5",
+          "question": "My daily life has been filled with things that interest me",
+          "options": [
+            { "label": "At no time", "value": 0 },
+            { "label": "Some of the time", "value": 1 },
+            { "label": "Less than half of the time", "value": 2 },
+            { "label": "More than half of the time", "value": 3 },
+            { "label": "Most of the time", "value": 4 },
+            { "label": "All of the time", "value": 5 }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Perceived Stress Scale (PSS)",
+      "questions": [
+        {
+          "id": "PSS-1",
+          "question": "Felt that your life was unpredictable",
+          "options": [
+            { "label": "Never", "value": 0 },
+            { "label": "Almost never", "value": 1 },
+            { "label": "Sometimes", "value": 2 },
+            { "label": "Fairly often", "value": 3 },
+            { "label": "Very often", "value": 4 }
+          ]
+        },
+        {
+          "id": "PSS-2",
+          "question": "Felt unable to control important things in your life",
+          "options": [
+            { "label": "Never", "value": 0 },
+            { "label": "Almost never", "value": 1 },
+            { "label": "Sometimes", "value": 2 },
+            { "label": "Fairly often", "value": 3 },
+            { "label": "Very often", "value": 4 }
+          ]
+        },
+        {
+          "id": "PSS-3",
+          "question": "Felt nervous or stressed",
+          "options": [
+            { "label": "Never", "value": 0 },
+            { "label": "Almost never", "value": 1 },
+            { "label": "Sometimes", "value": 2 },
+            { "label": "Fairly often", "value": 3 },
+            { "label": "Very often", "value": 4 }
+          ]
+        },
+        {
+          "id": "PSS-4",
+          "question": "Felt confident about your ability to handle personal problems",
+          "options": [
+            { "label": "Never", "value": 0 },
+            { "label": "Almost never", "value": 1 },
+            { "label": "Sometimes", "value": 2 },
+            { "label": "Fairly often", "value": 3 },
+            { "label": "Very often", "value": 4 }
+          ],
+          "reverse_score": true
+        },
+        {
+          "id": "PSS-5",
+          "question": "Felt that you could control irritations in your life",
+          "options": [
+            { "label": "Never", "value": 0 },
+            { "label": "Almost never", "value": 1 },
+            { "label": "Sometimes", "value": 2 },
+            { "label": "Fairly often", "value": 3 },
+            { "label": "Very often", "value": 4 }
+          ],
+          "reverse_score": true
+        },
+        {
+          "id": "PSS-6",
+          "question": "Felt that you were on top of things",
+          "options": [
+            { "label": "Never", "value": 0 },
+            { "label": "Almost never", "value": 1 },
+            { "label": "Sometimes", "value": 2 },
+            { "label": "Fairly often", "value": 3 },
+            { "label": "Very often", "value": 4 }
+          ],
+          "reverse_score": true
+        },
+        {
+          "id": "PSS-7",
+          "question": "Felt that things were out of your control",
+          "options": [
+            { "label": "Never", "value": 0 },
+            { "label": "Almost never", "value": 1 },
+            { "label": "Sometimes", "value": 2 },
+            { "label": "Fairly often", "value": 3 },
+            { "label": "Very often", "value": 4 }
+          ]
+        },
+        {
+          "id": "PSS-8",
+          "question": "Felt angry because of things beyond your control",
+          "options": [
+            { "label": "Never", "value": 0 },
+            { "label": "Almost never", "value": 1 },
+            { "label": "Sometimes", "value": 2 },
+            { "label": "Fairly often", "value": 3 },
+            { "label": "Very often", "value": 4 }
+          ]
+        },
+        {
+          "id": "PSS-9",
+          "question": "Felt that you could control the way you accomplished things",
+          "options": [
+            { "label": "Never", "value": 0 },
+            { "label": "Almost never", "value": 1 },
+            { "label": "Sometimes", "value": 2 },
+            { "label": "Fairly often", "value": 3 },
+            { "label": "Very often", "value": 4 }
+          ],
+          "reverse_score": true
+        },
+        {
+          "id": "PSS-10",
+          "question": "Felt that difficulties were piling up too high",
+          "options": [
+            { "label": "Never", "value": 0 },
+            { "label": "Almost never", "value": 1 },
+            { "label": "Sometimes", "value": 2 },
+            { "label": "Fairly often", "value": 3 },
+            { "label": "Very often", "value": 4 }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Mini-Mental State Examination (MMSE)",
+      "description": "This assessment is used to screen for cognitive impairments, such as memory, language use, and problem-solving abilities.",
+      "questions": [
+        {
+          "id": "MMSE-1",
+          "question": "What day is it today?",
+          "type": "text",
+          "category": "Orientation to time",
+          "note": "The correct answer is the current day"
+        },
+        {
+          "id": "MMSE-2",
+          "question": "What is today’s date?",
+          "type": "text",
+          "category": "Orientation to time",
+          "note": "The correct answer is the current date"
+        },
+        {
+          "id": "MMSE-3",
+          "question": "Where are we now?",
+          "type": "text",
+          "category": "Orientation to place",
+          "note": "The correct answer is the location where the assessment is being conducted"
+        },
+        {
+          "id": "MMSE-4",
+          "question": "Repeat 3 words",
+          "type": "text",
+          "category": "Registration",
+          "note": "The assessor provides 3 words for the participant to repeat immediately"
+        },
+        {
+          "id": "MMSE-5",
+          "question": "Recall 3 words",
+          "type": "text",
+          "category": "Recall",
+          "note": "Ask the participant to recall the 3 words from the previous question"
+        },
+        {
+          "id": "MMSE-6",
+          "question": "Serial 7s / Spell WORLD",
+          "type": "text",
+          "category": "Attention and calculation",
+          "note": "Choose one test: ask the participant to subtract 7 from 100 repeatedly, or to spell the word 'WORLD' backwards"
+        },
+        {
+          "id": "MMSE-7",
+          "question": "Name 2 objects",
+          "type": "text",
+          "category": "Naming",
+          "note": "The assessor points to 2 objects (e.g., a pen and a watch) and asks the participant to name them"
+        },
+        {
+          "id": "MMSE-8",
+          "question": "Follow a 3-step command",
+          "type": "text",
+          "category": "Comprehension",
+          "note": "The assessor gives a 3-step instruction, e.g., 'Take the paper, fold it in half, and put it on the floor'"
+        },
+        {
+          "id": "MMSE-9",
+          "question": "Write a sentence",
+          "type": "text",
+          "category": "Writing",
+          "note": "Ask the participant to write any sentence"
+        },
+        {
+          "id": "MMSE-10",
+          "question": "Copy the pentagons",
+          "type": "text",
+          "category": "Visuospatial",
+          "note": "The assessor asks the participant to draw two overlapping pentagons"
+        }
+      ]
+    },
     ],
   },
 }
