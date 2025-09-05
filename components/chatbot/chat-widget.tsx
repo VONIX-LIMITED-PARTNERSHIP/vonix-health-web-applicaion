@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, Loader2 } from "lucide-react"
+import { MessageCircle, X, Send, Bot, User, ChevronDown, ChevronUp, Loader2 } from "lucide-react" //change Minimize2, Maximize2 to ChevronDown, ChevronUp respectively
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
@@ -222,17 +222,15 @@ export function ChatWidget() {
   return (
     <>
       {/* Floating Chat Button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-5 right-5 z-50">
         <Button
           onClick={toggleChat}
           className={cn(
-            "h-14 w-14 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 border-2 border-white/20",
-            isOpen
-              ? "bg-gray-500 hover:bg-gray-600"
-              : "bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 pulse-glow",
+            // "h-14 w-14 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 border-2 border-white/20",
+            !isOpen? "h-14 w-14 rounded-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 pulse-glow":"hidden",
           )}
         >
-          {isOpen ? <X className="h-6 w-6 text-white" /> : <MessageCircle className="h-6 w-6 text-white" />}
+          {!isOpen &&  <MessageCircle className="h-6 w-6 text-white" />}
 
           {/* New message indicator */}
           {hasNewMessage && !isOpen && (
@@ -245,13 +243,14 @@ export function ChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className={cn("fixed bottom-20 right-4 z-[99] w-full sm:bottom-24 sm:right-6 sm:w-96 flex flex-col rounded-2xl overflow-hidden transition-all duration-300",isMinimized ? "h-[64px]" : "h-[70vh] sm:h-[600px]")}>
-          <Card className="h-full bg-card dark:bg-card-foreground backdrop-blur-xl border border-border shadow-2xl flex flex-col">
+        // when minimized, position at bottom-right corner
+        <div className={cn("fixed right-0 sm:right-2 z-[99] w-96 h-[700px] max-w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-3rem)] rounded-xl flex flex-col transition-all duration-300",isMinimized ? "h-[60px] bottom-0 right-0 p-0" : "h-[600px] top-1")}>
+          <Card className="h-full bg-card dark:bg-card-foreground backdrop-blur-xl shadow-2xl flex flex-col border-2 border border-white/10 overflow-hidden">
             {/* Header */}
-            <CardHeader className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white p-3 sm:p-4 shadow-lg flex flex-row items-center justify-between flex-shrink-0">
-              <div className="flex items-center space-x-4">
+            <CardHeader className="py-2 ps-3 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-lg flex flex-row items-center justify-between flex-shrink-0">
+              <div className="flex items-center space-x-4 ">
                 <div className="relative">
-                  <Avatar className="h-10 w-12 border-3 border-white/30 shadow-lg">
+                  <Avatar className="h-10 w-10 border-3 border-white/30 shadow-lg">
                     <AvatarImage src="/chatbot-avatar-v2.png" />
                     <AvatarFallback className="bg-white/20 text-white text-lg font-bold backdrop-blur-sm">
                       <Bot className="h-6 w-6" />
@@ -262,7 +261,7 @@ export function ChatWidget() {
                 <div>
                   <CardTitle className="text-lg font-bold tracking-wide">ผู้ช่วยอัจฉริยะ</CardTitle>
                   <div className="flex items-center space-x-2 text-sm text-white/90">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    {/* <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div> */}
                     <span className="font-medium">พร้อมช่วยเหลือ 24/7</span>
                   </div>
                 </div>
@@ -274,7 +273,7 @@ export function ChatWidget() {
                   onClick={toggleMinimize}
                   className="text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-200"
                 >
-                {isMinimized ? <Maximize2 className="h-5 w-5" /> : <Minimize2 className="h-5 w-5" />}
+                {isMinimized ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                 </Button>
                 <Button
                   variant="ghost"
@@ -291,11 +290,12 @@ export function ChatWidget() {
             {!isMinimized && (
               <>
                 <CardContent className="flex-1 p-0 flex flex-col overflow-hidden bg-white dark:bg-[#12131a]">
+                  {/* Instruction about button X and ChevronUp */}
                   {showInstructions && (
                     <div className="px-4 py-3 mb-2 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-900 dark:text-yellow-200 rounded-lg text-sm shadow-sm flex items-start justify-between">
                       <span>
                         ℹ️ <strong>วิธีใช้งาน:</strong>  
-                        กด <Minimize2 className="inline-block h-4 w-4 mx-1" /> เพื่อลดขนาด (ประวัติยังคงอยู่)  
+                        กด <ChevronUp className="inline-block h-4 w-4 mx-1" /> เพื่อลดขนาด (ประวัติยังคงอยู่)  
                         และกด <X className="inline-block h-4 w-4 mx-1" /> เพื่อปิดแชทและลบประวัติ
                       </span>
                       <button
@@ -333,7 +333,7 @@ export function ChatWidget() {
                             </Avatar>
                             <div
                               className={cn(
-                                "rounded-2xl px-5 py-4 text-sm leading-relaxed shadow-md",
+                                "rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-md",
                                 message.sender === "user"
                                   ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-blue-200 dark:shadow-blue-900/50"
                                   : "bg-gray-100 text-gray-800 dark:bg-[#1e1e2f] dark:text-gray-100 border border-gray-700/60",
@@ -365,7 +365,7 @@ export function ChatWidget() {
                                 <Bot className="h-4 w-4" />
                               </AvatarFallback>
                             </Avatar>
-                            <div className="bg-muted dark:bg-secondary border border-border rounded-2xl px-5 py-4 shadow-sm">
+                            <div className="bg-muted dark:bg-secondary border border-border rounded-2xl px-4 py-3 shadow-sm">
                               <div className="flex space-x-2">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
                                 <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-100"></div>
@@ -399,7 +399,7 @@ export function ChatWidget() {
                 </CardContent>
 
                 {/* Input Area - Always visible */}
-                <div className="p-3 sm:p-4 bg-background dark:bg-muted border-t border-border flex-shrink-0">
+                <div className="p-3  bg-background dark:bg-muted border-t border-border flex-shrink-0">
                   <div className="flex items-end space-x-4">
                     <Input
                       ref={inputRef}
@@ -422,7 +422,7 @@ export function ChatWidget() {
                       )}
                     </Button>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-4 text-center leading-relaxed font-medium"></div>
+                  <div className="text-xs text-muted-foreground mt-1 text-center leading-relaxed font-medium"></div>
                 </div>
               </>
             )}
