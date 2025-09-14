@@ -14,6 +14,7 @@ import { MessageCircle, X, Send, Bot, User, ChevronDown, ChevronUp, Loader2 } fr
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
+
 interface Message { // Interface is a TypeScript feature that defines the shape of an object.
   id: string
   content: string
@@ -37,7 +38,7 @@ export function ChatWidget() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [showInstructions, setShowInstructions] = useState(false) //for the popup instruction about the chatbot for the new users
-
+  const [isAtBottom, setIsAtBottom] = useState(true)
 
    // Load messages from localStorage when the widget mounts
    useEffect(() => {
@@ -60,22 +61,51 @@ export function ChatWidget() {
   // Save messages to localStorage whenever they change
   useEffect(() => {
     if (messages.length > 0) {
-      localStorage.setItem("chatMessages", JSON.stringify(messages))
+      localStorage.setItem("chatMessages", JSON.stringify(messages)) //chatMessages = key name used in Local Storage to store
     }
   }, [messages])
 
   // Check if current page is an assessment page
   const isAssessmentPage = pathname?.includes("/assessment/") || pathname?.includes("/guest-assessment")
 
-  // Auto scroll to bottom when new message
+  // Track if the user is at the bottom of the chat for the auto-scroll-to-bottom feature
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]")
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight
-      }
+    const scrollContainer = scrollAreaRef.current?.querySelector(
+      "[data-radix-scroll-area-viewport]"
+    ) as HTMLElement | null
+    if (!scrollContainer) return
+
+    const checkIsAtBottom = () => {
+      const threshold = 50 // pixels from bottom
+      const distanceFromBottom =
+        scrollContainer.scrollHeight -
+        scrollContainer.scrollTop -
+        scrollContainer.clientHeight
+      setIsAtBottom(distanceFromBottom <= threshold)
     }
+
+    checkIsAtBottom()
+
+    scrollContainer.addEventListener("scroll", checkIsAtBottom)
+
+    return () => scrollContainer.removeEventListener("scroll", checkIsAtBottom)
   }, [messages])
+
+  // auto scroll to bottom when the user sends a message
+  useEffect(() => {
+    const scrollContainer = scrollAreaRef.current?.querySelector(
+      "[data-radix-scroll-area-viewport]"
+    ) as HTMLElement | null
+    if (!scrollContainer) return
+
+    // Only auto-scroll if user was already near the bottom
+    if (isAtBottom) {
+      scrollContainer.scrollTo({
+        top: scrollContainer.scrollHeight, // scroll all the way to the latest message
+        behavior: "smooth",               // smooth scroll for better UX
+      })
+    }
+  }, [messages, isAtBottom])
 
   // Focus input when chat opens or after interaction
   useEffect(() => {
@@ -100,7 +130,7 @@ export function ChatWidget() {
   }, [isAssessmentPage, isOpen])
 
 
-
+  //helper function that talks to backend (/api/chat) to get the AI’s reply.
   const generateBotResponse = async (
     userMessage: string,
     conversation: { role: "user" | "assistant"; content: string }[],
@@ -144,6 +174,8 @@ export function ChatWidget() {
     setMessages((prev) => [...prev, userMessage])
     setInputValue("")
     setIsTyping(true)
+    // inputRef.current?.focus()
+
 
     try {
 
@@ -152,7 +184,7 @@ export function ChatWidget() {
       const conversationForAI: AIMessage[] =  [...messages, userMessage].map((msg) => ({
         role: msg.sender === "user" ? "user" : "assistant",
         content: msg.content,
-      }))
+      }))  
 
       const botResponse = await generateBotResponse(userMessage.content, conversationForAI)
 
@@ -176,6 +208,7 @@ export function ChatWidget() {
       ])
     } finally {
       setIsTyping(false)
+      setTimeout(() => inputRef.current?.focus(), 50)
     }
   }
 
@@ -376,6 +409,22 @@ export function ChatWidget() {
                         </div>
                       )}
                     </div>
+                    {/* Scroll to bottom button */}
+                    {!isAtBottom && (
+                      <Button
+                        size="sm"
+                        className="absolute bottom-0 left-1/2 transform -translate-x-1/2 rounded-full shadow-lg bg-white text-gray-900"
+                        onClick={() => {
+                          const scrollContainer = scrollAreaRef.current?.querySelector("[data-radix-scroll-area-viewport]") as HTMLElement | null
+                          scrollContainer?.scrollTo({
+                            top: scrollContainer.scrollHeight,
+                            behavior: "smooth",
+                          })
+                        }}
+                      >
+                        <ChevronDown className="h-8 w-4" />
+                      </Button>
+                    )}
                   </ScrollArea>
 
                   {/* Quick Replies - Only visible if not interacted yet */}
