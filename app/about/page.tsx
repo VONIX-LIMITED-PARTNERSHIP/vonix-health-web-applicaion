@@ -1,488 +1,439 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { useLanguage } from "@/contexts/language-context"
-import { useTranslation } from "@/hooks/use-translation"
+import { Badge } from "@/components/ui/badge"
 import {
+  Play,
+  Eye,
   Heart,
-  Brain,
   Shield,
-  Stethoscope,
+  Brain,
   Sparkles,
-  ArrowRight,
   Lock,
   Users,
+  Building2,
+  GraduationCap,
   Handshake,
-  Lightbulb,
-  Scale,
-  Mail,
+  Stethoscope,
+  Database,
+  MonitorSmartphone,
+  ChevronRight,
 } from "lucide-react"
+import { useTranslation } from "@/hooks/use-translation"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 
 export default function AboutPage() {
-  const { locale } = useLanguage()
   const { t } = useTranslation(["about"])
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return null
-  }
-
-  const solutions = [
-    {
-      icon: Brain,
-      title: t("solution_ai_title"),
-      description: t("solution_ai_description"),
-      gradient: "from-purple-500 to-indigo-600",
-    },
-    {
-      icon: Stethoscope,
-      title: t("solution_telemedicine_title"),
-      description: t("solution_telemedicine_description"),
-      gradient: "from-blue-500 to-cyan-600",
-    },
-    {
-      icon: Shield,
-      title: t("solution_blockchain_title"),
-      description: t("solution_blockchain_description"),
-      gradient: "from-green-500 to-emerald-600",
-    },
-    {
-      icon: Lock,
-      title: t("solution_privacy_title"),
-      description: t("solution_privacy_description"),
-      gradient: "from-pink-500 to-rose-600",
-    },
-  ]
-
-  const whyChooseUs = [
-    {
-      icon: Lock,
-      title: t("why_privacy_title"),
-      description: t("why_privacy_description"),
-    },
-    {
-      icon: Brain,
-      title: t("why_ai_insights_title"),
-      description: t("why_ai_insights_description"),
-    },
-    {
-      icon: Users,
-      title: t("why_community_focus_title"),
-      description: t("why_community_focus_description"),
-    },
-    {
-      icon: Scale,
-      title: t("why_regulatory_title"),
-      description: t("why_regulatory_description"),
-    },
-  ]
-
-  const impactValues = [
-    {
-      icon: Users,
-      title: t("impact_community_title"),
-      description: t("impact_community_description"),
-    },
-    {
-      icon: Handshake,
-      title: t("impact_collaboration_title"),
-      description: t("impact_collaboration_description"),
-    },
-    {
-      icon: Lightbulb,
-      title: t("impact_advocacy_title"),
-      description: t("impact_advocacy_description"),
-    },
-  ]
-
-  const teamMembers = [
-    {
-      name: "Pichsinee Thanyatare",
-      role: t("team_ceo"),
-      avatar: "/placeholder.svg?height=100&width=100",
-    },
-    {
-      name: "Nantapong Pongtumrongsak",
-      role: t("team_cto"),
-      avatar: "/placeholder.svg?height=100&width=100",
-    },
-    {
-      name: "Kodchamon Wongkarnkah",
-      role: t("team_coo"),
-      avatar: "/placeholder.svg?height=100&width=100",
-    },
-    {
-      name: "Sutthida Klinmanee",
-      role: t("team_cfo"),
-      avatar: "/placeholder.svg?height=100&width=100",
-    },
-  ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-100 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900">
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0f] text-gray-900 dark:text-white transition-colors duration-300">
       <Header />
 
-      {/* Decorative Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-40 right-10 w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-2000"></div>
-      </div>
+      {/* Hero Section */}
+      <section className="relative py-20 lg:py-32 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-violet-500/10 dark:bg-violet-600/20 rounded-full mix-blend-multiply filter blur-3xl"></div>
+          <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-500/10 dark:bg-purple-600/20 rounded-full mix-blend-multiply filter blur-3xl"></div>
+        </div>
 
-      <main className="relative z-10">
-        {/* Hero Section - Storytelling Driven */}
-        <section className="py-20 md:py-32 px-6">
-          <div className="max-w-6xl mx-auto text-center">
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/80 backdrop-blur-sm border border-purple-200 text-purple-700 text-sm font-medium mb-8 shadow-lg animate-fade-in">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-4xl mx-auto">
+            <Badge className="mb-6 bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-emerald-600 dark:text-emerald-400 px-4 py-2">
               <Sparkles className="w-4 h-4 mr-2" />
-              {t("hero_badge")}
-            </div>
+              {t("about.hero_badge")}
+            </Badge>
 
-            <h1 className="text-4xl sm:text-5xl md:text-8xl font-bold mb-8 leading-tight">
-              <span className="block bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-800 bg-clip-text text-transparent animate-fade-in-up">
-                {t("hero_title_line1")}
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 dark:from-violet-400 dark:via-purple-400 dark:to-fuchsia-400 bg-clip-text text-transparent">
+                {t("about.hero_title_line1")}
               </span>
-              <span className="block bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-fade-in-up delay-200">
-                {t("hero_title_line2")}
+              <br />
+              <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 dark:from-violet-400 dark:via-purple-400 dark:to-fuchsia-400 bg-clip-text text-transparent">
+                {t("about.hero_title_line2")}
               </span>
             </h1>
 
-            <p className="text-lg sm:text-xl md:text-3xl text-gray-600 dark:text-gray-300 mb-6 font-light max-w-4xl mx-auto leading-relaxed animate-fade-in-up delay-400">
-              {t("hero_subtitle")}
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-4">
+              {t("about.hero_subtitle")}
+            </p>
+            <p className="text-gray-500 mb-10 max-w-2xl mx-auto">
+              {t("about.hero_description")}
             </p>
 
-            <p className="text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed animate-fade-in-up delay-600">
-              {t("hero_description")}
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-6 justify-center animate-fade-in-up delay-800">
-              <Button
-                size="lg"
-                className="text-lg px-10 py-6 h-auto bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105"
-                asChild
-              >
-                <Link href="/guest-login">
-                  {t("cta_try_platform")}
-                  <ArrowRight className="ml-3 h-6 w-6" />
-                </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-semibold px-8 py-6 text-lg rounded-full">
+                <Play className="mr-2 h-5 w-5" />
+                {t("about.cta_try_platform")}
+              </Button>
+              <Button size="lg" variant="outline" className="border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white font-semibold px-8 py-6 text-lg rounded-full bg-transparent">
+                <Eye className="mr-2 h-5 w-5" />
+                {t("about.cta_learn_more")}
               </Button>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Mission Section - Human-Centered */}
-        <section id="mission" className="py-20 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-8">
-                <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent dark:from-gray-200 dark:to-gray-400">
-                  {t("mission_title")}
-                </span>
-              </h2>
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed font-light">
-                {t("mission_description")}
-              </p>
-            </div>
+      {/* Future of Digital Health Section */}
+      <section className="py-20 bg-gray-50 dark:bg-[#0d0d12] transition-colors duration-300">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+              {t("about.mission_title")}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              {t("about.mission_description")}
+            </p>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-              <div className="text-center p-8 rounded-3xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
-                  <Heart className="w-10 h-10" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Card 1 */}
+            <Card className="bg-white dark:bg-[#12121a] border-gray-200 dark:border-gray-800 hover:border-violet-500/50 transition-all duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-violet-100 dark:bg-violet-600/20 flex items-center justify-center">
+                  <Heart className="h-8 w-8 text-violet-600 dark:text-violet-400" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
-                  {t("value_accessible_title")}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{t("value_accessible_desc")}</p>
-              </div>
+                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">{t("about.value_accessible_title")}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                  {t("about.value_accessible_desc")}
+                </p>
+              </CardContent>
+            </Card>
 
-              <div className="text-center p-8 rounded-3xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
-                  <Shield className="w-10 h-10" />
+            {/* Card 2 */}
+            <Card className="bg-white dark:bg-[#12121a] border-gray-200 dark:border-gray-800 hover:border-violet-500/50 transition-all duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-violet-100 dark:bg-violet-600/20 flex items-center justify-center">
+                  <Shield className="h-8 w-8 text-violet-600 dark:text-violet-400" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">{t("value_secure_title")}</h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{t("value_secure_desc")}</p>
-              </div>
+                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">{t("about.value_secure_title")}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                  {t("about.value_secure_desc")}
+                </p>
+              </CardContent>
+            </Card>
 
-              <div className="text-center p-8 rounded-3xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white shadow-lg">
-                  <Brain className="w-10 h-10" />
+            {/* Card 3 */}
+            <Card className="bg-white dark:bg-[#12121a] border-gray-200 dark:border-gray-800 hover:border-violet-500/50 transition-all duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-violet-100 dark:bg-violet-600/20 flex items-center justify-center">
+                  <Brain className="h-8 w-8 text-violet-600 dark:text-violet-400" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
-                  {t("value_intelligent_title")}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{t("value_intelligent_desc")}</p>
-              </div>
-            </div>
+                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">{t("about.value_intelligent_title")}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                  {t("about.value_intelligent_desc")}
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        </section>
+        </div>
+      </section>
 
-
-        {/* Solutions Section - Feature Focused */}
-        <section className="py-20 px-6 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-8">
-                <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                  {t("solutions_title")}
-                </span>
-              </h2>
-              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                {t("solutions_description")}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {solutions.map((solution, index) => (
-                <Card
-                  key={index}
-                  className="group relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 rounded-3xl"
-                >
-                  <CardContent className="p-8">
-                    <div className="flex items-start space-x-4">
-                      <div
-                        className={`p-4 rounded-2xl bg-gradient-to-br ${solution.gradient} text-white shadow-lg group-hover:shadow-xl transition-all duration-300`}
-                      >
-                        <solution.icon className="h-8 w-8" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
-                          {solution.title}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{solution.description}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+      {/* Our Solutions Section */}
+      <section className="py-20 bg-white dark:bg-[#0a0a0f] transition-colors duration-300">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12">
+            <Badge className="mb-4 bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-xs">
+              OUR SOLUTIONS
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+              {t("about.solutions_title")}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-xl">
+              {t("about.solutions_description")}
+            </p>
+            <Link href="#" className="inline-flex items-center text-violet-600 dark:text-violet-400 hover:text-violet-500 dark:hover:text-violet-300 mt-4 text-sm font-medium">
+              {t("about.cta_learn_more")}
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Link>
           </div>
-        </section>
 
-        {/* Why VONIX Section - Differentiation */}
-        <section className="py-20 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-8">
-                <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent dark:from-gray-200 dark:to-gray-400">
-                  {t("why_vonix_title")}
-                </span>
-              </h2>
-              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                {t("why_vonix_description")}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {whyChooseUs.map((item, index) => (
-                <div
-                  key={index}
-                  className="text-center group p-6 rounded-3xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105"
-                >
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg group-hover:shadow-xl transition-all duration-300 mb-6">
-                    <item.icon className="h-8 w-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* AI Health Assessment */}
+            <Card className="bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/40 dark:to-purple-900/40 border-violet-300 dark:border-violet-500/30 hover:border-violet-500/50 transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-violet-200 dark:bg-violet-600/30 flex items-center justify-center flex-shrink-0">
+                    <Brain className="h-6 w-6 text-violet-600 dark:text-violet-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">{item.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{item.description}</p>
+                  <div>
+                    <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{t("about.solution_ai_title")}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                      {t("about.solution_ai_description")}
+                    </p>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
+              </CardContent>
+            </Card>
 
-        {/* Impact & Social Value Section */}
-        <section className="py-20 px-6 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-8">
-                <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                  {t("impact_title")}
-                </span>
+            {/* Telemedicine */}
+            <Card className="bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/40 dark:to-purple-900/40 border-violet-300 dark:border-violet-500/30 hover:border-violet-500/50 transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-violet-200 dark:bg-violet-600/30 flex items-center justify-center flex-shrink-0">
+                    <MonitorSmartphone className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{t("about.solution_telemedicine_title")}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                      {t("about.solution_telemedicine_description")}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Blockchain Records */}
+            <Card className="bg-gray-50 dark:bg-[#12121a] border-gray-200 dark:border-gray-800 hover:border-violet-500/50 transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                    <Database className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{t("about.solution_blockchain_title")}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                      {t("about.solution_blockchain_description")}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Privacy First */}
+            <Card className="bg-gray-50 dark:bg-[#12121a] border-gray-200 dark:border-gray-800 hover:border-violet-500/50 transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                    <Lock className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{t("about.solution_privacy_title")}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                      {t("about.solution_privacy_description")}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* VONIX Highlights Section */}
+      <section className="py-20 bg-gray-50 dark:bg-[#0d0d12] transition-colors duration-300">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+              {t("about.why_vonix_title")}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {/* Feature 1 */}
+            <Card className="bg-white dark:bg-[#12121a] border-gray-200 dark:border-gray-800">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-violet-100 dark:bg-violet-600/20 flex items-center justify-center">
+                  <Lock className="h-7 w-7 text-violet-600 dark:text-violet-400" />
+                </div>
+                <h3 className="text-sm font-bold mb-2 text-gray-900 dark:text-white">{t("about.why_privacy_title")}</h3>
+                <p className="text-gray-500 text-xs">
+                  {t("about.why_privacy_description")}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Feature 2 */}
+            <Card className="bg-white dark:bg-[#12121a] border-gray-200 dark:border-gray-800">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-violet-100 dark:bg-violet-600/20 flex items-center justify-center">
+                  <MonitorSmartphone className="h-7 w-7 text-violet-600 dark:text-violet-400" />
+                </div>
+                <h3 className="text-sm font-bold mb-2 text-gray-900 dark:text-white">{t("about.why_ai_insights_title")}</h3>
+                <p className="text-gray-500 text-xs">
+                  {t("about.why_ai_insights_description")}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Feature 3 */}
+            <Card className="bg-white dark:bg-[#12121a] border-gray-200 dark:border-gray-800">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-violet-100 dark:bg-violet-600/20 flex items-center justify-center">
+                  <Users className="h-7 w-7 text-violet-600 dark:text-violet-400" />
+                </div>
+                <h3 className="text-sm font-bold mb-2 text-gray-900 dark:text-white">{t("about.why_community_focus_title")}</h3>
+                <p className="text-gray-500 text-xs">
+                  {t("about.why_community_focus_description")}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Feature 4 */}
+            <Card className="bg-white dark:bg-[#12121a] border-gray-200 dark:border-gray-800">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-violet-100 dark:bg-violet-600/20 flex items-center justify-center">
+                  <Stethoscope className="h-7 w-7 text-violet-600 dark:text-violet-400" />
+                </div>
+                <h3 className="text-sm font-bold mb-2 text-gray-900 dark:text-white">{t("about.why_regulatory_title")}</h3>
+                <p className="text-gray-500 text-xs">
+                  {t("about.why_regulatory_description")}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Impact Section */}
+      <section className="py-20 bg-white dark:bg-[#0a0a0f] transition-colors duration-300">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+                {t("about.impact_title")}
               </h2>
-              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                {t("impact_description")}
+              <p className="text-gray-600 dark:text-gray-400 max-w-2xl">
+                {t("about.impact_description")}
               </p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {impactValues.map((item, index) => (
-                <Card
-                  key={index}
-                  className="group relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 rounded-3xl"
-                >
-                  <CardContent className="p-8 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-green-600 text-white shadow-lg group-hover:shadow-xl transition-all duration-300 mb-6">
-                      <item.icon className="h-8 w-8" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{item.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{item.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <Link href="#" className="inline-flex items-center text-violet-600 dark:text-violet-400 hover:text-violet-500 dark:hover:text-violet-300 mt-4 md:mt-0 text-sm font-medium">
+              {t("about.cta_learn_more")}
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Link>
           </div>
-        </section>
 
-        {/* Partners Section - Strategic Collaborations */}
-        <section className="py-20 px-6 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-8">
-                <span className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-                  {t("partnerships_title")}
-                </span>
-              </h2>
-              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                {t("partnerships_description")}
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Health Equity */}
+            <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 border-emerald-200 dark:border-emerald-500/30">
+              <CardContent className="p-6">
+                <div className="w-12 h-12 rounded-xl bg-emerald-200 dark:bg-emerald-600/30 flex items-center justify-center mb-4">
+                  <Heart className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{t("about.impact_community_title")}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                  {t("about.impact_community_description")}
+                </p>
+              </CardContent>
+            </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <Card className="group relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 rounded-3xl">
-                <CardContent className="p-8 text-center">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white shadow-lg">
-                    <Stethoscope className="w-10 h-10" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
-                    {t("partnership_hospitals_title")}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                    {t("partnership_hospitals_desc")}
-                  </p>
-                  <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium">
-                    {t("partnership_hospitals_type")}
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Partnerships */}
+            <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-violet-200 dark:border-violet-500/30">
+              <CardContent className="p-6">
+                <div className="w-12 h-12 rounded-xl bg-violet-200 dark:bg-violet-600/30 flex items-center justify-center mb-4">
+                  <Handshake className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{t("about.impact_collaboration_title")}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                  {t("about.impact_collaboration_description")}
+                </p>
+              </CardContent>
+            </Card>
 
-              <Card className="group relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 rounded-3xl">
-                <CardContent className="p-8 text-center">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg">
-                    <Brain className="w-10 h-10" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
-                    {t("partnership_universities_title")}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                    {t("partnership_universities_desc")}
-                  </p>
-                  <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm font-medium">
-                    {t("partnership_universities_type")}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="group relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 rounded-3xl">
-                <CardContent className="p-8 text-center">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white shadow-lg">
-                    <Shield className="w-10 h-10" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
-                    {t("partnership_tech_title")}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">{t("partnership_tech_desc")}</p>
-                  <div className="inline-flex items-center px-4 py-2 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium">
-                    {t("partnership_tech_type")}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-
+            {/* Education */}
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-blue-200 dark:border-blue-500/30">
+              <CardContent className="p-6">
+                <div className="w-12 h-12 rounded-xl bg-blue-200 dark:bg-blue-600/30 flex items-center justify-center mb-4">
+                  <GraduationCap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{t("about.impact_advocacy_title")}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                  {t("about.impact_advocacy_description")}
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Get Involved / Contact Section */}
-        <section className="py-20 px-6 bg-gradient-to-r from-purple-600 to-indigo-600">
-          <div className="max-w-4xl mx-auto text-center text-white">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8">{t("get_involved_title")}</h2>
-            <p className="text-lg sm:text-xl mb-12 opacity-90 leading-relaxed">{t("get_involved_description")}</p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button
-                size="lg"
-                className="text-lg px-10 py-6 h-auto bg-white text-purple-600 hover:bg-gray-100 font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105"
-                asChild
-              >
-                <Link href="/guest-login">
-                  {t("get_involved_try_now")}
-                  <ArrowRight className="ml-3 h-6 w-6" />
-                </Link>
+      {/* Ecosystem Section */}
+      <section className="py-20 bg-gray-50 dark:bg-[#0d0d12] transition-colors duration-300">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-xs">
+              ECOSYSTEM
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+              {t("about.partnerships_title")}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Healthcare Providers */}
+            <Card className="bg-white dark:bg-[#12121a] border-gray-200 dark:border-gray-800">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-600/20 flex items-center justify-center">
+                    <Building2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">{t("about.partnership_hospitals_title")}</h3>
+                    <p className="text-gray-500 text-xs">{t("about.partnership_hospitals_desc")}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Academic Partners */}
+            <Card className="bg-white dark:bg-[#12121a] border-gray-200 dark:border-gray-800">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-600/20 flex items-center justify-center">
+                    <GraduationCap className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">{t("about.partnership_universities_title")}</h3>
+                    <p className="text-gray-500 text-xs">{t("about.partnership_universities_desc")}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tech Partners */}
+            <Card className="bg-white dark:bg-[#12121a] border-gray-200 dark:border-gray-800">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-600/20 flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">{t("about.partnership_tech_title")}</h3>
+                    <p className="text-gray-500 text-xs">{t("about.partnership_tech_desc")}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-white dark:bg-[#0a0a0f] transition-colors duration-300">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 text-gray-900 dark:text-white">
+              {t("about.get_involved_title")}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
+              {t("about.get_involved_description")}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-semibold px-8 py-6 text-lg rounded-full">
+                {t("about.get_involved_try_now")}
+                <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
-              {/* <Button
-                size="lg"
-                variant="outline"
-                className="text-lg px-10 py-6 h-auto border-2 border-white text-white hover:bg-white hover:text-purple-600 font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 bg-transparent"
-                asChild
-              >
-                <Link href="mailto:vonix.th@gmail.com">
-                  {t("get_involved_contact")}
-                  <Mail className="ml-2 h-5 w-5" />
-                </Link>
-              </Button> */}
+              <Button size="lg" variant="outline" className="border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white font-semibold px-8 py-6 text-lg rounded-full bg-transparent">
+                {t("about.get_involved_contact")}
+              </Button>
             </div>
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
       <Footer />
-
-      <style jsx global>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 1s ease-out;
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 1s ease-out;
-        }
-
-        .delay-200 {
-          animation-delay: 0.2s;
-          animation-fill-mode: both;
-        }
-
-        .delay-400 {
-          animation-delay: 0.4s;
-          animation-fill-mode: both;
-        }
-
-        .delay-600 {
-          animation-delay: 0.6s;
-          animation-fill-mode: both;
-        }
-
-        .delay-800 {
-          animation-delay: 0.8s;
-          animation-fill-mode: both;
-        }
-      `}</style>
     </div>
   )
 }

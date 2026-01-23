@@ -27,6 +27,8 @@ import { useLanguage } from "@/contexts/language-context"
 import { useTranslation } from "@/hooks/use-translation"
 import { useTheme } from "next-themes"
 
+import { VonixLogo } from "@/components/vonix-logo"
+
 export function Header() {
   const { user, profile, isAuthSessionLoading, isProfileLoading, signOut, refreshProfile } = useAuth()
   const { guestUser, isGuestLoggedIn, logoutGuest } = useGuestAuth()
@@ -116,33 +118,23 @@ export function Header() {
         {/* Combined Logo and Desktop Navigation Menu */}
         <div className="flex items-center space-x-4 sm:space-x-6">
           <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group">
-            <div className="relative">
-              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
-                <Activity className="h-5 w-5 sm:h-7 sm:w-7" />
-              </div>
-            </div>
-            <div>
-              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                VONIX
-              </span>
-            </div>
+            <VonixLogo />
           </Link>
 
           {/* Desktop Navigation Menu - hidden on mobile */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium">
+
             <Link
               href="/"
-              className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                pathname === "/" ? "text-blue-600" : "text-gray-600 dark:text-gray-300"
-              }`}
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === "/" ? "text-blue-600" : "text-gray-600 dark:text-gray-300"
+                }`}
             >
               {locale === "th" ? "หน้าหลัก" : "Home"}
             </Link>
             <Link
               href="/about"
-              className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                pathname === "/about" ? "text-blue-600" : "text-gray-600 dark:text-gray-300"
-              }`}
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === "/about" ? "text-blue-600" : "text-gray-600 dark:text-gray-300"
+                }`}
             >
               {locale === "th" ? "เกี่ยวกับเรา" : "About"}
             </Link>
@@ -160,31 +152,21 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="left" className="w-[250px] sm:w-[300px] flex flex-col">
               <div className="flex items-center space-x-2 sm:space-x-3 group mb-6">
-                <div className="relative">
-                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg">
-                    <Activity className="h-5 w-5 sm:h-7 sm:w-7" />
-                  </div>
-                </div>
-                <div>
-                  <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    VONIX
-                  </span>
-                </div>
+                <VonixLogo />
               </div>
+
               <nav className="flex flex-col gap-4">
                 <Link
                   href="/"
-                  className={`text-lg font-medium transition-colors hover:text-blue-600 ${
-                    pathname === "/" ? "text-blue-600" : "text-gray-700 dark:text-gray-300"
-                  }`}
+                  className={`text-lg font-medium transition-colors hover:text-blue-600 ${pathname === "/" ? "text-blue-600" : "text-gray-700 dark:text-gray-300"
+                    }`}
                 >
                   {locale === "th" ? "หน้าหลัก" : "Home"}
                 </Link>
                 <Link
                   href="/about"
-                  className={`text-lg font-medium transition-colors hover:text-blue-600 ${
-                    pathname === "/about" ? "text-blue-600" : "text-gray-700 dark:text-gray-300"
-                  }`}
+                  className={`text-lg font-medium transition-colors hover:text-blue-600 ${pathname === "/about" ? "text-blue-600" : "text-gray-700 dark:text-gray-300"
+                    }`}
                 >
                   {locale === "th" ? "เกี่ยวกับเรา" : "About"}
                 </Link>
@@ -192,29 +174,23 @@ export function Header() {
             </SheetContent>
           </Sheet>
 
-          {/* Settings Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="p-2">
-                <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="sr-only">{t("settings")}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleLanguageToggle}>
-                <Languages className="mr-2 h-4 w-4" />
-                <span className="flex-1">{t("language")}</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">{locale === "th" ? "ไทย" : "English"}</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleThemeToggle}>
-                {theme === "light" ? <Moon className="mr-2 h-4 w-4" /> : <Sun className="mr-2 h-4 w-4" />}
-                <span className="flex-1">{t("theme")}</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {theme === "light" ? t("dark") : t("light")}
-                </span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Language Toggle */}
+          <Button variant="ghost" size="sm" className="p-2" onClick={handleLanguageToggle}>
+            <Languages className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="sr-only">{t("language")}</span>
+            <span className="ml-1 text-xs font-medium uppercase">{locale}</span>
+          </Button>
+
+          {/* Theme Toggle */}
+          <Button variant="ghost" size="sm" className="p-2" onClick={handleThemeToggle}>
+            {theme === "light" ? (
+              <Moon className="h-4 w-4 sm:h-5 sm:w-5 transition-all" />
+            ) : (
+              <Sun className="h-4 w-4 sm:h-5 sm:w-5 transition-all" />
+            )}
+            <span className="sr-only">{t("theme")}</span>
+          </Button>
+
 
           {isAuthSessionLoading ? (
             <div className="flex items-center space-x-2">
@@ -240,11 +216,10 @@ export function Header() {
                     <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                       <AvatarImage src={profile?.avatar_url || ""} alt={displayName} />
                       <AvatarFallback
-                        className={`${
-                          isGuestLoggedIn
-                            ? "bg-gradient-to-br from-purple-400 to-pink-500"
-                            : "bg-gradient-to-br from-blue-400 to-purple-500"
-                        } text-white font-semibold text-sm`}
+                        className={`${isGuestLoggedIn
+                          ? "bg-gradient-to-br from-purple-400 to-pink-500"
+                          : "bg-gradient-to-br from-blue-400 to-purple-500"
+                          } text-white font-semibold text-sm`}
                       >
                         {getInitials(displayName)}
                       </AvatarFallback>

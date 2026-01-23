@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import ImagePopup from '@/components/image-popup'
+import { LandingPage } from "@/components/landing-page"
 import { DemoBanner } from "@/components/demo-banner"
 import { useAuth } from "@/hooks/use-auth"
 import { useGuestAuth } from "@/hooks/use-guest-auth"
@@ -593,109 +594,39 @@ export default function HomePage() {
     )
   }
 
+
+  if (!isLoggedIn) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950">
+        <Header />
+        <DemoBanner />
+        <ImagePopup
+          imageUrl="/images/login_info.png"
+          altText="รูปโปรโมชั่น"
+        />
+        <main className="flex-grow">
+          <LandingPage />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
   return (
+
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
       <Header />
       <DemoBanner />
-      <ImagePopup 
+      <ImagePopup
         imageUrl="/images/login_info.png"
         altText="รูปโปรโมชั่น"
       />
       <main className="relative">
-        {/* Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-purple-300/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
-          <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-pink-300/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-2000"></div>
-        </div>
-
         <div className="relative z-10">
-          {/* Hero Section */}
-          <section className="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20">
-            <div className="text-center max-w-5xl mx-auto">
-              {/* Trust Badge */}
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/90 backdrop-blur-sm border border-blue-200/50 text-blue-700 text-sm font-medium mb-8 shadow-lg">
-                <Shield className="w-4 h-4 mr-2" />
-                {t("smart_health_assessment_system")}
-                <Sparkles className="w-4 h-4 ml-2" />
-              </div>
-
-              {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-relaxed">
-                <span className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent dark:from-white dark:via-blue-200 dark:to-purple-200 inline-block py-2">
-                  {t("assess_health_with_ai")}
-                </span>
-              </h1>
-
-              {/* Subtitle */}
-              <p className="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 mb-4 font-semibold">
-                {t("easy_fast_accurate")}
-              </p>
-              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed">
-                {t("ai_powered_description")}
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-                <Button
-                  size="lg"
-                  className="text-lg px-8 py-4 h-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
-                  onClick={handleStartAssessment}
-                >
-                  <Play className="mr-3 h-6 w-6" />
-                  {t("start_health_assessment")}
-                </Button>
-                {isLoggedIn && (
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="text-lg px-8 py-4 h-auto border-2 border-gray-300 bg-white/80 backdrop-blur-sm hover:bg-white text-gray-700 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300
-                    dark:border-gray-600 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:text-gray-200"
-                    onClick={handleConsultDoctorClick}
-                    disabled
-                  >
-                    <Stethoscope className="mr-3 h-6 w-6" />
-                    {t("consult_doctor_online")}
-                  </Button>
-                )}
-              </div>
-
-              {/* Trust Indicators */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                <div className="flex items-center justify-center space-x-3 p-6 rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg">
-                    <Sparkles className="w-6 h-6" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-bold text-gray-900 dark:text-white">{t("smart_ai")}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{t("analyze_with_openai")}</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center space-x-3 p-6 rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <div className="p-3 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg">
-                    <Shield className="w-6 h-6" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-bold text-gray-900 dark:text-white">{t("secure")}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{t("encrypted_data_pdpa")}</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center space-x-3 p-6 rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-lg">
-                    <Zap className="w-6 h-6" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-bold text-gray-900 dark:text-white">{t("fast_results")}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{t("results_in_minutes")}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
 
           {/* Dashboard Section */}
           {isLoggedIn && (
-            <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">{renderDashboardContent()}</section>
+            <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20 pt-8">{renderDashboardContent()}</section>
           )}
 
           {/* Assessment Categories */}
@@ -748,17 +679,16 @@ export default function HomePage() {
                               </div>
                               {category.id !== "basic" && category.riskLevel && (
                                 <div
-                                  className={`font-semibold text-sm mt-1 ${
-                                    category.riskLevel === "low"
-                                      ? "text-green-600 dark:text-green-400"
-                                      : category.riskLevel === "medium"
-                                        ? "text-yellow-600 dark:text-yellow-400"
-                                        : category.riskLevel === "high"
-                                          ? "text-orange-600 dark:text-orange-400"
-                                          : category.riskLevel === "very-high"
-                                            ? "text-red-600 dark:text-red-400"
-                                            : "text-gray-600 dark:text-gray-300"
-                                  }`}
+                                  className={`font-semibold text-sm mt-1 ${category.riskLevel === "low"
+                                    ? "text-green-600 dark:text-green-400"
+                                    : category.riskLevel === "medium"
+                                      ? "text-yellow-600 dark:text-yellow-400"
+                                      : category.riskLevel === "high"
+                                        ? "text-orange-600 dark:text-orange-400"
+                                        : category.riskLevel === "very-high"
+                                          ? "text-red-600 dark:text-red-400"
+                                          : "text-gray-600 dark:text-gray-300"
+                                    }`}
                                 >
                                   ({getRiskLevelLabel(category.riskLevel)})
                                 </div>
@@ -779,12 +709,11 @@ export default function HomePage() {
                       </div>
 
                       <Button
-                        className={`w-full font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl ${
-                          category.required
-                            ? `bg-gradient-to-r ${category.gradient} hover:shadow-lg text-white`
-                            : `bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 
+                        className={`w-full font-semibold py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl ${category.required
+                          ? `bg-gradient-to-r ${category.gradient} hover:shadow-lg text-white`
+                          : `bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 
                               dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:border-gray-500`
-                        }`}
+                          }`}
                         asChild
                       >
                         <Link href={`/assessment/${category.id}`}>
