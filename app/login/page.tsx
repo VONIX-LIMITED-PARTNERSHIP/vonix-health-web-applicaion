@@ -126,7 +126,7 @@ export default function LoginPage() {
                 <div className="relative w-full max-w-sm sm:max-w-md">
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-xl transform rotate-1"></div>
                   <Image
-                    src="/images/login_info.png"
+                    src="/images/favicon.png"
                     alt="VONIX Health Information"
                     width={400}
                     height={533}
